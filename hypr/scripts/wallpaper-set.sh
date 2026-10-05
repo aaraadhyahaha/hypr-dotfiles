@@ -10,3 +10,4 @@ awww img "$1" \
   --transition-pos center \
   --transition-duration 1.6 \
   --transition-fps 60
+matugen image "$1" -m dark --source-color-index 0 >> /tmp/matugen.log 2>&1 &

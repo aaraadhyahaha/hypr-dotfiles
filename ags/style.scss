@@ -1,10 +1,6 @@
-@use "sass:color";
+@use "colors" as *;
 
 $font: "SF Pro Text", sans-serif;
-$bar: rgba(22, 22, 30, 0.55);
-$bar-solid: $bar;
-$fg: #e8e8f2;
-$accent: #a9b8ff;
 $radius: 10px;
 
 @keyframes pulse {
@@ -97,7 +93,7 @@ button.launcher:hover { background-color: rgba($fg, 0.12); }
 }
 
 .battery label { margin-left: 6px; }
-.battery.low { color: #ff6b6b; }
+.battery.low { color: $error; }
 
 .volume label { margin-left: 6px; }
 .volume.muted { opacity: 0.45; }
