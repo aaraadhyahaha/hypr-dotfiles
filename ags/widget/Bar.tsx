@@ -1,6 +1,6 @@
 import app from "ags/gtk4/app"
 import { Astal, Gdk, Gtk } from "ags/gtk4"
-import { createBinding, createState, For, Accessor } from "ags"
+import { createBinding, createState, For, Accessor, With } from "ags"
 import { createPoll } from "ags/time"
 import AstalHyprland from "gi://AstalHyprland"
 import AstalBattery from "gi://AstalBattery?version=0.1"
@@ -11,6 +11,7 @@ import Pango from "gi://Pango?version=1.0"
 import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
 import AstalNotifd from "gi://AstalNotifd?version=0.1"
 import { toggleLauncher } from "./Launcher"
+import AstalTray from "gi://AstalTray?version=0.1"
 
 const Sep = () => <box class="sep" />
 
@@ -273,6 +274,71 @@ function Power() {
   )
 }
 
+function WindowTitle() {
+  const hypr = AstalHyprland.get_default()
+  const focused = createBinding(hypr, "focusedClient")
+
+  return (
+    <box>
+      <With value={focused}>
+        {(client) =>
+          client && (
+            <box class="wintitle">
+              <Sep />
+              <label
+                maxWidthChars={36}
+                ellipsize={Pango.EllipsizeMode.END}
+                label={createBinding(client, "title")}
+              />
+            </box>
+          )
+        }
+      </With>
+    </box>
+  )
+}
+
+const HIDDEN = /nm-applet|network|blueman/i
+
+function Tray() {
+  const tray = AstalTray.get_default()
+  const items = createBinding(tray, "items").as((l) =>
+    l.filter((i) => !HIDDEN.test(`${i.id} ${i.title}`)),
+  )
+
+  return (
+    <box class="tray" visible={items.as((l) => l.length > 0)}>
+      <For each={items}>
+        {(item) => (
+          <menubutton
+            $={(self) => {
+              self.insert_action_group("dbusmenu", item.actionGroup)
+
+              // left click = activate the app, right click = its menu
+              const left = new Gtk.GestureClick({ button: 1 })
+              left.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+              left.connect("pressed", () => {
+                left.set_state(Gtk.EventSequenceState.CLAIMED)
+                item.activate(0, 0)
+              })
+              self.add_controller(left)
+
+              const right = new Gtk.GestureClick({ button: 3 })
+              right.connect("pressed", () => self.popup())
+              self.add_controller(right)
+            }}
+            tooltipMarkup={createBinding(item, "tooltipMarkup")}
+            menuModel={createBinding(item, "menuModel")}
+          >
+            <image gicon={createBinding(item, "gicon")} />
+          </menubutton>
+        )}
+      </For>
+      <Sep />
+    </box>
+  )
+}
+
 export default function Bar(gdkmonitor: Gdk.Monitor) {
   const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
 
@@ -294,6 +360,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
           </button>
           <Sep />
           <Workspaces />
+          <WindowTitle />
         </box>
         <box $type="center">
           <Clock />
@@ -301,6 +368,8 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
           <Notifications />
         </box>
         <box $type="end" class="end">
+          <Tray />
+          <Sep />
           <Wifi />
           <Bluetooth />
           <Sep />

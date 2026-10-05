@@ -355,3 +355,27 @@ window.Shot { background: transparent; }
 
 window.Clip { background: transparent; }
 .clip-thumb { margin-right: 12px; border-radius: 6px; }
+
+.wintitle { animation: title-in 260ms ease-out both; }
+@keyframes title-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tray image { -gtk-icon-size: 15px; }
+.tray menubutton button {
+  padding: 0 4px;
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  border-radius: 7px;
+}
+.tray menubutton button:hover { background-color: rgba($fg, 0.12); }
+
+popover modelbutton {
+  color: $fg;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+popover modelbutton:hover { background-color: rgba($fg, 0.12); }
