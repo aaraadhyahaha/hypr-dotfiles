@@ -1,0 +1,26 @@
+add_newline = true
+format = "$directory$git_branch$git_status$character"
+right_format = "$cmd_duration"
+
+[character]
+success_symbol = "[❯](bold #a9b8ff)"
+error_symbol = "[❯](bold #ff6b81)"
+
+[directory]
+style = "bold #a9b8ff"
+truncation_length = 3
+format = "[$path]($style) "
+
+[git_branch]
+symbol = " "
+style = "#c9a0ff"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "#f0d28a"
+format = "([$all_status$ahead_behind]($style) )"
+
+[cmd_duration]
+min_time = 2000
+style = "#4a4a5e"
+format = "[$duration]($style)"

@@ -1,0 +1,12 @@
+/*
+!/.gitignore
+!/hypr/
+!/ags/
+!/kitty/
+!/fish/
+!/starship.toml
+!/gtk-3.0/
+!/gtk-4.0/
+!/qt5ct/
+!/qt6ct/
+node_modules/

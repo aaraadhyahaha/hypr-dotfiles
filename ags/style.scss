@@ -1,0 +1,354 @@
+@use "sass:color";
+
+$font: "SF Pro Text", sans-serif;
+$bar: rgba(22, 22, 30, 0.55);
+$bar-solid: $bar;
+$fg: #e8e8f2;
+$accent: #a9b8ff;
+$radius: 10px;
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse { animation: pulse 1.4s ease-in-out infinite; }
+
+label, image, button, .battery, .volume, .wifi, .brightness, .bt, .bell {
+  transition: all 220ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.hoverable {
+  padding: 0 6px;
+  border-radius: 7px;
+}
+.hoverable:hover { background-color: rgba($fg, 0.12); }
+.hoverable:active { background-color: rgba($fg, 0.2); }
+
+window.Bar {
+  background: transparent;
+  color: $fg;
+  font-family: $font;
+  font-size: 13px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+.body {
+  margin: 6px 8px 0 8px;
+  padding: 3px;
+  min-height: 32px;
+  background: $bar;
+  border-radius: $radius;
+}
+
+.sep {
+  min-width: 1px;
+  margin: 5px 10px;
+  background: rgba($fg, 0.3);
+}
+
+button.launcher {
+  min-width: 30px;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  color: $fg;
+  border-radius: 7px;
+}
+button.launcher:hover { background-color: rgba($fg, 0.12); }
+
+.glyph {
+  font-family: "JetBrainsMono Nerd Font", sans-serif;
+  font-size: 17px;
+}
+
+.end { padding-right: 12px; }
+
+.workspaces { margin: 0 6px; }
+
+.dot {
+  min-width: 8px;
+  min-height: 8px;
+  padding: 0;
+  margin: 0 3px;
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: rgba($fg, 0.35);
+  border-radius: 99px;
+  transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.dot.active {
+  min-width: 26px;
+  background-color: $accent;
+}
+
+.body image { -gtk-icon-size: 14px; }
+
+.glyph { font-size: 15px; }
+
+.date {
+  margin-left: 8px;
+  font-weight: 500;
+  opacity: 0.65;
+}
+
+.battery label { margin-left: 6px; }
+.battery.low { color: #ff6b6b; }
+
+.volume label { margin-left: 6px; }
+.volume.muted { opacity: 0.45; }
+
+.wifi label { margin-left: 6px; }
+
+button.bt {
+  padding: 0 4px;
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  color: $fg;
+}
+
+button.bt.off { opacity: 0.4; }
+
+menubutton.bell button {
+  padding: 0 4px;
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  color: $fg;
+}
+.count { margin-left: 4px; font-size: 11px; }
+
+popover { background: transparent; box-shadow: none; }
+
+popover > contents {
+  background: $bar;
+  color: $fg;
+  border: none;
+  box-shadow: none;
+  border-radius: $radius;
+  padding: 8px;
+}
+
+.notif-list,
+.notif-list scrolledwindow,
+.notif-list viewport { background: transparent; }
+
+.notif-list { min-width: 320px; }
+.empty { opacity: 0.5; padding: 10px; }
+
+.notif {
+  padding: 8px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background-color: rgba($fg, 0.08);
+}
+.notif .app { font-size: 11px; opacity: 0.6; }
+.notif .summary { font-weight: 700; }
+.notif .notif-body { opacity: 0.8; }
+.notif button,
+button.clear {
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  color: $fg;
+}
+
+window.Toasts { background: transparent; }
+
+.toast {
+  background: $bar;
+  color: $fg;
+  border-radius: $radius;
+  padding: 10px 14px;
+  margin: 8px 10px 0 0;
+  min-width: 300px;
+}
+.toast .app { font-size: 11px; opacity: 0.6; }
+.toast .summary { font-weight: 700; }
+.toast .notif-body { opacity: 0.8; }
+
+.toast.in  { animation: toast-in 520ms ease-out both; }
+.toast.out { animation: toast-out 260ms ease-in both; }
+
+@keyframes toast-in {
+  0%   { opacity: 0; transform: translateX(60px) scale(0.92); }
+  55%  { opacity: 1; transform: translateX(-8px) scale(1.02); }
+  78%  { transform: translateX(3px) scale(0.995); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes toast-out {
+  0%   { opacity: 1; transform: translateX(0); }
+  100% { opacity: 0; transform: translateX(60px) scale(0.95); }
+}
+
+window.Launcher { background: transparent; }
+
+.card {
+  background: $bar;
+  color: $fg;
+  border-radius: 14px;
+  padding: 8px;
+  min-width: 480px;
+}
+
+.hero { border-radius: 10px; min-height: 110px; }
+.hero entry {
+  margin: 0 14px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: none;
+  box-shadow: none;
+  background: rgba(16, 16, 22, 0.5);
+  color: #fff;
+  font-size: 15px;
+}
+
+.list { margin-top: 8px; }
+.row {
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border-radius: 9px;
+  transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.row.sel { background-color: rgba($fg, 0.14); }
+.row .icon { margin-right: 12px; }
+.row .name { font-weight: 700; }
+.row .desc { font-size: 12px; opacity: 0.65; }
+
+.card.pop { animation: launcher-in 380ms ease-out both; }
+@keyframes launcher-in {
+  0%   { opacity: 0; transform: scale(0.94) translateY(8px); }
+  60%  { opacity: 1; transform: scale(1.015) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.card.out { animation: launcher-out 220ms ease-in both; }
+
+@keyframes launcher-out {
+  0%   { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.95) translateY(6px); }
+}
+
+button.icon-btn,
+menubutton.power button {
+  padding: 0 6px;
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  color: $fg;
+  border-radius: 7px;
+}
+button.icon-btn:hover,
+menubutton.power button:hover { background-color: rgba($fg, 0.12); }
+button.icon-btn.on { color: $accent; }
+
+.menu { min-width: 170px; }
+.menu-item {
+  padding: 7px 10px;
+  border: none;
+  box-shadow: none;
+  background-image: none;
+  background-color: transparent;
+  color: $fg;
+  border-radius: 8px;
+}
+.menu-item:hover { background-color: rgba($fg, 0.12); }
+.menu-item .glyph { min-width: 22px; margin-right: 8px; }
+
+window.Osd { background: transparent; }
+
+.osd-card {
+  background: $bar;
+  color: $fg;
+  border-radius: $radius;
+  padding: 8px 14px;
+  margin-bottom: 100px;
+  min-width: 250px;
+}
+.osd-icon {
+  font-family: "JetBrainsMono Nerd Font", sans-serif;
+  font-size: 17px;
+  min-width: 24px;
+  margin-right: 10px;
+}
+.osd-pct { font-size: 13px; font-weight: 700; margin-left: 10px; }
+
+.osd-bar trough { min-height: 6px; border-radius: 99px; background-color: rgba($fg, 0.2); }
+.osd-bar progress { min-height: 6px; border-radius: 99px; background-color: $accent; }
+.osd-card.dim .osd-bar progress { background-color: rgba($fg, 0.4); }
+
+.osd-card.in  { animation: osd-in 420ms ease-out both; }
+.osd-card.out { animation: osd-out 220ms ease-in both; }
+
+@keyframes osd-in {
+  0%   { opacity: 0; transform: translateY(24px) scale(0.9); }
+  55%  { opacity: 1; transform: translateY(-6px) scale(1.03); }
+  80%  { transform: translateY(2px) scale(0.995); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes osd-out {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateY(16px) scale(0.95); }
+}
+
+window.Wallpapers { background: transparent; }
+
+.wp-card {
+  background: $bar;
+  color: $fg;
+  border-radius: 14px;
+  padding: 12px;
+}
+.wp-title { font-weight: 700; margin: 0 6px 10px 6px; }
+.wp-empty { opacity: 0.6; padding: 20px; }
+
+.tile {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 2px;
+  margin: 3px;
+  transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.tile .thumb { border-radius: 9px; }
+.tile.current { border-color: rgba($fg, 0.45); }
+
+flowboxchild {
+  background: transparent;
+  padding: 0;
+  outline: none;
+}
+flowboxchild:hover .tile,
+flowboxchild:focus .tile,
+flowboxchild:selected .tile { border-color: $accent; }
+
+.wp-card.pop { animation: launcher-in 380ms ease-out both; }
+.wp-card.out { animation: launcher-out 220ms ease-in both; }
+
+window.Files { background: transparent; }
+
+entry.ffsearch {
+  min-height: 40px;
+  padding: 0 12px;
+  margin-bottom: 8px;
+  border: none;
+  border-radius: 9px;
+  box-shadow: none;
+  background: rgba($fg, 0.1);
+  color: $fg;
+  font-size: 15px;
+}
+
+window.Shot { background: transparent; }
+
+.shot-toast { margin: 0 10px 12px 0; }
+.shot-thumb { margin-bottom: 8px; border-radius: 8px; }
