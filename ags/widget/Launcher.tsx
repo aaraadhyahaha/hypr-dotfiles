@@ -47,19 +47,8 @@ export default function Launcher() {
     let lastY: number | null = null
     let rows: Gtk.Box[] = []
     let sel = 0
-    let closing = false
 
-    const close = () => {
-        if (!win.visible || closing) return
-        closing = true
-        card.remove_css_class("pop")
-        card.add_css_class("out")
-        timeout(220, () => {
-            win.visible = false
-            card.remove_css_class("out")
-            closing = false
-        })
-    }
+    const close = () => { win.visible = false }
 
     const setSel = (i: number) => {
         if (!rows.length) return

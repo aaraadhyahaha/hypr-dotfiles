@@ -24,7 +24,6 @@ export default function Wallpapers() {
   let flow: Gtk.FlowBox
   let paths: string[] = []
   let currentIdx = 0
-  let closing = false
   const cache = new Map<string, Gdk.Texture>()
 
   const listImages = (): string[] => {
@@ -110,17 +109,7 @@ export default function Wallpapers() {
     })
   }
 
-  const close = () => {
-    if (!win.visible || closing) return
-    closing = true
-    card.remove_css_class("pop")
-    card.add_css_class("out")
-    timeout(220, () => {
-      win.visible = false
-      card.remove_css_class("out")
-      closing = false
-    })
-  }
+  const close = () => { win.visible = false }
 
   const open = () => {
     render()

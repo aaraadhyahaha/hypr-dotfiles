@@ -220,19 +220,6 @@ window.Launcher { background: transparent; }
 .row .name { font-weight: 700; }
 .row .desc { font-size: 12px; opacity: 0.65; }
 
-.card.pop { animation: launcher-in 380ms ease-out both; }
-@keyframes launcher-in {
-  0%   { opacity: 0; transform: scale(0.94) translateY(8px); }
-  60%  { opacity: 1; transform: scale(1.015) translateY(-2px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.card.out { animation: launcher-out 220ms ease-in both; }
-
-@keyframes launcher-out {
-  0%   { opacity: 1; transform: scale(1) translateY(0); }
-  100% { opacity: 0; transform: scale(0.95) translateY(6px); }
-}
 
 button.icon-btn,
 menubutton.power button {
@@ -326,9 +313,6 @@ flowboxchild {
 flowboxchild:hover .tile,
 flowboxchild:focus .tile,
 flowboxchild:selected .tile { border-color: $accent; }
-
-.wp-card.pop { animation: launcher-in 380ms ease-out both; }
-.wp-card.out { animation: launcher-out 220ms ease-in both; }
 
 window.Files { background: transparent; }
 

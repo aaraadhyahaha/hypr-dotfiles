@@ -147,8 +147,10 @@ hl.curve("almostLinear", { type = "bezier", points = { {0.5, 0.5}, {0.75, 1} } }
 hl.curve("easy",         { type = "spring", mass = 1, stiffness = 71.2633, dampening = 15.8273644 })
 
 -- Default springs
-hl.curve("easy",           { type = "spring", mass = 1, stiffness = 238.1191, dampening = 024.21279333 })
+hl.curve("pop", { type = "spring", mass = 1, stiffness = 220, dampening = 20 })
 
+hl.animation({ leaf = "layersIn",  enabled = true, speed = 3,   spring = "pop", style = "fade" })
+hl.animation({ leaf = "layersOut", enabled = true, speed = 1.8, bezier = "quick", style = "fade" })
 hl.animation({ leaf = "global",        enabled = true, speed = 10,  bezier = "easeOutQuint" })
 hl.animation({ leaf = "windowsIn",     enabled = true, speed = 5,   bezier = "easeOutQuint", style = "popin 87%" })
 hl.animation({ leaf = "windowsOut",    enabled = true, speed = 3.5, bezier = "quick",        style = "popin 87%" })
@@ -370,6 +372,12 @@ hl.window_rule({
 -- })
 -- overlayLayerRule:set_enabled(false)
 
+hl.layer_rule({
+  match = { namespace = "^(launcher|files|wallpapers|clipboard)$" },
+  name = "popups-anim",
+  animation = "popin 90%",
+})
+
 hl.layer_rule({ match = { namespace = "shot" }, name = "shot-no-anim", no_anim = true })
 hl.layer_rule({ match = { namespace = "shotpreview" }, name = "shotprev-blur", blur = true, ignore_alpha = 0.1 })
 hl.layer_rule({ match = { namespace = "shotpreview" }, name = "shotprev-no-anim", no_anim = true })
@@ -378,7 +386,6 @@ hl.layer_rule({ match = { namespace = "osd" }, name = "osd-blur", blur = true, i
 hl.layer_rule({ match = { namespace = "osd" }, name = "osd-no-anim", no_anim = true })
 
 hl.layer_rule({ match = { namespace = "wallpapers" }, name = "wp-blur", blur = true, ignore_alpha = 0.1 })
-hl.layer_rule({ match = { namespace = "wallpapers" }, name = "wp-no-anim", no_anim = true })
 
 hl.layer_rule({
     match = { namespace = "bar" },
@@ -402,17 +409,9 @@ hl.layer_rule({
   ignore_alpha = 0.1,
 })
 
-hl.layer_rule({
-  match = { namespace = "launcher" },
-  name = "launcher-no-anim",
-  no_anim = true,
-})
-
 hl.layer_rule({ match = { namespace = "files" }, name = "files-blur", blur = true, ignore_alpha = 0.1 })
-hl.layer_rule({ match = { namespace = "files" }, name = "files-no-anim", no_anim = true })
 
 hl.layer_rule({ match = { namespace = "clipboard" }, name = "clipboard-blur", blur = true, ignore_alpha = 0.1 })
-hl.layer_rule({ match = { namespace = "clipboard" }, name = "clipboard-no-anim", no_anim = true })
 
 -- Floating windowrules
 hl.window_rule({
