@@ -54,7 +54,9 @@ hl.on("hyprland.start", function ()
   hl.exec_cmd("hypridle")
   hl.exec_cmd("nm-applet --indicator")
   hl.exec_cmd("/usr/lib/polkit-kde-authentication-agent-1")
-  hl.exec_cmd("wl-paste --watch cliphist store") 
+  hl.exec_cmd("wl-paste --watch cliphist store")
+  hl.exec_cmd("wl-paste --type text --watch cliphist store")
+  hl.exec_cmd("wl-paste --type image --watch cliphist store")
   hl.exec_cmd("~/.config/hypr/scripts/wallpaper-init.sh")
 end)
 
@@ -261,6 +263,9 @@ hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("ags request toggle-launcher"))
 -- Fuzzy finding files
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd("ags request toggle-files"))
 
+-- Clipboard
+hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("ags request toggle-clipboard"))
+
 -- Wallpaper
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("ags request toggle-wallpapers"))
 
@@ -328,11 +333,6 @@ hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = tr
 -- Screenshots
 hl.bind("Print", hl.dsp.exec_cmd("ags request screenshot"))
 hl.bind("SHIFT + Print", hl.dsp.exec_cmd("ags request screenshot-full"))
-
--- Clipboard history, hyprlock
-
-hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("cliphist list | wofi --dmenu | cliphist decode | wl-copy"))
-hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
 
 --------------------------------
 ---- WINDOWS AND WORKSPACES ----
@@ -415,6 +415,9 @@ hl.layer_rule({
 
 hl.layer_rule({ match = { namespace = "files" }, name = "files-blur", blur = true, ignore_alpha = 0.1 })
 hl.layer_rule({ match = { namespace = "files" }, name = "files-no-anim", no_anim = true })
+
+hl.layer_rule({ match = { namespace = "clipboard" }, name = "clipboard-blur", blur = true, ignore_alpha = 0.1 })
+hl.layer_rule({ match = { namespace = "clipboard" }, name = "clipboard-no-anim", no_anim = true })
 
 -- Floating windowrules
 hl.window_rule({
