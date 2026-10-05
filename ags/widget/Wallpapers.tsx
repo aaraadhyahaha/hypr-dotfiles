@@ -11,8 +11,11 @@ const DIR = `${HOME}/Pictures/Wallpapers`
 const SCRIPT = `${HOME}/.config/hypr/scripts/wallpaper-set.sh`
 const TW = 240
 const TH = 135
+const CACHE = `${HOME}/.cache/ags-wp`
+const thumbPath = (path: string) =>
+  `${CACHE}/${GLib.compute_checksum_for_string(GLib.ChecksumType.MD5, path, -1)}.png`
 
-let toggleFn = () => {}
+let toggleFn = () => { }
 export const toggleWallpapers = () => toggleFn()
 
 export default function Wallpapers() {
@@ -41,21 +44,30 @@ export default function Wallpapers() {
   const texture = (path: string): Gdk.Texture | null => {
     if (cache.has(path)) return cache.get(path)!
     try {
-      const pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, TW, TH, true)
-      const tex = Gdk.Texture.new_for_pixbuf(pb)
+      const thumb = thumbPath(path)
+      if (!GLib.file_test(thumb, GLib.FileTest.EXISTS)) {
+        GLib.mkdir_with_parents(CACHE, 0o755)
+        const pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(path, TW, TH, true)
+        pb.savev(thumb, "png", [], [])
+      }
+      const tex = Gdk.Texture.new_from_filename(thumb)
       cache.set(path, tex)
       return tex
-    } catch {
+    } catch (e) {
+      console.error("thumb error:", e)
       return null
     }
   }
+
+  const hasThumb = (path: string) =>
+    cache.has(path) || GLib.file_test(thumbPath(path), GLib.FileTest.EXISTS)
 
   const render = () => {
     let c
     while ((c = flow.get_first_child())) flow.remove(c)
 
     let current = ""
-    try { current = readFile(`${HOME}/.cache/last_wall`).trim() } catch {}
+    try { current = readFile(`${HOME}/.cache/last_wall`).trim() } catch { }
 
     paths = listImages()
     currentIdx = Math.max(0, paths.indexOf(current))
@@ -82,7 +94,9 @@ export default function Wallpapers() {
       pic.add_css_class("thumb")
       tile.append(pic)
       flow.append(tile)
-      queue.push([pic, path])
+      const t = hasThumb(path) ? texture(path) : null
+      if (t) pic.set_paintable(t)
+      else queue.push([pic, path])
     })
 
     // fill thumbnails one per idle tick so opening never stalls
@@ -125,6 +139,16 @@ export default function Wallpapers() {
   }
 
   toggleFn = () => (win.visible ? close() : open())
+
+  timeout(3000, () => {
+    const todo = listImages()
+    let i = 0
+    GLib.idle_add(GLib.PRIORITY_LOW, () => {
+      if (i >= todo.length) return GLib.SOURCE_REMOVE
+      texture(todo[i++])
+      return GLib.SOURCE_CONTINUE
+    })
+  })
 
   return (
     <window
