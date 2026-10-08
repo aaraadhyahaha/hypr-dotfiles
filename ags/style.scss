@@ -4,12 +4,30 @@ $font: "SF Pro Text", sans-serif;
 $radius: 10px;
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
-}
-.pulse { animation: pulse 1.4s ease-in-out infinite; }
 
-label, image, button, .battery, .volume, .wifi, .brightness, .bt, .bell {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.pulse {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+label,
+image,
+button,
+.battery,
+.volume,
+.wifi,
+.brightness,
+.bt,
+.bell {
   transition: all 220ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -17,8 +35,14 @@ label, image, button, .battery, .volume, .wifi, .brightness, .bt, .bell {
   padding: 0 6px;
   border-radius: 7px;
 }
-.hoverable:hover { background-color: rgba($fg, 0.12); }
-.hoverable:active { background-color: rgba($fg, 0.2); }
+
+.hoverable:hover {
+  background-color: rgba($fg, 0.12);
+}
+
+.hoverable:active {
+  background-color: rgba($fg, 0.2);
+}
 
 window.Bar {
   background: transparent;
@@ -53,16 +77,23 @@ button.launcher {
   color: $fg;
   border-radius: 7px;
 }
-button.launcher:hover { background-color: rgba($fg, 0.12); }
+
+button.launcher:hover {
+  background-color: rgba($fg, 0.12);
+}
 
 .glyph {
   font-family: "JetBrainsMono Nerd Font", sans-serif;
   font-size: 17px;
 }
 
-.end { padding-right: 12px; }
+.end {
+  padding-right: 12px;
+}
 
-.workspaces { margin: 0 6px; }
+.workspaces {
+  margin: 0 6px;
+}
 
 .dot {
   min-width: 8px;
@@ -82,9 +113,13 @@ button.launcher:hover { background-color: rgba($fg, 0.12); }
   background-color: $accent;
 }
 
-.body image { -gtk-icon-size: 14px; }
+.body image {
+  -gtk-icon-size: 14px;
+}
 
-.glyph { font-size: 15px; }
+.glyph {
+  font-size: 15px;
+}
 
 .date {
   margin-left: 8px;
@@ -92,13 +127,25 @@ button.launcher:hover { background-color: rgba($fg, 0.12); }
   opacity: 0.65;
 }
 
-.battery label { margin-left: 6px; }
-.battery.low { color: $error; }
+.battery label {
+  margin-left: 6px;
+}
 
-.volume label { margin-left: 6px; }
-.volume.muted { opacity: 0.45; }
+.battery.low {
+  color: $error;
+}
 
-.wifi label { margin-left: 6px; }
+.volume label {
+  margin-left: 6px;
+}
+
+.volume.muted {
+  opacity: 0.45;
+}
+
+.wifi label {
+  margin-left: 6px;
+}
 
 button.bt {
   padding: 0 4px;
@@ -109,7 +156,9 @@ button.bt {
   color: $fg;
 }
 
-button.bt.off { opacity: 0.4; }
+button.bt.off {
+  opacity: 0.4;
+}
 
 menubutton.bell button {
   padding: 0 4px;
@@ -119,11 +168,18 @@ menubutton.bell button {
   background-color: transparent;
   color: $fg;
 }
-.count { margin-left: 4px; font-size: 11px; }
 
-popover { background: transparent; box-shadow: none; }
+.count {
+  margin-left: 4px;
+  font-size: 11px;
+}
 
-popover > contents {
+popover {
+  background: transparent;
+  box-shadow: none;
+}
+
+popover>contents {
   background: $bar;
   color: $fg;
   border: none;
@@ -134,10 +190,18 @@ popover > contents {
 
 .notif-list,
 .notif-list scrolledwindow,
-.notif-list viewport { background: transparent; }
+.notif-list viewport {
+  background: transparent;
+}
 
-.notif-list { min-width: 320px; }
-.empty { opacity: 0.5; padding: 10px; }
+.notif-list {
+  min-width: 320px;
+}
+
+.empty {
+  opacity: 0.5;
+  padding: 10px;
+}
 
 .notif {
   padding: 8px;
@@ -145,9 +209,20 @@ popover > contents {
   border-radius: 8px;
   background-color: rgba($fg, 0.08);
 }
-.notif .app { font-size: 11px; opacity: 0.6; }
-.notif .summary { font-weight: 700; }
-.notif .notif-body { opacity: 0.8; }
+
+.notif .app {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.notif .summary {
+  font-weight: 700;
+}
+
+.notif .notif-body {
+  opacity: 0.8;
+}
+
 .notif button,
 button.clear {
   border: none;
@@ -157,7 +232,9 @@ button.clear {
   color: $fg;
 }
 
-window.Toasts { background: transparent; }
+window.Toasts {
+  background: transparent;
+}
 
 .toast {
   background: $bar;
@@ -167,25 +244,64 @@ window.Toasts { background: transparent; }
   margin: 8px 10px 0 0;
   min-width: 300px;
 }
-.toast .app { font-size: 11px; opacity: 0.6; }
-.toast .summary { font-weight: 700; }
-.toast .notif-body { opacity: 0.8; }
 
-.toast.in  { animation: toast-in 520ms ease-out both; }
-.toast.out { animation: toast-out 260ms ease-in both; }
+.toast .app {
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.toast .summary {
+  font-weight: 700;
+}
+
+.toast .notif-body {
+  opacity: 0.8;
+}
+
+.toast.in {
+  animation: toast-in 520ms ease-out both;
+}
+
+.toast.out {
+  animation: toast-out 260ms ease-in both;
+}
 
 @keyframes toast-in {
-  0%   { opacity: 0; transform: translateX(60px) scale(0.92); }
-  55%  { opacity: 1; transform: translateX(-8px) scale(1.02); }
-  78%  { transform: translateX(3px) scale(0.995); }
-  100% { opacity: 1; transform: translateX(0) scale(1); }
-}
-@keyframes toast-out {
-  0%   { opacity: 1; transform: translateX(0); }
-  100% { opacity: 0; transform: translateX(60px) scale(0.95); }
+  0% {
+    opacity: 0;
+    transform: translateX(60px) scale(0.92);
+  }
+
+  55% {
+    opacity: 1;
+    transform: translateX(-8px) scale(1.02);
+  }
+
+  78% {
+    transform: translateX(3px) scale(0.995);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
 }
 
-window.Launcher { background: transparent; }
+@keyframes toast-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(60px) scale(0.95);
+  }
+}
+
+window.Launcher {
+  background: transparent;
+}
 
 .card {
   background: $bar;
@@ -195,7 +311,11 @@ window.Launcher { background: transparent; }
   min-width: 480px;
 }
 
-.hero { border-radius: 10px; min-height: 110px; }
+.hero {
+  border-radius: 10px;
+  min-height: 110px;
+}
+
 .hero entry {
   margin: 0 14px;
   min-height: 38px;
@@ -208,17 +328,33 @@ window.Launcher { background: transparent; }
   font-size: 15px;
 }
 
-.list { margin-top: 8px; }
+.list {
+  margin-top: 8px;
+}
+
 .row {
   padding: 8px 10px;
   margin-bottom: 4px;
   border-radius: 9px;
   transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.row.sel { background-color: rgba($fg, 0.14); }
-.row .icon { margin-right: 12px; }
-.row .name { font-weight: 700; }
-.row .desc { font-size: 12px; opacity: 0.65; }
+
+.row.sel {
+  background-color: rgba($fg, 0.14);
+}
+
+.row .icon {
+  margin-right: 12px;
+}
+
+.row .name {
+  font-weight: 700;
+}
+
+.row .desc {
+  font-size: 12px;
+  opacity: 0.65;
+}
 
 
 button.icon-btn,
@@ -231,11 +367,20 @@ menubutton.power button {
   color: $fg;
   border-radius: 7px;
 }
-button.icon-btn:hover,
-menubutton.power button:hover { background-color: rgba($fg, 0.12); }
-button.icon-btn.on { color: $accent; }
 
-.menu { min-width: 170px; }
+button.icon-btn:hover,
+menubutton.power button:hover {
+  background-color: rgba($fg, 0.12);
+}
+
+button.icon-btn.on {
+  color: $accent;
+}
+
+.menu {
+  min-width: 170px;
+}
+
 .menu-item {
   padding: 7px 10px;
   border: none;
@@ -245,10 +390,19 @@ button.icon-btn.on { color: $accent; }
   color: $fg;
   border-radius: 8px;
 }
-.menu-item:hover { background-color: rgba($fg, 0.12); }
-.menu-item .glyph { min-width: 22px; margin-right: 8px; }
 
-window.Osd { background: transparent; }
+.menu-item:hover {
+  background-color: rgba($fg, 0.12);
+}
+
+.menu-item .glyph {
+  min-width: 22px;
+  margin-right: 8px;
+}
+
+window.Osd {
+  background: transparent;
+}
 
 .osd-card {
   background: $bar;
@@ -258,33 +412,80 @@ window.Osd { background: transparent; }
   margin-bottom: 100px;
   min-width: 250px;
 }
+
 .osd-icon {
   font-family: "JetBrainsMono Nerd Font", sans-serif;
   font-size: 17px;
   min-width: 24px;
   margin-right: 10px;
 }
-.osd-pct { font-size: 13px; font-weight: 700; margin-left: 10px; }
 
-.osd-bar trough { min-height: 6px; border-radius: 99px; background-color: rgba($fg, 0.2); }
-.osd-bar progress { min-height: 6px; border-radius: 99px; background-color: $accent; }
-.osd-card.dim .osd-bar progress { background-color: rgba($fg, 0.4); }
+.osd-pct {
+  font-size: 13px;
+  font-weight: 700;
+  margin-left: 10px;
+}
 
-.osd-card.in  { animation: osd-in 420ms ease-out both; }
-.osd-card.out { animation: osd-out 220ms ease-in both; }
+.osd-bar trough {
+  min-height: 6px;
+  border-radius: 99px;
+  background-color: rgba($fg, 0.2);
+}
+
+.osd-bar progress {
+  min-height: 6px;
+  border-radius: 99px;
+  background-color: $accent;
+}
+
+.osd-card.dim .osd-bar progress {
+  background-color: rgba($fg, 0.4);
+}
+
+.osd-card.in {
+  animation: osd-in 420ms ease-out both;
+}
+
+.osd-card.out {
+  animation: osd-out 220ms ease-in both;
+}
 
 @keyframes osd-in {
-  0%   { opacity: 0; transform: translateY(24px) scale(0.9); }
-  55%  { opacity: 1; transform: translateY(-6px) scale(1.03); }
-  80%  { transform: translateY(2px) scale(0.995); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes osd-out {
-  0%   { opacity: 1; transform: translateY(0) scale(1); }
-  100% { opacity: 0; transform: translateY(16px) scale(0.95); }
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.9);
+  }
+
+  55% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.03);
+  }
+
+  80% {
+    transform: translateY(2px) scale(0.995);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-window.Wallpapers { background: transparent; }
+@keyframes osd-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+  }
+}
+
+window.Wallpapers {
+  background: transparent;
+}
 
 .wp-card {
   background: $bar;
@@ -292,8 +493,16 @@ window.Wallpapers { background: transparent; }
   border-radius: 14px;
   padding: 12px;
 }
-.wp-title { font-weight: 700; margin: 0 6px 10px 6px; }
-.wp-empty { opacity: 0.6; padding: 20px; }
+
+.wp-title {
+  font-weight: 700;
+  margin: 0 6px 10px 6px;
+}
+
+.wp-empty {
+  opacity: 0.6;
+  padding: 20px;
+}
 
 .tile {
   border: 2px solid transparent;
@@ -302,19 +511,30 @@ window.Wallpapers { background: transparent; }
   margin: 3px;
   transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
-.tile .thumb { border-radius: 9px; }
-.tile.current { border-color: rgba($fg, 0.45); }
+
+.tile .thumb {
+  border-radius: 9px;
+}
+
+.tile.current {
+  border-color: rgba($fg, 0.45);
+}
 
 flowboxchild {
   background: transparent;
   padding: 0;
   outline: none;
 }
+
 flowboxchild:hover .tile,
 flowboxchild:focus .tile,
-flowboxchild:selected .tile { border-color: $accent; }
+flowboxchild:selected .tile {
+  border-color: $accent;
+}
 
-window.Files { background: transparent; }
+window.Files {
+  background: transparent;
+}
 
 entry.ffsearch {
   min-height: 40px;
@@ -328,21 +548,48 @@ entry.ffsearch {
   font-size: 15px;
 }
 
-window.Shot { background: transparent; }
-
-.shot-toast { margin: 0 10px 12px 0; }
-.shot-thumb { margin-bottom: 8px; border-radius: 8px; }
-
-window.Clip { background: transparent; }
-.clip-thumb { margin-right: 12px; border-radius: 6px; }
-
-.wintitle { animation: title-in 260ms ease-out both; }
-@keyframes title-in {
-  from { opacity: 0; transform: translateY(3px); }
-  to   { opacity: 1; transform: translateY(0); }
+window.Shot {
+  background: transparent;
 }
 
-.tray image { -gtk-icon-size: 15px; }
+.shot-toast {
+  margin: 0 10px 12px 0;
+}
+
+.shot-thumb {
+  margin-bottom: 8px;
+  border-radius: 8px;
+}
+
+window.Clip {
+  background: transparent;
+}
+
+.clip-thumb {
+  margin-right: 12px;
+  border-radius: 6px;
+}
+
+.wintitle {
+  animation: title-in 260ms ease-out both;
+}
+
+@keyframes title-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tray image {
+  -gtk-icon-size: 15px;
+}
+
 .tray menubutton button {
   padding: 0 4px;
   border: none;
@@ -351,11 +598,103 @@ window.Clip { background: transparent; }
   background-color: transparent;
   border-radius: 7px;
 }
-.tray menubutton button:hover { background-color: rgba($fg, 0.12); }
+
+.tray menubutton button:hover {
+  background-color: rgba($fg, 0.12);
+}
 
 popover modelbutton {
   color: $fg;
   padding: 6px 10px;
   border-radius: 8px;
 }
-popover modelbutton:hover { background-color: rgba($fg, 0.12); }
+
+popover modelbutton:hover {
+  background-color: rgba($fg, 0.12);
+}
+
+popover.qs-pop>contents {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.qs {
+  background: $bar;
+  border-radius: $radius;
+  min-width: 360px;
+  padding: 16px;
+  margin: 6px 8px 0 0;
+}
+
+.qs-pill image {
+  margin: 0 4px;
+}
+
+.qs-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+.qs-toggle.on { background: rgba($fg,0.16); }
+.qs-toggle image { margin-right: 10px; }
+.qs-name { font-weight: 600; }
+.qs-sub { font-size: 11px; opacity: 0.65; }
+.qs-list { margin-top: 6px; }
+.qs-item { padding: 8px 12px; border-radius: 10px; }
+.qs-item image { margin-right: 10px; }
+.qs-item:hover { background: rgba($fg,0.08); }
+.qs-item.active { background: rgba($fg,0.14); }
+
+.qs-slider { margin-bottom: 10px; }
+.qs-slider image { margin-right: 12px; }
+.qs-slider scale { min-height: 20px; }
+.qs-slider trough { min-height: 8px; border-radius: 99px; background: rgba($fg,0.10); }
+.qs-slider highlight { border-radius: 99px; background: rgba($fg,0.7); }
+.qs-slider slider { min-width: 16px; min-height: 16px; border-radius: 99px; background: $fg; }
+
+.qs-tiles { margin: 6px 0 10px 0; }
+.qs-tile { padding: 10px 12px; margin: 3px; border-radius: 14px; background: rgba($fg,0.06); }
+.qs-tile.on { background: rgba($fg,0.16); }
+.qs-tile image { margin-right: 8px; }
+
+.qs-stats { margin-top: 4px; }
+.qs-stat {
+  margin: 3px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba($fg,0.06);
+}
+.qs-stat-name { font-size: 11px; font-weight: 600; opacity: 0.7; }
+.qs-stat-val { font-weight: 600; }
+.qs-graph { margin-top: 6px; color: $accent; }
+
+.qs-pair { margin-bottom: 4px; }
+.qs-half {
+  margin: 3px;
+  border-radius: 14px;
+  background: rgba($fg,0.06);
+}
+.qs-half.on { background: rgba($fg,0.16); }
+.qs-half button { background: transparent; border: none; box-shadow: none; padding: 8px 10px; }
+.qs-half-chev { padding: 0 8px; }
+.qs-half image { margin-right: 8px; }
+.qs-half-chev image { margin-right: 0; }
+
+.qs-mode { margin: 6px 3px 4px 3px; padding: 3px; border-radius: 14px; background: rgba($fg, 0.06); }
+.qs-seg { padding: 8px 0; border-radius: 11px; background: transparent; }
+.qs-seg.on { background: rgba($fg, 0.16); }
+.qs-seg .glyph { margin-right: 8px; }
+
+.qs-accents { margin: 6px 3px 4px 3px; }
+.qs-sw {
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  margin-left: 8px;
+  border-radius: 99px;
+  border: 2px solid transparent;
+}
+.qs-sw.on { border-color: $fg; }
