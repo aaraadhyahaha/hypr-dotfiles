@@ -14,6 +14,7 @@ import { toggleLauncher } from "./Launcher"
 import AstalTray from "gi://AstalTray?version=0.1"
 import GLib from "gi://GLib"
 import { readFile } from "ags/file"
+import PomodoroPill from "./PomodoroPill"
 
 const Sep = () => <box class="sep" />
 
@@ -1018,6 +1019,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
           <Sep />
           <Volume />
           <Sep />
+          <PomodoroPill />
           <QuickSettings />
           <Sep />
           <Caffeine />

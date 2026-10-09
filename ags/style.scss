@@ -698,3 +698,131 @@ popover.qs-pop>contents {
   border: 2px solid transparent;
 }
 .qs-sw.on { border-color: $fg; }
+
+menubutton.pomo > button {
+  background: none;
+  box-shadow: none;
+  border: none;
+  padding: 0 8px;
+  min-height: 0;
+  border-radius: 999px;
+  transition: opacity 300ms ease, background 200ms ease;
+
+  .pomo-time {
+    color: $fg;
+    font-size: 12px;
+    font-feature-settings: "tnum";
+  }
+
+  &:hover { background: rgba($fg, 0.08); }
+}
+
+menubutton.pomo.focus > button { color: $accent; }
+menubutton.pomo.short > button,
+menubutton.pomo.long > button { color: $accent-2; }
+menubutton.pomo.paused > button { opacity: 0.75; }
+menubutton.pomo.idle > button { opacity: 0.55; }
+
+
+.pomo-card {
+  min-width: 300px;
+
+  &.focus { color: $accent; }
+  &.short,
+  &.long { color: $accent-2; }
+
+  .pomo-phase {
+    color: $fg;
+    font-weight: 600;
+    opacity: 0.8;
+  }
+
+  .pomo-big {
+    color: $fg;
+    font-size: 34px;
+    font-weight: 600;
+    font-feature-settings: "tnum";
+  }
+
+  .pomo-ctl {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: 999px;
+    background: rgba($fg, 0.08);
+    color: $fg;
+    transition: background 200ms ease;
+
+    &:hover { background: rgba($fg, 0.16); }
+
+    &.main {
+      min-width: 52px;
+      min-height: 52px;
+      font-size: 16px;
+      background: $accent;
+      color: $accent-fg;
+    }
+  }
+
+  &.short .pomo-ctl.main,
+  &.long .pomo-ctl.main { background: $accent-2; }
+
+  .pomo-task {
+    background: rgba($fg, 0.06);
+    color: $fg;
+    border: none;
+    box-shadow: none;
+    border-radius: 12px;
+    padding: 6px 10px;
+    min-height: 0;
+  }
+
+  .pomo-goal-label {
+    color: $fg;
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  progressbar.pomo-goal {
+    trough {
+      min-height: 6px;
+      border-radius: 999px;
+      background: rgba($fg, 0.1);
+    }
+    progress {
+      min-height: 6px;
+      border-radius: 999px;
+      background: $accent;
+    }
+  }
+
+  &.short progressbar.pomo-goal progress,
+  &.long progressbar.pomo-goal progress { background: $accent-2; }
+
+  .pomo-step-label {
+    color: $fg;
+    font-size: 12px;
+    opacity: 0.7;
+  }
+
+  .pomo-step-val {
+    color: $fg;
+    font-size: 12px;
+    font-feature-settings: "tnum";
+  }
+
+  .pomo-step-btn {
+    min-width: 22px;
+    min-height: 22px;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    border-radius: 999px;
+    background: rgba($fg, 0.08);
+    color: $fg;
+
+    &:hover { background: rgba($fg, 0.16); }
+  }
+}
