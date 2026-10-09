@@ -638,57 +638,177 @@ popover.qs-pop>contents {
   margin-bottom: 8px;
 }
 
-.qs-toggle.on { background: rgba($fg,0.16); }
-.qs-toggle image { margin-right: 10px; }
-.qs-name { font-weight: 600; }
-.qs-sub { font-size: 11px; opacity: 0.65; }
-.qs-list { margin-top: 6px; }
-.qs-item { padding: 8px 12px; border-radius: 10px; }
-.qs-item image { margin-right: 10px; }
-.qs-item:hover { background: rgba($fg,0.08); }
-.qs-item.active { background: rgba($fg,0.14); }
+.qs-toggle.on {
+  background: rgba($fg, 0.16);
+}
 
-.qs-slider { margin-bottom: 10px; }
-.qs-slider image { margin-right: 12px; }
-.qs-slider scale { min-height: 20px; }
-.qs-slider trough { min-height: 8px; border-radius: 99px; background: rgba($fg,0.10); }
-.qs-slider highlight { border-radius: 99px; background: rgba($fg,0.7); }
-.qs-slider slider { min-width: 16px; min-height: 16px; border-radius: 99px; background: $fg; }
+.qs-toggle image {
+  margin-right: 10px;
+}
 
-.qs-tiles { margin: 6px 0 10px 0; }
-.qs-tile { padding: 10px 12px; margin: 3px; border-radius: 14px; background: rgba($fg,0.06); }
-.qs-tile.on { background: rgba($fg,0.16); }
-.qs-tile image { margin-right: 8px; }
+.qs-name {
+  font-weight: 600;
+}
 
-.qs-stats { margin-top: 4px; }
+.qs-sub {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.qs-list {
+  margin-top: 6px;
+}
+
+.qs-item {
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.qs-item image {
+  margin-right: 10px;
+}
+
+.qs-item:hover {
+  background: rgba($fg, 0.08);
+}
+
+.qs-item.active {
+  background: rgba($fg, 0.14);
+}
+
+.qs-slider {
+  margin-bottom: 10px;
+}
+
+.qs-slider image {
+  margin-right: 12px;
+}
+
+.qs-slider scale {
+  min-height: 20px;
+}
+
+.qs-slider trough {
+  min-height: 8px;
+  border-radius: 99px;
+  background: rgba($fg, 0.10);
+}
+
+.qs-slider highlight {
+  border-radius: 99px;
+  background: rgba($fg, 0.7);
+}
+
+.qs-slider slider {
+  min-width: 16px;
+  min-height: 16px;
+  border-radius: 99px;
+  background: $fg;
+}
+
+.qs-tiles {
+  margin: 6px 0 10px 0;
+}
+
+.qs-tile {
+  padding: 10px 12px;
+  margin: 3px;
+  border-radius: 14px;
+  background: rgba($fg, 0.06);
+}
+
+.qs-tile.on {
+  background: rgba($fg, 0.16);
+}
+
+.qs-tile image {
+  margin-right: 8px;
+}
+
+.qs-stats {
+  margin-top: 4px;
+}
+
 .qs-stat {
   margin: 3px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba($fg,0.06);
+  background: rgba($fg, 0.06);
 }
-.qs-stat-name { font-size: 11px; font-weight: 600; opacity: 0.7; }
-.qs-stat-val { font-weight: 600; }
-.qs-graph { margin-top: 6px; color: $accent; }
 
-.qs-pair { margin-bottom: 4px; }
+.qs-stat-name {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.qs-stat-val {
+  font-weight: 600;
+}
+
+.qs-graph {
+  margin-top: 6px;
+  color: $accent;
+}
+
+.qs-pair {
+  margin-bottom: 4px;
+}
+
 .qs-half {
   margin: 3px;
   border-radius: 14px;
-  background: rgba($fg,0.06);
+  background: rgba($fg, 0.06);
 }
-.qs-half.on { background: rgba($fg,0.16); }
-.qs-half button { background: transparent; border: none; box-shadow: none; padding: 8px 10px; }
-.qs-half-chev { padding: 0 8px; }
-.qs-half image { margin-right: 8px; }
-.qs-half-chev image { margin-right: 0; }
 
-.qs-mode { margin: 6px 3px 4px 3px; padding: 3px; border-radius: 14px; background: rgba($fg, 0.06); }
-.qs-seg { padding: 8px 0; border-radius: 11px; background: transparent; }
-.qs-seg.on { background: rgba($fg, 0.16); }
-.qs-seg .glyph { margin-right: 8px; }
+.qs-half.on {
+  background: rgba($fg, 0.16);
+}
 
-.qs-accents { margin: 6px 3px 4px 3px; }
+.qs-half button {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 8px 10px;
+}
+
+.qs-half-chev {
+  padding: 0 8px;
+}
+
+.qs-half image {
+  margin-right: 8px;
+}
+
+.qs-half-chev image {
+  margin-right: 0;
+}
+
+.qs-mode {
+  margin: 6px 3px 4px 3px;
+  padding: 3px;
+  border-radius: 14px;
+  background: rgba($fg, 0.06);
+}
+
+.qs-seg {
+  padding: 8px 0;
+  border-radius: 11px;
+  background: transparent;
+}
+
+.qs-seg.on {
+  background: rgba($fg, 0.16);
+}
+
+.qs-seg .glyph {
+  margin-right: 8px;
+}
+
+.qs-accents {
+  margin: 6px 3px 4px 3px;
+}
+
 .qs-sw {
   min-width: 22px;
   min-height: 22px;
@@ -697,9 +817,12 @@ popover.qs-pop>contents {
   border-radius: 99px;
   border: 2px solid transparent;
 }
-.qs-sw.on { border-color: $fg; }
 
-menubutton.pomo > button {
+.qs-sw.on {
+  border-color: $fg;
+}
+
+menubutton.pomo>button {
   background: none;
   box-shadow: none;
   border: none;
@@ -714,22 +837,40 @@ menubutton.pomo > button {
     font-feature-settings: "tnum";
   }
 
-  &:hover { background: rgba($fg, 0.08); }
+  &:hover {
+    background: rgba($fg, 0.08);
+  }
 }
 
-menubutton.pomo.focus > button { color: $accent; }
-menubutton.pomo.short > button,
-menubutton.pomo.long > button { color: $accent-2; }
-menubutton.pomo.paused > button { opacity: 0.75; }
-menubutton.pomo.idle > button { opacity: 0.55; }
+menubutton.pomo.focus>button {
+  color: $accent;
+}
+
+menubutton.pomo.short>button,
+menubutton.pomo.long>button {
+  color: $accent-2;
+}
+
+menubutton.pomo.paused>button {
+  opacity: 0.75;
+}
+
+menubutton.pomo.idle>button {
+  opacity: 0.55;
+}
 
 
 .pomo-card {
   min-width: 300px;
 
-  &.focus { color: $accent; }
+  &.focus {
+    color: $accent;
+  }
+
   &.short,
-  &.long { color: $accent-2; }
+  &.long {
+    color: $accent-2;
+  }
 
   .pomo-phase {
     color: $fg;
@@ -755,7 +896,9 @@ menubutton.pomo.idle > button { opacity: 0.55; }
     color: $fg;
     transition: background 200ms ease;
 
-    &:hover { background: rgba($fg, 0.16); }
+    &:hover {
+      background: rgba($fg, 0.16);
+    }
 
     &.main {
       min-width: 52px;
@@ -767,7 +910,9 @@ menubutton.pomo.idle > button { opacity: 0.55; }
   }
 
   &.short .pomo-ctl.main,
-  &.long .pomo-ctl.main { background: $accent-2; }
+  &.long .pomo-ctl.main {
+    background: $accent-2;
+  }
 
   .pomo-task {
     background: rgba($fg, 0.06);
@@ -791,6 +936,7 @@ menubutton.pomo.idle > button { opacity: 0.55; }
       border-radius: 999px;
       background: rgba($fg, 0.1);
     }
+
     progress {
       min-height: 6px;
       border-radius: 999px;
@@ -799,7 +945,9 @@ menubutton.pomo.idle > button { opacity: 0.55; }
   }
 
   &.short progressbar.pomo-goal progress,
-  &.long progressbar.pomo-goal progress { background: $accent-2; }
+  &.long progressbar.pomo-goal progress {
+    background: $accent-2;
+  }
 
   .pomo-step-label {
     color: $fg;
@@ -823,6 +971,36 @@ menubutton.pomo.idle > button { opacity: 0.55; }
     background: rgba($fg, 0.08);
     color: $fg;
 
-    &:hover { background: rgba($fg, 0.16); }
+    &:hover {
+      background: rgba($fg, 0.16);
+    }
+  }
+
+  .pomo-heat {
+    margin-top: 6px;
+  }
+
+  .pomo-streak {
+    color: $fg;
+    opacity: 0.45;
+    transition: opacity 300ms ease;
+
+    &.lit {
+      opacity: 1;
+
+      .pomo-streak-icon {
+        color: $accent;
+      }
+    }
+
+    .pomo-streak-val {
+      font-weight: 600;
+      font-feature-settings: "tnum";
+    }
+
+    .pomo-streak-unit {
+      font-size: 12px;
+      opacity: 0.7;
+    }
   }
 }

@@ -3,6 +3,7 @@ import { Gtk } from "ags/gtk4"
 import cairo from "cairo"
 import type CairoGi from "gi://cairo"
 import { pomodoro, type PomodoroState, type Settings } from "../service/pomodoro"
+import { Heatmap, Streak } from "./PomodoroStats"
 
 const [state, setState] = createState<PomodoroState>({ ...pomodoro.state })
 pomodoro.subscribe(() => setState({ ...pomodoro.state }))
@@ -19,27 +20,27 @@ const ICON = { play: "\uf04b", pause: "\uf04c", skip: "\uf051", reset: "\uf0e2" 
 
 const ring =
   (lineWidth: number) =>
-  (area: Gtk.DrawingArea, ctx: CairoGi.Context, w: number, h: number): void => {
-    const cr = ctx as unknown as cairo.Context
-    const frac = pomodoro.fraction
-    const c = area.get_color()
-    const r = Math.min(w, h) / 2 - lineWidth
-    const cx = w / 2
-    const cy = h / 2
-    const start = -Math.PI / 2
+    (area: Gtk.DrawingArea, ctx: CairoGi.Context, w: number, h: number): void => {
+      const cr = ctx as unknown as cairo.Context
+      const frac = pomodoro.fraction
+      const c = area.get_color()
+      const r = Math.min(w, h) / 2 - lineWidth
+      const cx = w / 2
+      const cy = h / 2
+      const start = -Math.PI / 2
 
-    cr.setLineWidth(lineWidth)
-    cr.setSourceRGBA(c.red, c.green, c.blue, 0.2)
-    cr.arc(cx, cy, r, 0, 2 * Math.PI)
-    cr.stroke()
-
-    if (frac > 0) {
-      cr.setLineCap(cairo.LineCap.ROUND)
-      cr.setSourceRGBA(c.red, c.green, c.blue, c.alpha)
-      cr.arc(cx, cy, r, start, start + 2 * Math.PI * frac)
+      cr.setLineWidth(lineWidth)
+      cr.setSourceRGBA(c.red, c.green, c.blue, 0.2)
+      cr.arc(cx, cy, r, 0, 2 * Math.PI)
       cr.stroke()
+
+      if (frac > 0) {
+        cr.setLineCap(cairo.LineCap.ROUND)
+        cr.setSourceRGBA(c.red, c.green, c.blue, c.alpha)
+        cr.arc(cx, cy, r, start, start + 2 * Math.PI * frac)
+        cr.stroke()
+      }
     }
-  }
 
 function Ring({ size, line, tick }: { size: number; line: number; tick: boolean }) {
   return (
@@ -95,8 +96,7 @@ export default function PomodoroPill() {
     <menubutton
       class={state.as(
         (s) =>
-          `pomo ${s.phase} ${s.running ? "running" : "paused"} ${
-            !s.running && s.remaining === s.total ? "idle" : ""
+          `pomo ${s.phase} ${s.running ? "running" : "paused"} ${!s.running && s.remaining === s.total ? "idle" : ""
           }`,
       )}
       tooltipText={state.as((s) => `${PHASE_NAME[s.phase]}${s.task ? " · " + s.task : ""}`)}
@@ -174,19 +174,24 @@ export default function PomodoroPill() {
             />
 
             <box orientation={Gtk.Orientation.VERTICAL} spacing={6}>
-              <label
-                class="pomo-goal-label"
-                xalign={0}
-                label={state.as(
-                  () => `Today · ${pomodoro.today.sessions} / ${pomodoro.settings.goal} sessions`,
-                )}
-              />
+              <box>
+                <label
+                  class="pomo-goal-label"
+                  xalign={0}
+                  hexpand
+                  label={state.as(
+                    () => `Today · ${pomodoro.today.sessions} / ${pomodoro.settings.goal} sessions`,
+                  )}
+                />
+                <Streak />
+              </box>
               <Gtk.ProgressBar
                 class="pomo-goal"
                 fraction={state.as(() =>
                   Math.min(1, pomodoro.today.sessions / Math.max(1, pomodoro.settings.goal)),
                 )}
               />
+              <Heatmap />
             </box>
 
             <box spacing={12}>
