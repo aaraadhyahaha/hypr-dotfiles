@@ -3,11 +3,11 @@ import GLib from "gi://GLib"
 export type Phase = "focus" | "short" | "long"
 
 export interface Settings {
-    focus: number // minutes
-    short: number // minutes
-    long: number // minutes
-    longEvery: number // long break after N focus sessions
-    goal: number // focus sessions per day
+    focus: number
+    short: number
+    long: number
+    longEvery: number
+    goal: number
 }
 
 export interface Day {
@@ -17,16 +17,27 @@ export interface Day {
 
 export interface PomodoroState {
     phase: Phase
-    remaining: number // seconds
-    total: number // seconds
+    remaining: number
+    total: number
     running: boolean
     task: string
-    cycle: number // focus sessions completed in the current cycle
+    cycle: number
+}
+
+interface Saved {
+    phase: Phase
+    remaining: number
+    total: number
+    running: boolean
+    endWall: number
+    task: string
+    cycle: number
 }
 
 interface Data {
     settings: Settings
     days: Record<string, Day>
+    timer?: Saved
 }
 
 const DIR = `${GLib.get_user_data_dir()}/pomodoro`
@@ -46,10 +57,11 @@ function load(): Data {
             return {
                 settings: { ...DEFAULTS, ...parsed.settings },
                 days: parsed.days ?? {},
+                timer: parsed.timer,
             }
         }
     } catch {
-        // first run or unreadable file: fall through to defaults
+
     }
     return { settings: { ...DEFAULTS }, days: {} }
 }
@@ -74,7 +86,7 @@ function run(argv: string[]): void {
 class Pomodoro {
     private data: Data = load()
     private listeners = new Set<() => void>()
-    private endAt = 0 // monotonic microseconds
+    private endAt = 0
     private source = 0
 
     state: PomodoroState = {
@@ -87,10 +99,10 @@ class Pomodoro {
     }
 
     constructor() {
-        this.applyPhase("focus")
+        const saved = this.data.timer
+        if (saved) this.restore(saved)
+        else this.applyPhase("focus")
     }
-
-    // ---- reactive-ish API -------------------------------------------------
 
     subscribe(cb: () => void): () => void {
         this.listeners.add(cb)
@@ -100,16 +112,6 @@ class Pomodoro {
     private emit(): void {
         for (const cb of this.listeners) cb()
     }
-
-    get fraction(): number {
-    const { total, remaining, running } = this.state
-    if (total <= 0) return 0
-    if (!running) return remaining / total
-    const left = Math.max(0, (this.endAt - GLib.get_monotonic_time()) / 1_000_000)
-    return left / total
-}
-
-    // ---- read helpers -----------------------------------------------------
 
     get settings(): Settings {
         return this.data.settings
@@ -134,7 +136,14 @@ class Pomodoro {
         return n
     }
 
-    // ---- controls ---------------------------------------------------------
+    get fraction(): number {
+        const { total, remaining, running } = this.state
+        if (total <= 0) return 0
+        if (!running) return remaining / total
+        const left = Math.max(0, (this.endAt - GLib.get_monotonic_time()) / 1_000_000)
+        return left / total
+    }
+
 
     toggle(): void {
         if (this.state.running) this.pause()
@@ -146,18 +155,21 @@ class Pomodoro {
         this.endAt = GLib.get_monotonic_time() + this.state.remaining * 1_000_000
         this.state.running = true
         this.source = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => this.tick())
+        this.persist()
         this.emit()
     }
 
     pause(): void {
         if (!this.state.running) return
         this.stopTimer()
+        this.persist()
         this.emit()
     }
 
     reset(): void {
         this.stopTimer()
         this.applyPhase(this.state.phase)
+        this.persist()
         this.emit()
     }
 
@@ -169,20 +181,57 @@ class Pomodoro {
 
     setTask(task: string): void {
         this.state.task = task
+        this.persist()
         this.emit()
     }
 
     setSettings(patch: Partial<Settings>): void {
         this.data.settings = { ...this.data.settings, ...patch }
-        save(this.data)
-        // only retime the current phase if it has not been started yet
         if (!this.state.running && this.state.remaining === this.state.total) {
             this.applyPhase(this.state.phase)
         }
+        this.persist()
         this.emit()
     }
 
-    // ---- internals --------------------------------------------------------
+    private persist(): void {
+        const { phase, remaining, total, running, task, cycle } = this.state
+        this.data.timer = {
+            phase,
+            remaining,
+            total,
+            running,
+            endWall: running ? Date.now() + remaining * 1000 : 0,
+            task,
+            cycle,
+        }
+        save(this.data)
+    }
+
+    private restore(t: Saved): void {
+        const validPhase = t.phase === "focus" || t.phase === "short" || t.phase === "long"
+        if (!validPhase || !(t.total > 0)) {
+            this.applyPhase("focus")
+            return
+        }
+
+        this.state.phase = t.phase
+        this.state.total = t.total
+        this.state.task = t.task ?? ""
+        this.state.cycle = t.cycle ?? 0
+
+        if (t.running) {
+            const left = Math.ceil((t.endWall - Date.now()) / 1000)
+            if (left > 0) {
+                this.state.remaining = Math.min(left, t.total)
+                this.start()
+            } else {
+                this.applyPhase(t.phase)
+            }
+        } else {
+            this.state.remaining = Math.min(Math.max(0, t.remaining), t.total)
+        }
+    }
 
     private stopTimer(): void {
         if (this.source) {
@@ -215,7 +264,6 @@ class Pomodoro {
         return GLib.SOURCE_CONTINUE
     }
 
-    // finished = timer ran out naturally (counts the session, plays sound)
     private advance(finished: boolean): void {
         const { phase, task } = this.state
         const s = this.data.settings
@@ -228,13 +276,14 @@ class Pomodoro {
                 day.minutes += Math.round(this.state.total / 60)
                 this.data.days[key] = day
                 this.state.cycle += 1
-                save(this.data)
             }
             const long = this.state.cycle > 0 && this.state.cycle % s.longEvery === 0
             this.applyPhase(long ? "long" : "short")
         } else {
             this.applyPhase("focus")
         }
+
+        this.persist()
 
         if (finished) {
             const next = this.state.phase
