@@ -8,6 +8,7 @@ import Wallpapers, { toggleWallpapers } from "./widget/Wallpapers"
 import Files, { toggleFiles } from "./widget/Files"
 import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./widget/Screenshot"
 import Clipboard, { toggleClipboard } from "./widget/Clipboard"
+import { initPresets, setPreset } from "./service/presets"
 
 app.start({
   css: style,
@@ -31,9 +32,11 @@ app.start({
     if (argv[0] === "screenshot") { screenshotRegion(); return response("ok") }
     if (argv[0] === "screenshot-full") { screenshotFull(); return response("ok") }
     if (argv[0] === "toggle-clipboard") { toggleClipboard(); return response("ok") }
+    if (argv[0] === "preset") { setPreset(argv[1]); return response("ok") }
     response("unknown request")
   },
   main() {
+    initPresets()
     app.get_monitors().map(Bar)
     Toasts()
     Launcher()
