@@ -16,7 +16,7 @@ export default function Notifications() {
           label={list.as((l) => String(l.length))}
         />
       </box>
-      <popover hasArrow={false}>
+      <popover class="notif-pop" hasArrow={false}>
         <box orientation={Gtk.Orientation.VERTICAL} class="notif-list">
           <label
             class="empty"

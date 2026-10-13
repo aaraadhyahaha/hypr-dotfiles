@@ -1,14 +1,15 @@
 import { Gtk } from "ags/gtk4"
 import { execAsync } from "ags/process"
+import { createState } from "ags"
 
 export default function Power() {
-  let pop: Gtk.Popover
+  const [open, setOpen] = createState(false)
 
   const item = (glyph: string, text: string, cmd: string[]) => (
     <button
       class="menu-item"
       onClicked={() => {
-        pop.popdown()
+        setOpen(false)
         execAsync(cmd)
       }}
     >
@@ -20,9 +21,12 @@ export default function Power() {
   )
 
   return (
-    <menubutton class="power">
+    <menubutton
+      class="power"
+      $={(self) => self.connect("notify::visible", () => setOpen(self.visible))}
+    >
       <label class="glyph" label={"\uf011"} />
-      <popover $={(self) => (pop = self)} hasArrow={false}>
+      <popover class="power-pop" hasArrow={false}>
         <box orientation={Gtk.Orientation.VERTICAL} class="menu">
           {item("\uf023", "Lock", ["loginctl", "lock-session"])}
           {item("\uf186", "Suspend", ["systemctl", "suspend"])}
