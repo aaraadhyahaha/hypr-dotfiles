@@ -56,13 +56,17 @@ export default function Clipboard() {
         results.forEach((it, i) => {
             const row = new Gtk.Box()
             row.add_css_class("row")
+            row.set_vexpand(false)
 
             if (it.image) {
                 const path = `${CACHE}/${it.id}.png`
-                const pic = new Gtk.Picture()
-                pic.set_content_fit(Gtk.ContentFit.COVER)
-                pic.set_size_request(56, 40)
-                pic.set_overflow(Gtk.Overflow.HIDDEN)
+                const pic = new Gtk.Picture({
+                    contentFit: Gtk.ContentFit.COVER,
+                    widthRequest: 56,
+                    heightRequest: 40,
+                })
+                pic.overflow = Gtk.Overflow.HIDDEN
+                pic.set_vexpand(false)
                 pic.add_css_class("clip-thumb")
                 if (GLib.file_test(path, GLib.FileTest.EXISTS)) pic.set_filename(path)
                 else execAsync(["sh", "-c", 'cliphist decode "$1" > "$2"', "sh", it.id, path])
@@ -72,6 +76,7 @@ export default function Clipboard() {
                 const g = new Gtk.Label({ label: "\uf0ea" })
                 g.add_css_class("icon")
                 g.add_css_class("glyph")
+                g.set_vexpand(false)
                 row.append(g)
             }
 
@@ -83,6 +88,7 @@ export default function Clipboard() {
                 maxWidthChars: 56, ellipsize: Pango.EllipsizeMode.END,
             })
             name.add_css_class("name")
+            name.set_vexpand(false)
             row.append(name)
 
             const click = new Gtk.GestureClick()
@@ -155,7 +161,14 @@ export default function Clipboard() {
                     onNotifyText={(self) => filter(self.text)}
                     onActivate={() => pick(results[sel])}
                 />
-                <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
+                <scrolledwindow
+                    propagateNaturalHeight
+                    propagateNaturalWidth
+                    maxContentHeight={300}
+                    hscrollbarPolicy={Gtk.PolicyType.NEVER}
+                >
+                    <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
+                </scrolledwindow>
                 <label $={(self) => (status = self)} class="empty" />
             </box>
         </window>

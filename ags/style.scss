@@ -565,6 +565,11 @@ window.Clip {
   background: transparent;
 }
 
+.window.Clip .list .row {
+  max-width: 100%;
+  overflow: hidden;
+}
+
 .clip-thumb {
   margin-right: 12px;
   border-radius: 6px;
