@@ -1,13 +1,13 @@
 import app from "ags/gtk4/app"
 import style from "./style.scss"
-import Bar from "./widget/Bar"
-import Toasts from "./widget/Toasts"
-import Launcher, { toggleLauncher } from "./widget/Launcher"
-import Osd, { showBrightness } from "./widget/Osd"
-import Wallpapers, { toggleWallpapers } from "./widget/Wallpapers"
-import Files, { toggleFiles } from "./widget/Files"
-import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./widget/Screenshot"
-import Clipboard, { toggleClipboard } from "./widget/Clipboard"
+import Bar from "./widget/bar/Bar"
+import Toasts from "./widget/toasts/Toasts"
+import Launcher, { toggleLauncher } from "./widget/launcher/Launcher"
+import Osd, { showBrightness } from "./widget/osd/Osd"
+import Wallpapers, { toggleWallpapers } from "./widget/wallpapers/Wallpapers"
+import Files, { toggleFiles } from "./widget/files/Files"
+import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./widget/screenshot/Screenshot"
+import Clipboard, { toggleClipboard } from "./widget/clipboard/Clipboard"
 
 app.start({
   css: style,
@@ -31,7 +31,6 @@ app.start({
     if (argv[0] === "screenshot") { screenshotRegion(); return response("ok") }
     if (argv[0] === "screenshot-full") { screenshotFull(); return response("ok") }
     if (argv[0] === "toggle-clipboard") { toggleClipboard(); return response("ok") }
-    if (argv[0] === "preset") { setPreset(argv[1]); return response("ok") }
     response("unknown request")
   },
   main() {

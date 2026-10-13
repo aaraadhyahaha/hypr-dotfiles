@@ -2,7 +2,7 @@ import { createState } from "ags"
 import { Gtk } from "ags/gtk4"
 import cairo from "cairo"
 import type CairoGi from "gi://cairo"
-import { pomodoro, type PomodoroState, type Settings } from "../service/pomodoro"
+import { pomodoro, type PomodoroState, type Settings } from "../../service/pomodoro"
 import { Heatmap, Streak } from "./PomodoroStats"
 
 const [state, setState] = createState<PomodoroState>({ ...pomodoro.state })
