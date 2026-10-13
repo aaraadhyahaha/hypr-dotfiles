@@ -8,7 +8,6 @@ import Wallpapers, { toggleWallpapers } from "./widget/Wallpapers"
 import Files, { toggleFiles } from "./widget/Files"
 import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./widget/Screenshot"
 import Clipboard, { toggleClipboard } from "./widget/Clipboard"
-import { initPresets, setPreset } from "./service/presets"
 
 app.start({
   css: style,
@@ -36,7 +35,6 @@ app.start({
     response("unknown request")
   },
   main() {
-    initPresets()
     app.get_monitors().map(Bar)
     Toasts()
     Launcher()
