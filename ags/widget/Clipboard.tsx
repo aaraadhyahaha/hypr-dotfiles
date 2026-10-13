@@ -154,6 +154,9 @@ export default function Clipboard() {
             application={app}
         >
             <box $={(self) => (card = self)} class="card" orientation={Gtk.Orientation.VERTICAL}>
+                <box class="window-clip-header">
+                    <label class="window-clip-title" label="Clipboard History" />
+                </box>
                 <entry
                     $={(self) => (entry = self)}
                     class="ffsearch"
@@ -164,7 +167,7 @@ export default function Clipboard() {
                 <scrolledwindow
                     propagateNaturalHeight
                     propagateNaturalWidth
-                    maxContentHeight={300}
+                    maxContentHeight={600}
                     hscrollbarPolicy={Gtk.PolicyType.NEVER}
                 >
                     <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
