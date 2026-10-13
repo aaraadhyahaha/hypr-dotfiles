@@ -5,8 +5,8 @@ import { readFile } from "ags/file"
 import GLib from "gi://GLib"
 import Pango from "gi://Pango"
 import Apps from "gi://AstalApps"
-import { toggleWallpapers } from "./widget/wallpapers/Wallpapers"
-import { toggleFiles } from "./widget/files/Files"
+import { toggleWallpapers } from "../wallpapers/Wallpapers"
+import { toggleFiles } from "../files/Files"
 
 type Item = {
     name: string

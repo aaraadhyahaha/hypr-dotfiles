@@ -1,12 +1,12 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
-SETUVAR fish_color_autosuggestion:90909a
-SETUVAR fish_color_command:bcc2ff
-SETUVAR fish_color_comment:90909a
-SETUVAR fish_color_end:c4c5dd
+SETUVAR fish_color_autosuggestion:8f909a
+SETUVAR fish_color_command:b3c5ff
+SETUVAR fish_color_comment:8f909a
+SETUVAR fish_color_end:c1c6dd
 SETUVAR fish_color_error:ffb4ab
-SETUVAR fish_color_escape:c4c5dd
-SETUVAR fish_color_operator:c4c5dd
-SETUVAR fish_color_param:e4e1e9
-SETUVAR fish_color_quote:e6bad6
-SETUVAR fish_pager_color_selection_background:46464f
+SETUVAR fish_color_escape:c1c6dd
+SETUVAR fish_color_operator:c1c6dd
+SETUVAR fish_color_param:e3e2e9
+SETUVAR fish_color_quote:e1bbdc
+SETUVAR fish_pager_color_selection_background:45464f

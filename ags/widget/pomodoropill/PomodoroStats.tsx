@@ -2,7 +2,7 @@ import { createState } from "ags"
 import { Gtk } from "ags/gtk4"
 import cairo from "cairo"
 import type CairoGi from "gi://cairo"
-import { pomodoro, dayKey } from "../service/pomodoro"
+import { pomodoro, dayKey } from "../../service/pomodoro"
 
 const [streak, setStreak] = createState(pomodoro.streak)
 pomodoro.subscribe(() => setStreak(pomodoro.streak))
