@@ -3,6 +3,37 @@
 $font: "SF Pro Text", sans-serif;
 $radius: 10px;
 
+$spacing-0: 0px;
+$spacing-1: 4px;
+$spacing-2: 8px;
+$spacing-3: 12px;
+$spacing-4: 16px;
+$spacing-5: 20px;
+$spacing-6: 24px;
+$spacing-7: 32px;
+$spacing-8: 40px;
+
+$radius-xs: 4px;
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+$radius-circle: 99px;
+$radius-pill: 999px;
+
+$font-size-xs: 10px;
+$font-size-sm: 11px;
+$font-size-base: 12px;
+$font-size-lg: 13px;
+$font-size-xl: 14px;
+$font-size-2xl: 15px;
+$font-size-3xl: 16px;
+$font-size-4xl: 18px;
+$font-size-5xl: 20px;
+$font-size-6xl: 24px;
+$font-size-7xl: 32px;
+$font-size-pomo: 34px;
+
 @keyframes pulse {
 
   0%,
@@ -32,8 +63,8 @@ button,
 }
 
 .hoverable {
-  padding: 0 6px;
-  border-radius: 7px;
+  padding: 0 $spacing-2;
+  border-radius: $radius-sm;
 }
 
 .hoverable:hover {
@@ -48,14 +79,14 @@ window.Bar {
   background: transparent;
   color: $fg;
   font-family: $font;
-  font-size: 13px;
+  font-size: $font-size-lg;
   font-weight: 600;
   font-feature-settings: "tnum";
 }
 
 .body {
-  margin: 6px 8px 0 8px;
-  padding: 3px;
+  margin: $spacing-2 $spacing-3 0 $spacing-3;
+  padding: $spacing-1;
   min-height: 32px;
   background: $bar;
   border-radius: $radius;
@@ -63,7 +94,7 @@ window.Bar {
 
 .sep {
   min-width: 1px;
-  margin: 5px 10px;
+  margin: $spacing-1 $spacing-3;
   background: rgba($fg, 0.3);
 }
 
@@ -75,7 +106,7 @@ button.launcher {
   background-image: none;
   background-color: transparent;
   color: $fg;
-  border-radius: 7px;
+  border-radius: $radius-sm;
 }
 
 button.launcher:hover {
@@ -84,27 +115,27 @@ button.launcher:hover {
 
 .glyph {
   font-family: "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 17px;
+  font-size: $font-size-5xl;
 }
 
 .end {
-  padding-right: 12px;
+  padding-right: $spacing-3;
 }
 
 .workspaces {
-  margin: 0 6px;
+  margin: 0 $spacing-2;
 }
 
 .dot {
-  min-width: 8px;
-  min-height: 8px;
+  min-width: $spacing-2;
+  min-height: $spacing-2;
   padding: 0;
-  margin: 0 3px;
+  margin: 0 $spacing-1;
   border: none;
   box-shadow: none;
   background-image: none;
   background-color: rgba($fg, 0.35);
-  border-radius: 99px;
+  border-radius: $radius-circle;
   transition: all 250ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -118,17 +149,17 @@ button.launcher:hover {
 }
 
 .glyph {
-  font-size: 15px;
+  font-size: $font-size-2xl;
 }
 
 .date {
-  margin-left: 8px;
+  margin-left: $spacing-2;
   font-weight: 500;
   opacity: 0.65;
 }
 
 .battery label {
-  margin-left: 6px;
+  margin-left: $spacing-2;
 }
 
 .battery.low {
@@ -136,7 +167,7 @@ button.launcher:hover {
 }
 
 .volume label {
-  margin-left: 6px;
+  margin-left: $spacing-2;
 }
 
 .volume.muted {
@@ -144,11 +175,11 @@ button.launcher:hover {
 }
 
 .wifi label {
-  margin-left: 6px;
+  margin-left: $spacing-2;
 }
 
 button.bt {
-  padding: 0 4px;
+  padding: 0 $spacing-1;
   border: none;
   box-shadow: none;
   background-image: none;
@@ -161,7 +192,7 @@ button.bt.off {
 }
 
 menubutton.bell button {
-  padding: 0 4px;
+  padding: 0 $spacing-1;
   border: none;
   box-shadow: none;
   background-image: none;
@@ -170,8 +201,8 @@ menubutton.bell button {
 }
 
 .count {
-  margin-left: 4px;
-  font-size: 11px;
+  margin-left: $spacing-1;
+  font-size: $font-size-sm;
 }
 
 popover {
@@ -185,7 +216,7 @@ popover>contents {
   border: none;
   box-shadow: none;
   border-radius: $radius;
-  padding: 8px;
+  padding: $spacing-2;
 }
 
 .notif-list,
@@ -200,18 +231,18 @@ popover>contents {
 
 .empty {
   opacity: 0.5;
-  padding: 10px;
+  padding: $spacing-3;
 }
 
 .notif {
-  padding: 8px;
-  margin-bottom: 6px;
-  border-radius: 8px;
+  padding: $spacing-2;
+  margin-bottom: $spacing-2;
+  border-radius: $radius-md;
   background-color: rgba($fg, 0.08);
 }
 
 .notif .app {
-  font-size: 11px;
+  font-size: $font-size-sm;
   opacity: 0.6;
 }
 
@@ -232,7 +263,7 @@ button.clear {
   color: $fg;
 }
 
-window.Toasts {
+.window.Toasts {
   background: transparent;
 }
 
@@ -240,13 +271,13 @@ window.Toasts {
   background: $bar;
   color: $fg;
   border-radius: $radius;
-  padding: 10px 14px;
-  margin: 8px 10px 0 0;
+  padding: $spacing-3 $spacing-4;
+  margin: $spacing-2 $spacing-3 0 0;
   min-width: 300px;
 }
 
 .toast .app {
-  font-size: 11px;
+  font-size: $font-size-sm;
   opacity: 0.6;
 }
 
@@ -306,36 +337,36 @@ window.Launcher {
 .card {
   background: $bar;
   color: $fg;
-  border-radius: 14px;
-  padding: 8px;
+  border-radius: $radius-lg;
+  padding: $spacing-2;
   min-width: 480px;
 }
 
 .hero {
-  border-radius: 10px;
+  border-radius: $radius;
   min-height: 110px;
 }
 
 .hero entry {
-  margin: 0 14px;
+  margin: 0 $spacing-4;
   min-height: 38px;
-  padding: 0 12px;
-  border-radius: 8px;
+  padding: 0 $spacing-3;
+  border-radius: $radius-md;
   border: none;
   box-shadow: none;
   background: rgba(16, 16, 22, 0.5);
   color: #fff;
-  font-size: 15px;
+  font-size: $font-size-2xl;
 }
 
 .list {
-  margin-top: 8px;
+  margin-top: $spacing-2;
 }
 
 .row {
-  padding: 8px 10px;
-  margin-bottom: 4px;
-  border-radius: 9px;
+  padding: $spacing-2 $spacing-3;
+  margin-bottom: $spacing-1;
+  border-radius: $radius-md;
   transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -344,7 +375,7 @@ window.Launcher {
 }
 
 .row .icon {
-  margin-right: 12px;
+  margin-right: $spacing-3;
 }
 
 .row .name {
@@ -352,20 +383,21 @@ window.Launcher {
 }
 
 .row .desc {
-  font-size: 12px;
+  font-size: $font-size-base;
   opacity: 0.65;
 }
 
 
+
 button.icon-btn,
 menubutton.power button {
-  padding: 0 6px;
+  padding: 0 $spacing-2;
   border: none;
   box-shadow: none;
   background-image: none;
   background-color: transparent;
   color: $fg;
-  border-radius: 7px;
+  border-radius: $radius-sm;
 }
 
 button.icon-btn:hover,
@@ -382,13 +414,13 @@ button.icon-btn.on {
 }
 
 .menu-item {
-  padding: 7px 10px;
+  padding: $spacing-2 $spacing-3;
   border: none;
   box-shadow: none;
   background-image: none;
   background-color: transparent;
   color: $fg;
-  border-radius: 8px;
+  border-radius: $radius-md;
 }
 
 .menu-item:hover {
@@ -397,7 +429,7 @@ button.icon-btn.on {
 
 .menu-item .glyph {
   min-width: 22px;
-  margin-right: 8px;
+  margin-right: $spacing-2;
 }
 
 window.Osd {
@@ -408,33 +440,33 @@ window.Osd {
   background: $bar;
   color: $fg;
   border-radius: $radius;
-  padding: 8px 14px;
+  padding: $spacing-2 $spacing-4;
   margin-bottom: 100px;
   min-width: 250px;
 }
 
 .osd-icon {
   font-family: "JetBrainsMono Nerd Font", sans-serif;
-  font-size: 17px;
+  font-size: $font-size-5xl;
   min-width: 24px;
-  margin-right: 10px;
+  margin-right: $spacing-3;
 }
 
 .osd-pct {
-  font-size: 13px;
+  font-size: $font-size-lg;
   font-weight: 700;
-  margin-left: 10px;
+  margin-left: $spacing-3;
 }
 
 .osd-bar trough {
   min-height: 6px;
-  border-radius: 99px;
+  border-radius: $radius-circle;
   background-color: rgba($fg, 0.2);
 }
 
 .osd-bar progress {
   min-height: 6px;
-  border-radius: 99px;
+  border-radius: $radius-circle;
   background-color: $accent;
 }
 
@@ -490,30 +522,30 @@ window.Wallpapers {
 .wp-card {
   background: $bar;
   color: $fg;
-  border-radius: 14px;
-  padding: 12px;
+  border-radius: $radius-lg;
+  padding: $spacing-3;
 }
 
 .wp-title {
   font-weight: 700;
-  margin: 0 6px 10px 6px;
+  margin: 0 $spacing-2 $spacing-3 $spacing-2;
 }
 
 .wp-empty {
   opacity: 0.6;
-  padding: 20px;
+  padding: $spacing-5;
 }
 
 .tile {
   border: 2px solid transparent;
-  border-radius: 12px;
-  padding: 2px;
-  margin: 3px;
+  border-radius: $radius-md;
+  padding: $spacing-1;
+  margin: $spacing-1;
   transition: all 160ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .tile .thumb {
-  border-radius: 9px;
+  border-radius: $radius-md;
 }
 
 .tile.current {
@@ -537,15 +569,15 @@ window.Files {
 }
 
 entry.ffsearch {
-  min-height: 40px;
-  padding: 0 12px;
-  margin-bottom: 8px;
+  min-height: $spacing-8;
+  padding: 0 $spacing-3;
+  margin-bottom: $spacing-2;
   border: none;
-  border-radius: 9px;
+  border-radius: $radius-md;
   box-shadow: none;
   background: rgba($fg, 0.1);
   color: $fg;
-  font-size: 15px;
+  font-size: $font-size-2xl;
 }
 
 window.Shot {
@@ -553,12 +585,12 @@ window.Shot {
 }
 
 .shot-toast {
-  margin: 0 10px 12px 0;
+  margin: 0 $spacing-3 $spacing-4 0;
 }
 
 .shot-thumb {
-  margin-bottom: 8px;
-  border-radius: 8px;
+  margin-bottom: $spacing-2;
+  border-radius: $radius-md;
 }
 
 window.Clip {
@@ -566,12 +598,12 @@ window.Clip {
 }
 
 .window-clip-header {
-  padding: 8px 16px;
+  padding: $spacing-2 $spacing-4;
   border-bottom: 1px solid rgba($fg, 0.1);
 }
 
 .window-clip-title {
-  font-size: 16px;
+  font-size: $font-size-3xl;
   font-weight: 600;
   color: $fg;
 }
@@ -582,8 +614,8 @@ window.Clip {
 }
 
 .clip-thumb {
-  margin-right: 12px;
-  border-radius: 6px;
+  margin-right: $spacing-3;
+  border-radius: $radius-md;
 }
 
 .wintitle {
@@ -593,7 +625,7 @@ window.Clip {
 @keyframes title-in {
   from {
     opacity: 0;
-    transform: translateY(3px);
+    transform: translateY($spacing-1);
   }
 
   to {
@@ -607,12 +639,12 @@ window.Clip {
 }
 
 .tray menubutton button {
-  padding: 0 4px;
+  padding: 0 $spacing-1;
   border: none;
   box-shadow: none;
   background-image: none;
   background-color: transparent;
-  border-radius: 7px;
+  border-radius: $radius-sm;
 }
 
 .tray menubutton button:hover {
@@ -621,15 +653,15 @@ window.Clip {
 
 popover modelbutton {
   color: $fg;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-md;
 }
 
 popover modelbutton:hover {
   background-color: rgba($fg, 0.12);
 }
 
-popover.qs-pop>contents {
+.popover.qs-pop>contents {
   background: transparent;
   border: none;
   box-shadow: none;
@@ -637,33 +669,33 @@ popover.qs-pop>contents {
 }
 
 .notif-pop {
-  margin-top: 8px;
+  margin-top: $spacing-2;
 }
 
 .qs-pop {
-  margin-top: 8px;
+  margin-top: $spacing-2;
 }
 
 .power-pop {
-  margin-top: 8px;
+  margin-top: $spacing-2;
 }
 
 .qs {
   background: $bar;
   border-radius: $radius;
   min-width: 360px;
-  padding: 16px;
-  margin: 6px 8px 0 0;
+  padding: $spacing-4;
+  margin: $spacing-2 $spacing-3 0 0;
 }
 
 .qs-pill image {
-  margin: 0 4px;
+  margin-right: $spacing-1;
 }
 
 .qs-title {
   font-weight: 600;
-  font-size: 15px;
-  margin-bottom: 8px;
+  font-size: $font-size-2xl;
+  margin-bottom: $spacing-2;
 }
 
 .qs-toggle.on {
@@ -671,7 +703,7 @@ popover.qs-pop>contents {
 }
 
 .qs-toggle image {
-  margin-right: 10px;
+  margin-right: $spacing-3;
 }
 
 .qs-name {
@@ -679,21 +711,21 @@ popover.qs-pop>contents {
 }
 
 .qs-sub {
-  font-size: 11px;
+  font-size: $font-size-sm;
   opacity: 0.65;
 }
 
 .qs-list {
-  margin-top: 6px;
+  margin-top: $spacing-2;
 }
 
 .qs-item {
-  padding: 8px 12px;
-  border-radius: 10px;
+  padding: $spacing-2 $spacing-3;
+  border-radius: $radius-md;
 }
 
 .qs-item image {
-  margin-right: 10px;
+  margin-right: $spacing-2;
 }
 
 .qs-item:hover {
@@ -705,43 +737,43 @@ popover.qs-pop>contents {
 }
 
 .qs-slider {
-  margin-bottom: 10px;
+  margin-bottom: $spacing-3;
 }
 
 .qs-slider image {
-  margin-right: 12px;
+  margin-right: $spacing-3;
 }
 
 .qs-slider scale {
-  min-height: 20px;
+  min-height: $spacing-5;
 }
 
 .qs-slider trough {
-  min-height: 8px;
-  border-radius: 99px;
+  min-height: $spacing-2;
+  border-radius: $radius-circle;
   background: rgba($fg, 0.10);
 }
 
 .qs-slider highlight {
-  border-radius: 99px;
+  border-radius: $radius-circle;
   background: rgba($fg, 0.7);
 }
 
 .qs-slider slider {
-  min-width: 16px;
-  min-height: 16px;
-  border-radius: 99px;
+  min-width: $spacing-4;
+  min-height: $spacing-4;
+  border-radius: $radius-circle;
   background: $fg;
 }
 
 .qs-tiles {
-  margin: 6px 0 10px 0;
+  margin: $spacing-2 0 $spacing-3 0;
 }
 
 .qs-tile {
-  padding: 10px 12px;
-  margin: 3px;
-  border-radius: 14px;
+  padding: $spacing-3 $spacing-3;
+  margin: $spacing-1;
+  border-radius: $radius-lg;
   background: rgba($fg, 0.06);
 }
 
@@ -750,22 +782,22 @@ popover.qs-pop>contents {
 }
 
 .qs-tile image {
-  margin-right: 8px;
+  margin-right: $spacing-2;
 }
 
 .qs-stats {
-  margin-top: 4px;
+  margin-top: $spacing-1;
 }
 
 .qs-stat {
-  margin: 3px;
-  padding: 10px 12px;
-  border-radius: 14px;
+  margin: $spacing-1;
+  padding: $spacing-3 $spacing-3;
+  border-radius: $radius-lg;
   background: rgba($fg, 0.06);
 }
 
 .qs-stat-name {
-  font-size: 11px;
+  font-size: $font-size-sm;
   font-weight: 600;
   opacity: 0.7;
 }
@@ -775,17 +807,17 @@ popover.qs-pop>contents {
 }
 
 .qs-graph {
-  margin-top: 6px;
+  margin-top: $spacing-2;
   color: $accent;
 }
 
 .qs-pair {
-  margin-bottom: 4px;
+  margin-bottom: $spacing-1;
 }
 
 .qs-half {
-  margin: 3px;
-  border-radius: 14px;
+  margin: $spacing-1;
+  border-radius: $radius-lg;
   background: rgba($fg, 0.06);
 }
 
@@ -797,15 +829,15 @@ popover.qs-pop>contents {
   background: transparent;
   border: none;
   box-shadow: none;
-  padding: 8px 10px;
+  padding: $spacing-2 $spacing-3;
 }
 
 .qs-half-chev {
-  padding: 0 8px;
+  padding: 0 $spacing-2;
 }
 
 .qs-half image {
-  margin-right: 8px;
+  margin-right: $spacing-2;
 }
 
 .qs-half-chev image {
@@ -813,15 +845,15 @@ popover.qs-pop>contents {
 }
 
 .qs-mode {
-  margin: 6px 3px 4px 3px;
-  padding: 3px;
-  border-radius: 14px;
+  margin: $spacing-2 $spacing-1 $spacing-3 $spacing-1;
+  padding: $spacing-1;
+  border-radius: $radius-lg;
   background: rgba($fg, 0.06);
 }
 
 .qs-seg {
-  padding: 8px 0;
-  border-radius: 11px;
+  padding: $spacing-2 0;
+  border-radius: $radius-md;
   background: transparent;
 }
 
@@ -830,19 +862,19 @@ popover.qs-pop>contents {
 }
 
 .qs-seg .glyph {
-  margin-right: 8px;
+  margin-right: $spacing-2;
 }
 
 .qs-accents {
-  margin: 6px 3px 4px 3px;
+  margin: $spacing-2 $spacing-1 $spacing-3 $spacing-1;
 }
 
 .qs-sw {
   min-width: 22px;
   min-height: 22px;
   padding: 0;
-  margin-left: 8px;
-  border-radius: 99px;
+  margin-left: $spacing-3;
+  border-radius: $radius-circle;
   border: 2px solid transparent;
 }
 
@@ -854,14 +886,14 @@ menubutton.pomo>button {
   background: none;
   box-shadow: none;
   border: none;
-  padding: 0 8px;
+  padding: 0 $spacing-3;
   min-height: 0;
-  border-radius: 999px;
+  border-radius: $radius-pill;
   transition: opacity 300ms ease, background 200ms ease;
 
   .pomo-time {
     color: $fg;
-    font-size: 12px;
+    font-size: $font-size-base;
     font-feature-settings: "tnum";
   }
 
@@ -887,7 +919,6 @@ menubutton.pomo.idle>button {
   opacity: 0.55;
 }
 
-
 .pomo-card {
   min-width: 300px;
 
@@ -908,7 +939,7 @@ menubutton.pomo.idle>button {
 
   .pomo-big {
     color: $fg;
-    font-size: 34px;
+    font-size: $font-size-pomo;
     font-weight: 600;
     font-feature-settings: "tnum";
   }
@@ -919,7 +950,7 @@ menubutton.pomo.idle>button {
     padding: 0;
     border: none;
     box-shadow: none;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: rgba($fg, 0.08);
     color: $fg;
     transition: background 200ms ease;
@@ -931,7 +962,7 @@ menubutton.pomo.idle>button {
     &.main {
       min-width: 52px;
       min-height: 52px;
-      font-size: 16px;
+      font-size: $font-size-3xl;
       background: $accent;
       color: $accent-fg;
     }
@@ -947,27 +978,27 @@ menubutton.pomo.idle>button {
     color: $fg;
     border: none;
     box-shadow: none;
-    border-radius: 12px;
-    padding: 6px 10px;
+    border-radius: $radius-md;
+    padding: $spacing-2 $spacing-3;
     min-height: 0;
   }
 
   .pomo-goal-label {
     color: $fg;
-    font-size: 12px;
+    font-size: $font-size-base;
     opacity: 0.7;
   }
 
   progressbar.pomo-goal {
     trough {
       min-height: 6px;
-      border-radius: 999px;
+      border-radius: $radius-pill;
       background: rgba($fg, 0.1);
     }
 
     progress {
       min-height: 6px;
-      border-radius: 999px;
+      border-radius: $radius-pill;
       background: $accent;
     }
   }
@@ -979,13 +1010,13 @@ menubutton.pomo.idle>button {
 
   .pomo-step-label {
     color: $fg;
-    font-size: 12px;
+    font-size: $font-size-base;
     opacity: 0.7;
   }
 
   .pomo-step-val {
     color: $fg;
-    font-size: 12px;
+    font-size: $font-size-base;
     font-feature-settings: "tnum";
   }
 
@@ -995,7 +1026,7 @@ menubutton.pomo.idle>button {
     padding: 0;
     border: none;
     box-shadow: none;
-    border-radius: 999px;
+    border-radius: $radius-pill;
     background: rgba($fg, 0.08);
     color: $fg;
 
@@ -1005,7 +1036,7 @@ menubutton.pomo.idle>button {
   }
 
   .pomo-heat {
-    margin-top: 6px;
+    margin-top: $spacing-2;
   }
 
   .pomo-streak {
@@ -1027,7 +1058,7 @@ menubutton.pomo.idle>button {
     }
 
     .pomo-streak-unit {
-      font-size: 12px;
+      font-size: $font-size-base;
       opacity: 0.7;
     }
   }
