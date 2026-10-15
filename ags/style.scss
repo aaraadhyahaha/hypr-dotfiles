@@ -672,6 +672,13 @@ popover modelbutton:hover {
   margin-top: $spacing-2;
 }
 
+.qs-pop > contents {
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
 .qs-pop {
   margin-top: $spacing-2;
 }
@@ -685,7 +692,6 @@ popover modelbutton:hover {
   border-radius: $radius;
   min-width: 360px;
   padding: $spacing-4;
-  margin: $spacing-2 $spacing-3 0 0;
 }
 
 .qs-pill image {
@@ -1062,4 +1068,12 @@ menubutton.pomo.idle>button {
       opacity: 0.7;
     }
   }
+}
+
+popover.qs-pop > contents,
+popover.pomo-pop > contents {
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
 }
