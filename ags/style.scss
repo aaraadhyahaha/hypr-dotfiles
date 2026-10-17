@@ -672,7 +672,7 @@ popover modelbutton:hover {
   margin-top: $spacing-2;
 }
 
-.qs-pop > contents {
+.qs-pop>contents {
   background: transparent;
   padding: 0;
   border: none;
@@ -1070,10 +1070,106 @@ menubutton.pomo.idle>button {
   }
 }
 
-popover.qs-pop > contents,
-popover.pomo-pop > contents {
+popover.qs-pop>contents,
+popover.pomo-pop>contents {
   background: transparent;
   padding: 0;
   border: none;
   box-shadow: none;
+}
+
+window.Overview {
+  background-color: rgba($surface, 0.55);
+  color: $fg;
+
+  button {
+    all: unset;
+  }
+
+  .content {
+    padding-top: 56px;
+  }
+
+  .ws {
+    min-width: 210px;
+    min-height: 118px;
+    margin: 0 8px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    background-color: rgba($fg, 0.08);
+    transition: 150ms ease;
+
+    label {
+      color: rgba($fg, 0.6);
+      font-size: 12px;
+    }
+
+    &:hover {
+      background-color: rgba($fg, 0.13);
+    }
+
+    &.active {
+      border-color: $accent;
+      background-color: rgba($accent, 0.14);
+
+      label {
+        color: $accent;
+      }
+    }
+
+    &.sel {
+      background-color: rgba($fg, 0.16);
+      box-shadow: 0 0 0 3px rgba($accent-2, 0.7);
+    }
+  }
+
+  .win-row {
+    margin-top: 70px;
+    margin-bottom: 70px;
+  }
+
+  .win {
+    margin: 0 12px;
+    border-radius: 14px;
+    overflow: hidden;
+    background-color: rgba($surface, 0.82);
+    border: 1px solid rgba($fg, 0.13);
+    box-shadow: 0 24px 60px rgba(black, 0.5);
+    transition: 150ms ease;
+
+    &:hover {
+      border-color: rgba($accent-2, 0.55);
+    }
+
+    &.sel {
+      border-color: $accent;
+      box-shadow: 0 0 0 3px rgba($accent, 0.45), 0 24px 60px rgba(black, 0.5);
+    }
+  }
+
+  .win-head {
+    padding: 6px 8px 6px 12px;
+    font-size: 12px;
+    background-color: rgba($fg, 0.06);
+  }
+
+  .win-close {
+    padding: 0 6px;
+    border-radius: 6px;
+
+    &:hover {
+      background-color: $error;
+
+      label {
+        color: $surface;
+      }
+    }
+  }
+
+  .win-body {
+    &:hover {
+      background-color: rgba($fg, 0.05);
+    }
+  }
 }

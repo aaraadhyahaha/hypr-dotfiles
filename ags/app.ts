@@ -8,6 +8,7 @@ import Wallpapers, { toggleWallpapers } from "./widget/wallpapers/Wallpapers"
 import Files, { toggleFiles } from "./widget/files/Files"
 import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./widget/screenshot/Screenshot"
 import Clipboard, { toggleClipboard } from "./widget/clipboard/Clipboard"
+import Overview from "./widget/overview/Overview"
 
 app.start({
   css: style,
@@ -43,5 +44,6 @@ app.start({
     Screenshot()
     ShotPreview()
     Clipboard()
+    Overview()
   },
 })

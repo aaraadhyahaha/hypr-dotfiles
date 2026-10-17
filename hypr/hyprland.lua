@@ -274,6 +274,9 @@ hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
 -- AGS restarting
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; cd ~/.config/ags && setsid ags run'"))
 
+-- AGS Overview
+hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("ags toggle overview"))
+
 -- AGS On Screen Display
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl -n1 set 5%+ && ags request osd-brightness"), { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -n1 set 5%- && ags request osd-brightness"), { locked = true, repeating = true })
@@ -386,6 +389,13 @@ hl.layer_rule({ match = { namespace = "osd" }, name = "osd-blur", blur = true, i
 hl.layer_rule({ match = { namespace = "osd" }, name = "osd-no-anim", no_anim = true })
 
 hl.layer_rule({ match = { namespace = "wallpapers" }, name = "wp-blur", blur = true, ignore_alpha = 0.1 })
+
+hl.layer_rule({
+    match = { namespace = "overview" },
+    name = "overview-blur",
+    blur = true,
+    ignore_alpha = 0.1
+})
 
 hl.layer_rule({
     match = { namespace = "bar" },

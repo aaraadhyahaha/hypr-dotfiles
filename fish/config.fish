@@ -12,3 +12,9 @@ if status is-interactive
 
     # Syntax colors (same palette as the bar and kitty)
 end
+
+# Pi
+fish_add_path "/home/aaraadhya/.pi/agent/bin"
+
+# Hermes Agent command
+fish_add_path "$HOME/.local/bin"
