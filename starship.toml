@@ -3,24 +3,24 @@ format = "$directory$git_branch$git_status$character"
 right_format = "$cmd_duration"
 
 [character]
-success_symbol = "[❯](bold #ccbdff)"
+success_symbol = "[❯](bold #ffb3b3)"
 error_symbol = "[❯](bold #ffb4ab)"
 
 [directory]
-style = "bold #ccbdff"
+style = "bold #ffb3b3"
 truncation_length = 3
 format = "[$path]($style) "
 
 [git_branch]
 symbol = " "
-style = "#eeb8ca"
+style = "#e5c18d"
 format = "[$symbol$branch]($style) "
 
 [git_status]
-style = "#cac3dc"
+style = "#e6bdbc"
 format = "([$all_status$ahead_behind]($style) )"
 
 [cmd_duration]
 min_time = 2000
-style = "#938f99"
+style = "#a08c8c"
 format = "[$duration]($style)"
