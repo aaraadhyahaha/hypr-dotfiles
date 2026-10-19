@@ -1,0 +1,16 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Shot {
+  background: transparent;
+}
+
+.shot-toast {
+  margin: 0 $spacing-3 $spacing-4 0;
+}
+
+.shot-thumb {
+  margin-bottom: $spacing-2;
+  border-radius: $radius-md;
+}

@@ -12,6 +12,7 @@ export default function Notifications() {
         <image iconName="preferences-system-notifications-symbolic" />
         <label
           class="count"
+          valign={Gtk.Align.CENTER}
           visible={list.as((l) => l.length > 0)}
           label={list.as((l) => String(l.length))}
         />
@@ -47,6 +48,7 @@ export default function Notifications() {
           </scrolledwindow>
           <button
             class="clear"
+            halign={Gtk.Align.END}
             visible={list.as((l) => l.length > 0)}
             onClicked={() => list.get().forEach((n) => n.dismiss())}
           >

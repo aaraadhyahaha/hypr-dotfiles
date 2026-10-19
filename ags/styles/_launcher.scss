@@ -1,0 +1,64 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Launcher {
+  background: transparent;
+}
+
+// shared by launcher, files and clipboard
+.card {
+  @include panel($spacing-2);
+  min-width: 480px;
+}
+
+.hero {
+  border-radius: $radius-sm;
+  min-height: 110px;
+}
+
+.hero entry {
+  margin: 0 $spacing-4;
+  min-height: 38px;
+  padding: 0 $spacing-3;
+  border-radius: $radius-md;
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background: rgba($surface, 0.6);
+  color: $on-surface;
+  font-size: $font-size-2xl;
+}
+
+.list {
+  margin-top: $spacing-2;
+}
+
+.row {
+  padding: $spacing-2 $spacing-3;
+  margin-bottom: $spacing-1;
+  border-radius: $radius-md;
+  transition: $transition;
+
+  &.sel {
+    background-color: $secondary-container;
+    color: $on-secondary-container;
+
+    .desc {
+      color: rgba($on-secondary-container, 0.75);
+    }
+  }
+
+  .icon {
+    margin-right: $spacing-3;
+  }
+
+  .name {
+    font-weight: 700;
+  }
+
+  .desc {
+    font-size: $font-size-base;
+    color: $text-muted;
+  }
+}

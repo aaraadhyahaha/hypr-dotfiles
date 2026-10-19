@@ -1,0 +1,122 @@
+@use "sass:color";
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+.pomo-card {
+  min-width: 300px;
+
+  // phase color drives the rings (DrawingArea uses currentColor)
+  &.focus {
+    color: $primary;
+  }
+
+  &.short,
+  &.long {
+    color: $tertiary;
+  }
+
+  .pomo-phase {
+    color: $text-muted;
+    font-weight: 600;
+  }
+
+  .pomo-big {
+    color: $text;
+    font-size: $font-size-pomo;
+    font-weight: 600;
+    font-feature-settings: "tnum";
+  }
+
+  button.pomo-ctl {
+    @include tile($radius-full);
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0;
+    color: $text;
+
+    &.main {
+      @include on-state;
+      min-width: 52px;
+      min-height: 52px;
+      font-size: $font-size-3xl;
+    }
+  }
+
+  &.short button.pomo-ctl.main,
+  &.long button.pomo-ctl.main {
+    background-color: $tertiary;
+    color: $on-tertiary;
+
+    &:hover {
+      background-color: color.mix($on-tertiary, $tertiary, $state-hover * 100%);
+    }
+  }
+
+  entry.pomo-task {
+    background: $card-bg;
+    color: $text;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    border-radius: $radius-md;
+    padding: $spacing-2 $spacing-3;
+    min-height: 0;
+  }
+
+  .pomo-goal-label,
+  .pomo-step-label {
+    color: $text-muted;
+    font-size: $font-size-base;
+  }
+
+  progressbar.pomo-goal {
+    @include track(6px);
+  }
+
+  &.short progressbar.pomo-goal progress,
+  &.long progressbar.pomo-goal progress {
+    background-color: $tertiary;
+  }
+
+  .pomo-step-val {
+    color: $text;
+    font-size: $font-size-base;
+    font-feature-settings: "tnum";
+  }
+
+  button.pomo-step-btn {
+    @include tile($radius-full);
+    min-width: 22px;
+    min-height: 22px;
+    padding: 0;
+    color: $text;
+  }
+
+  .pomo-heat {
+    margin-top: $spacing-2;
+  }
+
+  .pomo-streak {
+    color: $text-faint;
+    transition: $transition;
+
+    &.lit {
+      color: $text;
+
+      .pomo-streak-icon {
+        color: $primary;
+      }
+    }
+
+    .pomo-streak-val {
+      font-weight: 600;
+      font-feature-settings: "tnum";
+    }
+
+    .pomo-streak-unit {
+      font-size: $font-size-base;
+      color: $text-muted;
+    }
+  }
+}

@@ -1,0 +1,76 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Osd {
+  background: transparent;
+}
+
+.osd-card {
+  @include panel(0);
+  padding: $spacing-2 $spacing-4;
+  margin-bottom: 100px;
+  min-width: 250px;
+}
+
+.osd-icon {
+  font-family: $font-mono;
+  font-size: $font-size-5xl;
+  min-width: 24px;
+  margin-right: $spacing-3;
+}
+
+.osd-pct {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  margin-left: $spacing-3;
+}
+
+.osd-bar {
+  @include track(6px);
+}
+
+.osd-card.dim .osd-bar progress {
+  background-color: $outline;
+}
+
+.osd-card.in {
+  animation: osd-in 420ms ease-out both;
+}
+
+.osd-card.out {
+  animation: osd-out 220ms ease-in both;
+}
+
+@keyframes osd-in {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.9);
+  }
+
+  55% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1.03);
+  }
+
+  80% {
+    transform: translateY(2px) scale(0.995);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes osd-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.95);
+  }
+}

@@ -8,10 +8,7 @@ import WindowTitle from "./modules/WindowTitle"
 import Clock from "./modules/Clock"
 import Notifications from "./modules/Notifications"
 import Tray from "./modules/Tray"
-import Wifi from "./modules/Wifi"
-import Bluetooth from "./modules/Bluetooth"
 import Battery from "./modules/Battery"
-import Volume from "./modules/Volume"
 import Caffeine from "./modules/Caffeine"
 import Power from "./modules/Power"
 import QuickSettings from "./quicksettings/QuickSettings"
@@ -46,13 +43,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
         </box>
         <box $type="end" class="end">
           <Tray />
-          <Sep />
-          <Wifi />
-          <Bluetooth />
-          <Sep />
           <Battery />
-          <Sep />
-          <Volume />
           <Sep />
           <PomodoroPill />
           <QuickSettings />

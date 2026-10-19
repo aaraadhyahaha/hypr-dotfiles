@@ -1,0 +1,49 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Wallpapers {
+  background: transparent;
+}
+
+.wp-card {
+  @include panel($spacing-3);
+}
+
+.wp-title {
+  font-weight: 700;
+  margin: 0 $spacing-2 $spacing-3 $spacing-2;
+}
+
+.wp-empty {
+  color: $text-faint;
+  padding: $spacing-5;
+}
+
+.tile {
+  border: 2px solid transparent;
+  border-radius: $radius-md;
+  padding: $spacing-1;
+  margin: $spacing-1;
+  transition: $transition;
+
+  .thumb {
+    border-radius: $radius-sm;
+  }
+
+  &.current {
+    border-color: $outline;
+  }
+}
+
+flowboxchild {
+  background: transparent;
+  padding: 0;
+  outline: none;
+}
+
+flowboxchild:hover .tile,
+flowboxchild:focus .tile,
+flowboxchild:selected .tile {
+  border-color: $primary;
+}

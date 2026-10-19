@@ -21,6 +21,13 @@ export default function QuickSettings() {
   return (
     <menubutton class="qs-btn">
       <box class="qs-pill">
+        <Gtk.EventControllerScroll
+          flags={Gtk.EventControllerScrollFlags.VERTICAL}
+          onScroll={(_, _dx, dy) => {
+            speaker.volume = Math.max(0, Math.min(1, speaker.volume - dy * 0.05))
+          }}
+        />
+        <Gtk.GestureClick button={2} onPressed={() => (speaker.mute = !speaker.mute)} />
         {wifi && <image iconName={createBinding(wifi, "iconName")} />}
         <image
           iconName={createBinding(bt, "isPowered").as((p) =>

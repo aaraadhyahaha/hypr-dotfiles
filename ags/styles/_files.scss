@@ -1,0 +1,20 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Files {
+  background: transparent;
+}
+
+entry.ffsearch {
+  min-height: $spacing-8;
+  padding: 0 $spacing-3;
+  margin-bottom: $spacing-2;
+  border: none;
+  border-radius: $radius-md;
+  box-shadow: none;
+  outline: none;
+  background: $card-bg;
+  color: $text;
+  font-size: $font-size-2xl;
+}

@@ -233,6 +233,7 @@ function WindowCard({ client, index }: { client: Hyprland.Client; index: Accesso
       class={cls}
       orientation={Gtk.Orientation.VERTICAL}
       valign={Gtk.Align.START}
+      overflow={Gtk.Overflow.HIDDEN}
       widthRequest={size((s) => s.w)}
     >
       <box class="win-head">

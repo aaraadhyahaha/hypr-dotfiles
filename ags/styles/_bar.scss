@@ -1,0 +1,159 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Bar {
+  background: transparent;
+  color: $text;
+  font-family: $font;
+  font-size: $font-size-lg;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+.body {
+  margin: $spacing-2 $spacing-3 0 $spacing-3;
+  padding: $spacing-1;
+  min-height: 32px;
+  background: $bar-bg;
+  border-radius: $radius-md;
+
+  image {
+    -gtk-icon-size: $icon-size;
+  }
+}
+
+// every clickable item in the bar shares one shape and state layer
+button.edge,
+button.icon-btn,
+menubutton.bell>button,
+menubutton.pomo>button,
+menubutton.qs-btn>button,
+menubutton.power>button,
+.tray menubutton>button {
+  @include interactive($radius-sm);
+  padding: 0 $spacing-2;
+  min-height: 24px;
+}
+
+// static items get the same horizontal rhythm, no hover
+.clock,
+.battery,
+.wintitle {
+  padding: 0 $spacing-2;
+}
+
+.tray menubutton>button {
+  padding: 0 $spacing-1;
+}
+
+.wintitle {
+  color: $text-muted;
+  animation: title-in 260ms ease-out both;
+}
+
+@keyframes title-in {
+  from {
+    opacity: 0;
+    transform: translateY($spacing-1);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// workspaces
+.workspaces {
+  margin: 0 $spacing-1;
+}
+
+.dot {
+  @include flat-button;
+  min-width: $spacing-2;
+  min-height: $spacing-2;
+  padding: 0;
+  margin: 0 $spacing-1;
+  background-color: $outline-variant;
+  border-radius: $radius-full;
+  transition: all 250ms $ease;
+
+  &:hover {
+    background-color: $on-surface-variant;
+  }
+
+  &.active {
+    min-width: 26px;
+    background-color: $primary;
+  }
+}
+
+// clock
+.date {
+  margin-left: $spacing-2;
+  font-weight: 500;
+  color: $text-muted;
+}
+
+// battery
+.battery label {
+  margin-left: $spacing-2;
+}
+
+.battery.low {
+  color: $error;
+}
+
+// notifications
+.count {
+  margin-left: $spacing-1;
+  min-width: 16px;
+  padding: 0 5px;
+  border-radius: $radius-full;
+  background: $primary;
+  color: $on-primary;
+  font-size: $font-size-xs;
+  font-weight: 700;
+}
+
+// quick settings pill
+.qs-pill image {
+  margin: 0 2px;
+}
+
+// caffeine
+button.icon-btn.on {
+  @include on-state;
+}
+
+// pomodoro pill (phase colors; shape comes from the shared rule above)
+menubutton.pomo>button {
+  transition: $transition;
+
+  .pomo-time {
+    font-size: $font-size-base;
+    font-feature-settings: "tnum";
+  }
+}
+
+menubutton.pomo.focus>button {
+  color: $primary;
+}
+
+menubutton.pomo.short>button,
+menubutton.pomo.long>button {
+  color: $tertiary;
+}
+
+menubutton.pomo.paused>button {
+  opacity: 0.75;
+}
+
+menubutton.pomo.idle>button {
+  opacity: 0.55;
+}
+
+menubutton.pomo>button .pomo-time {
+  color: $text;
+}

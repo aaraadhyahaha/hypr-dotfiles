@@ -1,0 +1,67 @@
+@use "../colors" as *;
+
+// fonts
+$font: "SF Pro Text", sans-serif;
+$font-mono: "JetBrainsMono Nerd Font", sans-serif;
+
+// spacing (4px grid)
+$spacing-0: 0px;
+$spacing-1: 4px;
+$spacing-2: 8px;
+$spacing-3: 12px;
+$spacing-4: 16px;
+$spacing-5: 20px;
+$spacing-6: 24px;
+$spacing-7: 32px;
+$spacing-8: 40px;
+
+// radii
+$radius-xs: 4px;
+$radius-sm: 8px;
+$radius-md: 12px;
+$radius-lg: 16px;
+$radius-xl: 20px;
+$radius-full: 999px;
+
+// type scale
+$font-size-xs: 10px;
+$font-size-sm: 11px;
+$font-size-base: 12px;
+$font-size-lg: 13px;
+$font-size-xl: 14px;
+$font-size-2xl: 15px;
+$font-size-3xl: 16px;
+$font-size-4xl: 18px;
+$font-size-5xl: 20px;
+$font-size-6xl: 24px;
+$font-size-7xl: 32px;
+$font-size-pomo: 34px;
+
+// motion
+$ease: cubic-bezier(0.23, 1, 0.32, 1);
+$dur-fast: 160ms;
+$dur: 220ms;
+
+// state layers (M3): overlay alpha of on-surface over a container
+$state-hover: 0.08;
+$state-pressed: 0.12;
+$state-selected: 0.16;
+
+// semantic surfaces
+$bar-bg: $bar;
+$panel-bg: rgba($surface-container, 0.82);
+$card-bg: $surface-container-high;
+$track-bg: $surface-container-highest;
+
+// semantic text
+$text: $on-surface;
+$text-muted: $on-surface-variant;
+$text-faint: $outline;
+
+// on-state (solid accent)
+$on-bg: $primary;
+$on-fg: $on-primary;
+
+// iconography
+$icon-size: 16px;
+$glyph-size: 15px;

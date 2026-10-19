@@ -1,0 +1,107 @@
+@use "sass:color";
+@use "../colors" as *;
+@use "tokens" as *;
+
+$transition: color $dur $ease, background-color $dur $ease, border-color $dur $ease,
+  box-shadow $dur $ease, opacity $dur $ease;
+
+// strip the theme's default button chrome
+@mixin flat-button {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  background-image: none;
+  background-color: transparent;
+  color: inherit;
+  min-height: 0;
+  min-width: 0;
+}
+
+// flat button + state layers
+@mixin interactive($r: $radius-sm) {
+  @include flat-button;
+  border-radius: $r;
+  transition: $transition;
+
+  &:hover {
+    background-color: rgba($on-surface, $state-hover);
+  }
+
+  &:active {
+    background-color: rgba($on-surface, $state-pressed);
+  }
+}
+
+// a filled tile that still gets hover/press feedback
+@mixin tile($r: $radius-lg) {
+  @include flat-button;
+  border-radius: $r;
+  background-color: $card-bg;
+  transition: $transition;
+
+  &:hover {
+    background-color: color.mix($on-surface, $card-bg, $state-hover * 100%);
+  }
+
+  &:active {
+    background-color: color.mix($on-surface, $card-bg, $state-pressed * 100%);
+  }
+}
+
+// solid accent "on" state; hover darkens/lightens toward the fg
+@mixin on-state {
+  background-color: $on-bg;
+  color: $on-fg;
+
+  &:hover {
+    background-color: color.mix($on-fg, $on-bg, $state-hover * 100%);
+  }
+
+  &:active {
+    background-color: color.mix($on-fg, $on-bg, $state-pressed * 100%);
+  }
+
+  label,
+  image {
+    color: $on-fg;
+  }
+}
+
+// floating surface: popovers, cards, toasts, osd
+@mixin panel($pad: $spacing-3) {
+  background: $panel-bg;
+  color: $text;
+  border: 1px solid rgba($outline-variant, 0.6);
+  border-radius: $radius-lg;
+  padding: $pad;
+}
+
+// shared notification text (popover list + toasts)
+@mixin notif-text {
+  .app {
+    font-size: $font-size-sm;
+    color: $text-muted;
+  }
+
+  .summary {
+    font-weight: 700;
+  }
+
+  .notif-body {
+    color: $text-muted;
+  }
+}
+
+@mixin track($h: 6px) {
+  trough {
+    min-height: $h;
+    border-radius: $radius-full;
+    background-color: $track-bg;
+  }
+
+  progress {
+    min-height: $h;
+    border-radius: $radius-full;
+    background-color: $primary;
+  }
+}

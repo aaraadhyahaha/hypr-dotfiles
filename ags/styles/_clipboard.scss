@@ -1,0 +1,23 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Clip {
+  background: transparent;
+}
+
+.window-clip-header {
+  padding: $spacing-2 $spacing-4;
+  border-bottom: 1px solid $outline-variant;
+}
+
+.window-clip-title {
+  font-size: $font-size-3xl;
+  font-weight: 600;
+  color: $text;
+}
+
+.clip-thumb {
+  margin-right: $spacing-3;
+  border-radius: $radius-md;
+}

@@ -1,0 +1,56 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+window.Toasts {
+  background: transparent;
+}
+
+.toast {
+  @include panel(0);
+  @include notif-text;
+  padding: $spacing-3 $spacing-4;
+  margin: $spacing-2 $spacing-3 0 0;
+  min-width: 300px;
+}
+
+.toast.in {
+  animation: toast-in 520ms ease-out both;
+}
+
+.toast.out {
+  animation: toast-out 260ms ease-in both;
+}
+
+@keyframes toast-in {
+  0% {
+    opacity: 0;
+    transform: translateX(60px) scale(0.92);
+  }
+
+  55% {
+    opacity: 1;
+    transform: translateX(-8px) scale(1.02);
+  }
+
+  78% {
+    transform: translateX(3px) scale(0.995);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes toast-out {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(60px) scale(0.95);
+  }
+}

@@ -1,0 +1,90 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+popover {
+  background: transparent;
+  box-shadow: none;
+  margin-top: $spacing-2;
+}
+
+popover>contents {
+  @include panel($spacing-2);
+  box-shadow: none;
+}
+
+// popovers whose child draws its own panel (quick settings, pomodoro)
+popover.qs-pop>contents {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+// tray / dbus menus
+popover modelbutton {
+  color: $text;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-sm;
+
+  &:hover {
+    background-color: rgba($on-surface, $state-hover);
+  }
+}
+
+// notifications
+.notif-list,
+.notif-list scrolledwindow,
+.notif-list viewport {
+  background: transparent;
+}
+
+.notif-list {
+  min-width: 320px;
+}
+
+.empty {
+  color: $text-faint;
+  padding: $spacing-3;
+}
+
+.notif {
+  @include notif-text;
+  padding: $spacing-2 $spacing-3;
+  margin-bottom: $spacing-2;
+  border-radius: $radius-md;
+  background-color: $card-bg;
+}
+
+.notif button.x {
+  @include interactive($radius-full);
+  padding: $spacing-1;
+  color: $text-muted;
+}
+
+button.clear {
+  @include interactive($radius-sm);
+  padding: $spacing-1 $spacing-3;
+  color: $primary;
+  font-weight: 600;
+}
+
+// power menu
+.menu {
+  min-width: 170px;
+}
+
+.menu-item {
+  @include interactive($radius-sm);
+  padding: $spacing-2 $spacing-3;
+
+  .glyph {
+    min-width: 22px;
+    margin-right: $spacing-2;
+  }
+
+  &.danger:hover {
+    background-color: rgba($error, $state-selected);
+    color: $error;
+  }
+}

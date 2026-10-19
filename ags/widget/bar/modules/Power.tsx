@@ -5,9 +5,9 @@ import { createState } from "ags"
 export default function Power() {
   const [open, setOpen] = createState(false)
 
-  const item = (glyph: string, text: string, cmd: string[]) => (
+  const item = (glyph: string, text: string, cmd: string[], danger = false) => (
     <button
-      class="menu-item"
+      class={danger ? "menu-item danger" : "menu-item"}
       onClicked={() => {
         setOpen(false)
         execAsync(cmd)
@@ -31,8 +31,8 @@ export default function Power() {
           {item("\uf023", "Lock", ["loginctl", "lock-session"])}
           {item("\uf186", "Suspend", ["systemctl", "suspend"])}
           {item("\uf08b", "Log out", ["hyprctl", "dispatch", "hl.dsp.exit()"])}
-          {item("\uf021", "Restart", ["systemctl", "reboot"])}
-          {item("\uf011", "Shut down", ["systemctl", "poweroff"])}
+          {item("\uf021", "Restart", ["systemctl", "reboot"], true)}
+          {item("\uf011", "Shut down", ["systemctl", "poweroff"], true)}
         </box>
       </popover>
     </menubutton>

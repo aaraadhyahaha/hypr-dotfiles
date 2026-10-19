@@ -1,0 +1,36 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.pulse {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+label,
+image,
+button {
+  transition: $transition;
+}
+
+.glyph {
+  font-family: $font-mono;
+  font-size: $glyph-size;
+}
+
+.sep {
+  min-width: 1px;
+  margin: $spacing-1 $spacing-2;
+  background: $outline-variant;
+}

@@ -1,0 +1,223 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+.qs {
+  @include panel($spacing-4);
+  min-width: 360px;
+}
+
+.qs-title {
+  font-weight: 600;
+  font-size: $font-size-2xl;
+  margin-bottom: $spacing-2;
+}
+
+.qs-name {
+  font-weight: 600;
+}
+
+.qs-sub {
+  font-size: $font-size-sm;
+  color: $text-muted;
+}
+
+// sliders (match the OSD bar)
+.qs-slider {
+  margin-bottom: $spacing-3;
+
+  image {
+    margin-right: $spacing-3;
+  }
+
+  scale {
+    min-height: $spacing-5;
+  }
+
+  trough {
+    min-height: $spacing-2;
+    border-radius: $radius-full;
+    background: $track-bg;
+  }
+
+  highlight {
+    border-radius: $radius-full;
+    background: $primary;
+  }
+
+  slider {
+    min-width: $spacing-4;
+    min-height: $spacing-4;
+    margin: -$spacing-1 0;
+    border-radius: $radius-full;
+    border: none;
+    box-shadow: none;
+    background: $primary;
+  }
+}
+
+// toggle tiles
+.qs-tiles {
+  margin: $spacing-2 0 $spacing-3 0;
+}
+
+button.qs-tile {
+  @include tile($radius-lg);
+  padding: $spacing-3;
+  margin: $spacing-1;
+
+  image {
+    margin-right: $spacing-2;
+  }
+
+  &.on {
+    @include on-state;
+  }
+}
+
+// wifi/bt and audio pairs
+.qs-pair {
+  margin-bottom: $spacing-1;
+}
+
+.qs-half {
+  margin: $spacing-1;
+  border-radius: $radius-lg;
+  background: $card-bg;
+  transition: $transition;
+
+  button {
+    @include interactive($radius-lg);
+    padding: $spacing-2 $spacing-3;
+  }
+
+  image {
+    margin-right: $spacing-2;
+  }
+
+  &.on {
+    background: $on-bg;
+    color: $on-fg;
+
+    label,
+    image {
+      color: $on-fg;
+    }
+
+    .qs-sub {
+      color: rgba($on-fg, 0.8);
+    }
+
+    button:hover {
+      background-color: rgba($on-fg, $state-hover);
+    }
+
+    button:active {
+      background-color: rgba($on-fg, $state-pressed);
+    }
+  }
+}
+
+.qs-half-chev {
+  padding: 0 $spacing-2;
+
+  image {
+    margin-right: 0;
+  }
+}
+
+.qs-half button.qs-half-chev {
+  padding: $spacing-2;
+}
+
+// expandable lists (wifi networks, bt devices, audio endpoints)
+.qs-list {
+  margin: $spacing-2 $spacing-1 $spacing-1 $spacing-1;
+}
+
+button.qs-item {
+  @include interactive($radius-md);
+  padding: $spacing-2 $spacing-3;
+
+  image {
+    margin-right: $spacing-2;
+  }
+
+  &.active {
+    background-color: $secondary-container;
+    color: $on-secondary-container;
+  }
+}
+
+// dark / light segmented control
+.qs-mode {
+  margin: $spacing-2 $spacing-1 $spacing-3 $spacing-1;
+  padding: $spacing-1;
+  border-radius: $radius-lg;
+  background: $card-bg;
+}
+
+button.qs-seg {
+  @include interactive($radius-md);
+  padding: $spacing-2 0;
+
+  .glyph {
+    margin-right: $spacing-2;
+  }
+
+  &.on {
+    @include on-state;
+  }
+}
+
+// accent swatches
+.qs-accents {
+  margin: $spacing-2 $spacing-1 $spacing-3 $spacing-1;
+}
+
+button.qs-sw {
+  @include flat-button;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  margin-left: $spacing-3;
+  border-radius: $radius-full;
+  border: 2px solid transparent;
+  transition: $transition;
+
+  &:hover {
+    border-color: $outline;
+  }
+
+  &.on {
+    border-color: $on-surface;
+    box-shadow: 0 0 0 2px $primary;
+  }
+}
+
+// resource stats
+.qs-stats {
+  margin-top: $spacing-1;
+}
+
+.qs-stat {
+  margin: $spacing-1;
+  padding: $spacing-3;
+  border-radius: $radius-lg;
+  background: $card-bg;
+}
+
+.qs-stat-name {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-muted;
+}
+
+.qs-stat-val {
+  font-weight: 600;
+}
+
+.qs-graph {
+  margin-top: $spacing-2;
+  color: $primary;
+}
