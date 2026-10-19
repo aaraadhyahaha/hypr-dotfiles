@@ -2,10 +2,12 @@ import app from "ags/gtk4/app"
 import { Astal, Gdk, Gtk } from "ags/gtk4"
 import { createBinding, createComputed, createState, For, Accessor } from "ags"
 import { execAsync } from "ags/process"
+import { timeout, type Timer } from "ags/time"
 import Gio from "gi://Gio"
 import Hyprland from "gi://AstalHyprland"
 import Pango from "gi://Pango"
 import { type NavKey, type Sel, initialSel, reconcile, step } from "./nav"
+import { addr, captureTargets, mergeShots, parseClients, type WinInfo } from "./shots"
 
 const hypr = Hyprland.get_default()
 const { TOP, BOTTOM, LEFT, RIGHT } = Astal.WindowAnchor
@@ -23,11 +25,10 @@ const WORKSPACES = [
 const PREVIEW_MAX_W = 460
 const PREVIEW_MAX_H = 300
 const SHOT_DIR = "/tmp/ags-overview"
+// After a workspace switch, wait out Hyprland's slide animation (speed 6) before capturing.
+const CAPTURE_DELAY_MS = 800
 
 // ---------- hyprland helpers ----------
-
-// Hyprland normally gives addresses as "0x...", make sure of it.
-const addr = (a: string) => (a.startsWith("0x") ? a : `0x${a}`)
 
 // Hyprland >= 0.55 replaced `hyprctl dispatch workspace 2` with Lua expressions
 // (`hl.dsp.focus({ workspace = "2" })`), and AstalHyprland's dispatch()/focus()/kill()
@@ -78,9 +79,9 @@ const windows = createComputed(
 // A window closing under the selection must not leave it pointing at nothing.
 windows.subscribe(() => setSel((s) => reconcile(s, windows.get().length)))
 
-type Geo = { x: number; y: number; w: number; h: number }
-// Window geometry (from hyprctl) and screenshots, both keyed by window address.
-const [geos, setGeos] = createState<Record<string, Geo>>({})
+// Window info (from hyprctl) and cached screenshots, both keyed by window address.
+// Shots persist between openings: other workspaces show their last captured state.
+const [infos, setInfos] = createState<Record<string, WinInfo>>({})
 const [shots, setShots] = createState<Record<string, string>>({})
 
 // ---------- helpers ----------
@@ -99,58 +100,54 @@ function iconFor(cls: string): string {
 }
 
 // Preview size that fits the window's aspect ratio inside the max box.
-function fit(g?: Geo): { w: number; h: number } {
+function fit(g?: WinInfo): { w: number; h: number } {
   if (!g || g.w <= 0 || g.h <= 0)
     return { w: PREVIEW_MAX_W, h: Math.round((PREVIEW_MAX_W * 10) / 16) }
   const s = Math.min(PREVIEW_MAX_W / g.w, PREVIEW_MAX_H / g.h)
   return { w: Math.max(160, Math.round(g.w * s)), h: Math.max(100, Math.round(g.h * s)) }
 }
 
-async function readGeometry(): Promise<Record<string, Geo>> {
-  const geo: Record<string, Geo> = {}
+// Screenshot the windows of workspace `wsId` that are on screen right now (grim can only
+// see the screen; Hyprland doesn't render hidden workspaces) and fold them into the cache.
+async function runCapture(wsId: number) {
+  let list: WinInfo[] = []
   try {
-    const out = await execAsync(["hyprctl", "clients", "-j"])
-    for (const c of JSON.parse(out)) {
-      geo[addr(c.address)] = { x: c.at[0], y: c.at[1], w: c.size[0], h: c.size[1] }
-    }
+    list = parseClients(await execAsync(["hyprctl", "clients", "-j"]))
   } catch {}
-  return geo
-}
-
-// Grab every window on screen with grim. Runs BEFORE the overview becomes visible,
-// so the overlay is not in the screenshots. Needs `grim` installed.
-async function capture(list: Hyprland.Client[]) {
-  try {
-    await execAsync(["bash", "-c", `mkdir -p ${SHOT_DIR} && rm -f ${SHOT_DIR}/*.png`])
-  } catch {}
-  const geo = await readGeometry()
-  setGeos(geo)
+  setInfos(Object.fromEntries(list.map((i) => [i.address, i])))
 
   const stamp = Date.now() // new filename each time so GTK never shows a cached image
-  const out: Record<string, string> = {}
+  const fresh: Record<string, string> = {}
   await Promise.all(
-    list.map(async (c) => {
-      const a = addr(c.address)
-      const g = geo[a]
-      if (!g || g.w <= 0 || g.h <= 0) return
-      const path = `${SHOT_DIR}/${a}-${stamp}.png`
+    captureTargets(list, wsId).map(async (i) => {
+      const path = `${SHOT_DIR}/${i.address}-${stamp}.png`
       try {
-        await execAsync(["grim", "-g", `${g.x},${g.y} ${g.w}x${g.h}`, path])
-        out[a] = path
+        await execAsync(["grim", "-g", `${i.x},${i.y} ${i.w}x${i.h}`, path])
+        fresh[i.address] = path
       } catch {
         // grim missing or capture failed: the card falls back to the app icon
       }
     }),
   )
-  setShots(out)
+
+  const merged = mergeShots(shots.get(), fresh, new Set(list.map((i) => i.address)))
+  setShots(merged.shots)
+  if (merged.stale.length > 0) execAsync(["rm", "-f", ...merged.stale]).catch(() => {})
+}
+
+// Captures run one at a time, so two merges never race on the same cache.
+let queue: Promise<void> = Promise.resolve()
+function captureWorkspace(wsId: number): Promise<void> {
+  queue = queue.then(() => runCapture(wsId)).catch(() => {})
+  return queue
 }
 
 async function onShow(win: Astal.Window) {
-  setSel(initialSel(focused.get()?.id, WORKSPACES.map((w) => w.id)))
-  const list = windows.get()
+  const fid = focused.get()?.id
+  setSel(initialSel(fid, WORKSPACES.map((w) => w.id)))
 
   win.opacity = 0 // invisible while we screenshot, so the overlay is not captured
-  await capture(list)
+  if (fid !== undefined) await captureWorkspace(fid)
   win.opacity = 1
 }
 
@@ -223,7 +220,7 @@ function WindowCard({ client, index }: { client: Hyprland.Client; index: Accesso
   const title = createBinding(client, "title")
   const appClass = createBinding(client, "class")
   const shot = shots((s) => s[a])
-  const size = geos((g) => fit(g[a]))
+  const size = infos((m) => fit(m[a]))
   const cls = createComputed(
     [sel, index],
     (s: Sel, ix: number) => (s.row === "win" && s.win === ix ? "win sel" : "win"),
@@ -282,7 +279,25 @@ function WindowCard({ client, index }: { client: Hyprland.Client; index: Accesso
   )
 }
 
+// Refresh the cache for whichever workspace you are on, once it has settled, so the
+// overview can preview workspaces you are not on. Skipped while the overview is open.
+let pending: Timer | null = null
+function scheduleCapture() {
+  pending?.cancel()
+  pending = timeout(CAPTURE_DELAY_MS, () => {
+    pending = null
+    const id = focused.get()?.id
+    if (id !== undefined && !app.get_window("overview")?.visible) captureWorkspace(id)
+  })
+}
+
 export default function Overview() {
+  // start each session with an empty cache, then fill it for the current workspace
+  execAsync(["bash", "-c", `rm -rf ${SHOT_DIR} && mkdir -p ${SHOT_DIR}`])
+    .catch(() => {})
+    .then(scheduleCapture)
+  focused.subscribe(scheduleCapture)
+
   // namespace "overview" is what the Hyprland blur layerrule matches
   return (
     <window
