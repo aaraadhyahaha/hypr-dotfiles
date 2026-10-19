@@ -40,3 +40,17 @@ export function reconcile(sel: Sel, winCount: number): Sel {
   const win = clamp(sel.win, winCount - 1)
   return win === sel.win ? sel : { ...sel, win }
 }
+
+// Hovering a workspace card previews it — but only once the pointer is armed, i.e. has
+// actually moved since the overview opened. Mapping the overlay under a resting pointer
+// sends an enter event that must not override the opening selection.
+export function hoverSel(sel: Sel, index: number, armed: boolean): Sel {
+  if (!armed || (sel.row === "ws" && sel.ws === index)) return sel
+  return { row: "ws", ws: index, win: 0 }
+}
+
+const MOVE_THRESHOLD = 4
+
+export function pointerMoved(origin: [number, number], x: number, y: number): boolean {
+  return Math.hypot(x - origin[0], y - origin[1]) > MOVE_THRESHOLD
+}

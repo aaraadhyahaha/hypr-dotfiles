@@ -6,8 +6,8 @@ import { timeout, type Timer } from "ags/time"
 import Gio from "gi://Gio"
 import Hyprland from "gi://AstalHyprland"
 import Pango from "gi://Pango"
-import { type NavKey, type Sel, initialSel, reconcile, step } from "./nav"
-import { addr, captureTargets, mergeShots, parseClients, type WinInfo } from "./shots"
+import { type NavKey, type Sel, hoverSel, initialSel, pointerMoved, reconcile, step } from "./nav"
+import { addr, captureStillValid, captureTargets, mergeShots, parseClients, type WinInfo } from "./shots"
 
 const hypr = Hyprland.get_default()
 const { TOP, BOTTOM, LEFT, RIGHT } = Astal.WindowAnchor
@@ -109,7 +109,11 @@ function fit(g?: WinInfo): { w: number; h: number } {
 
 // Screenshot the windows of workspace `wsId` that are on screen right now (grim can only
 // see the screen; Hyprland doesn't render hidden workspaces) and fold them into the cache.
+// Bumped on every workspace switch, so a capture can tell it was overtaken by one.
+let switchGen = 0
+
 async function runCapture(wsId: number) {
+  const gen = switchGen
   let list: WinInfo[] = []
   try {
     list = parseClients(await execAsync(["hyprctl", "clients", "-j"]))
@@ -130,6 +134,13 @@ async function runCapture(wsId: number) {
     }),
   )
 
+  // switched away mid-capture: these pixels belong to another workspace, discard them
+  if (!captureStillValid(gen, switchGen, focused.get()?.id, wsId)) {
+    const junk = Object.values(fresh)
+    if (junk.length > 0) execAsync(["rm", "-f", ...junk]).catch(() => {})
+    for (const a of Object.keys(fresh)) delete fresh[a]
+  }
+
   const merged = mergeShots(shots.get(), fresh, new Set(list.map((i) => i.address)))
   setShots(merged.shots)
   if (merged.stale.length > 0) execAsync(["rm", "-f", ...merged.stale]).catch(() => {})
@@ -142,7 +153,20 @@ function captureWorkspace(wsId: number): Promise<void> {
   return queue
 }
 
+// Pointer state for hover-to-preview: hover only counts once the pointer has really moved
+// since opening (see hoverSel in nav.ts).
+let hoverArmed = false
+let pointerOrigin: [number, number] | null = null
+
+function trackPointer(x: number, y: number) {
+  if (hoverArmed) return
+  if (!pointerOrigin) pointerOrigin = [x, y]
+  else if (pointerMoved(pointerOrigin, x, y)) hoverArmed = true
+}
+
 async function onShow(win: Astal.Window) {
+  hoverArmed = false
+  pointerOrigin = null
   const fid = focused.get()?.id
   setSel(initialSel(fid, WORKSPACES.map((w) => w.id)))
 
@@ -208,7 +232,8 @@ function WorkspaceCard({ id, name, index }: { id: number; name: string; index: n
     >
       {/* hovering a workspace previews its windows, same as arrowing onto it */}
       <Gtk.EventControllerMotion
-        onEnter={() => sel.get().ws !== index && setSel({ row: "ws", ws: index, win: 0 })}
+        onEnter={() => setSel((s) => hoverSel(s, index, hoverArmed))}
+        onMotion={() => setSel((s) => hoverSel(s, index, hoverArmed))}
       />
       <label xalign={0} yalign={0} label={`${id} · ${name}`} />
     </button>
@@ -296,7 +321,10 @@ export default function Overview() {
   execAsync(["bash", "-c", `rm -rf ${SHOT_DIR} && mkdir -p ${SHOT_DIR}`])
     .catch(() => {})
     .then(scheduleCapture)
-  focused.subscribe(scheduleCapture)
+  focused.subscribe(() => {
+    switchGen++
+    scheduleCapture()
+  })
 
   // namespace "overview" is what the Hyprland blur layerrule matches
   return (
@@ -316,6 +344,13 @@ export default function Overview() {
         keys.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
         keys.connect("key-pressed", (_ctrl, keyval) => onKey(keyval))
         self.add_controller(keys)
+
+        // Window-wide pointer tracking arms hover-to-preview (capture phase: runs before the cards').
+        const pointer = new Gtk.EventControllerMotion()
+        pointer.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+        pointer.connect("enter", (_c, x, y) => trackPointer(x, y))
+        pointer.connect("motion", (_c, x, y) => trackPointer(x, y))
+        self.add_controller(pointer)
 
         // Screenshot + reset selection every time the overview opens.
         self.connect("notify::visible", () => {

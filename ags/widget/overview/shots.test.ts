@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { addr, parseClients, captureTargets, mergeShots, type WinInfo } from "./shots.ts"
+import { addr, parseClients, captureTargets, captureStillValid, mergeShots, type WinInfo } from "./shots.ts"
 
 const win = (o: Partial<WinInfo>): WinInfo => ({
   address: "0x1", ws: 1, x: 0, y: 0, w: 800, h: 600,
@@ -54,4 +54,11 @@ test("mergeShots never reports a path that is still in use", () => {
   const prev = { "0xa": "/s/a-1.png" }
   const { stale } = mergeShots(prev, { "0xa": "/s/a-1.png" }, new Set(["0xa"]))
   assert.deepEqual(stale, [])
+})
+
+test("a capture is kept only if no workspace switch happened and its workspace is still focused", () => {
+  assert.equal(captureStillValid(3, 3, 1, 1), true)
+  assert.equal(captureStillValid(3, 4, 1, 1), false)
+  assert.equal(captureStillValid(3, 3, 2, 1), false)
+  assert.equal(captureStillValid(3, 3, undefined, 1), false)
 })

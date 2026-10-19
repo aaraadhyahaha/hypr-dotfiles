@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { initialSel, step, reconcile } from "./nav.ts"
+import { initialSel, step, reconcile, hoverSel, pointerMoved } from "./nav.ts"
 
 const IDS = [1, 2, 3, 4]
 
@@ -52,4 +52,21 @@ test("reconcile drops to the workspace row when the last window closes", () => {
 test("reconcile returns the same object when nothing changes (avoids state churn)", () => {
   const s = { row: "win" as const, ws: 0, win: 1 }
   assert.equal(reconcile(s, 3), s)
+})
+
+test("hover selects the hovered workspace only once the pointer is armed", () => {
+  const s = { row: "win" as const, ws: 1, win: 2 }
+  assert.equal(hoverSel(s, 3, false), s)
+  assert.deepEqual(hoverSel(s, 3, true), { row: "ws", ws: 3, win: 0 })
+})
+
+test("hovering the already-selected workspace in the workspace row changes nothing", () => {
+  const s = { row: "ws" as const, ws: 3, win: 0 }
+  assert.equal(hoverSel(s, 3, true), s)
+})
+
+test("the pointer counts as moved only beyond a small threshold from where it entered", () => {
+  assert.equal(pointerMoved([100, 100], 100, 100), false)
+  assert.equal(pointerMoved([100, 100], 103, 102), false)
+  assert.equal(pointerMoved([100, 100], 110, 100), true)
 })

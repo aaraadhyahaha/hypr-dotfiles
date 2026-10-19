@@ -55,3 +55,14 @@ export function mergeShots(
   const stale = Object.values(prev).filter((p) => !kept.has(p))
   return { shots, stale }
 }
+
+// grim only sees what is on screen *now*: a capture is only trustworthy if no workspace
+// switch happened while it ran and its workspace is still the focused one.
+export function captureStillValid(
+  startGen: number,
+  endGen: number,
+  focusedId: number | undefined,
+  wsId: number,
+): boolean {
+  return startGen === endGen && focusedId === wsId
+}
