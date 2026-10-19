@@ -5,6 +5,7 @@ import { execAsync } from "ags/process"
 import Gio from "gi://Gio"
 import Hyprland from "gi://AstalHyprland"
 import Pango from "gi://Pango"
+import { type NavKey, type Sel, initialSel, reconcile, step } from "./nav"
 
 const hypr = Hyprland.get_default()
 const { TOP, BOTTOM, LEFT, RIGHT } = Astal.WindowAnchor
@@ -62,18 +63,20 @@ const closeWindow = (c: Hyprland.Client) =>
 const clients = createBinding(hypr, "clients")
 const focused = createBinding(hypr, "focusedWorkspace")
 
-// Windows on the focused workspace, recomputed on any client/workspace change.
+// Keyboard selection: which row is active and which item inside each row (see nav.ts).
+const [sel, setSel] = createState<Sel>({ row: "ws", ws: 0, win: 0 })
+
+// The selected workspace is the one being previewed.
+const previewId = sel((s) => WORKSPACES[s.ws].id)
+
+// Windows on the previewed workspace, recomputed on any client/selection change.
 const windows = createComputed(
-  [clients, focused],
-  (cs: Hyprland.Client[], ws: Hyprland.Workspace) =>
-    cs.filter((c) => c.workspace?.id === ws?.id),
+  [clients, previewId],
+  (cs: Hyprland.Client[], id: number) => cs.filter((c) => c.workspace?.id === id),
 )
 
-// Keyboard selection: which row is active and which item inside each row.
-type Row = "ws" | "win"
-const [row, setRow] = createState<Row>("win")
-const [wsIdx, setWsIdx] = createState(0)
-const [winIdx, setWinIdx] = createState(0)
+// A window closing under the selection must not leave it pointing at nothing.
+windows.subscribe(() => setSel((s) => reconcile(s, windows.get().length)))
 
 type Geo = { x: number; y: number; w: number; h: number }
 // Window geometry (from hyprctl) and screenshots, both keyed by window address.
@@ -143,52 +146,46 @@ async function capture(list: Hyprland.Client[]) {
 }
 
 async function onShow(win: Astal.Window) {
+  setSel(initialSel(focused.get()?.id, WORKSPACES.map((w) => w.id)))
   const list = windows.get()
-  const fid = focused.get()?.id
-  setWsIdx(Math.max(0, WORKSPACES.findIndex((w) => w.id === fid)))
-  setWinIdx(0)
-  setRow(list.length > 0 ? "win" : "ws")
 
   win.opacity = 0 // invisible while we screenshot, so the overlay is not captured
   await capture(list)
   win.opacity = 1
 }
 
+const NAV_KEYS: Record<number, NavKey> = {
+  [Gdk.KEY_Left]: "left",
+  [Gdk.KEY_Right]: "right",
+  [Gdk.KEY_Up]: "up",
+  [Gdk.KEY_Down]: "down",
+  [Gdk.KEY_Tab]: "tab",
+}
+
 function onKey(keyval: number): boolean {
   const list = windows.get()
-  const clamp = (n: number, max: number) => Math.max(0, Math.min(max, n))
-  const move = (d: number) => {
-    if (row.get() === "ws") setWsIdx((i) => clamp(i + d, WORKSPACES.length - 1))
-    else setWinIdx((i) => clamp(i + d, list.length - 1))
+  const nav = NAV_KEYS[keyval]
+  if (nav) {
+    setSel(step(sel.get(), nav, WORKSPACES.length, list.length))
+    return true
   }
 
   switch (keyval) {
     case Gdk.KEY_Escape:
       close()
       return true
-    case Gdk.KEY_Left:
-      move(-1)
-      return true
-    case Gdk.KEY_Right:
-    case Gdk.KEY_Tab:
-      move(1)
-      return true
-    case Gdk.KEY_Up:
-      setRow("ws")
-      return true
-    case Gdk.KEY_Down:
-      if (list.length > 0) setRow("win")
-      return true
     case Gdk.KEY_Return:
-    case Gdk.KEY_KP_Enter:
-      if (row.get() === "ws") {
-        focusWorkspace(WORKSPACES[wsIdx.get()].id)
+    case Gdk.KEY_KP_Enter: {
+      const s = sel.get()
+      if (s.row === "ws") {
+        focusWorkspace(WORKSPACES[s.ws].id)
       } else {
-        const c = list[winIdx.get()]
+        const c = list[s.win]
         if (c) focusWindow(c)
       }
       close()
       return true
+    }
   }
   return false
 }
@@ -197,9 +194,9 @@ function onKey(keyval: number): boolean {
 
 function WorkspaceCard({ id, name, index }: { id: number; name: string; index: number }) {
   const cls = createComputed(
-    [focused, row, wsIdx],
-    (w: Hyprland.Workspace, r: Row, i: number) =>
-      ["ws", w?.id === id ? "active" : "", r === "ws" && i === index ? "sel" : ""]
+    [focused, sel],
+    (w: Hyprland.Workspace, s: Sel) =>
+      ["ws", w?.id === id ? "active" : "", s.row === "ws" && s.ws === index ? "sel" : ""]
         .filter(Boolean)
         .join(" "),
   )
@@ -212,6 +209,10 @@ function WorkspaceCard({ id, name, index }: { id: number; name: string; index: n
         close()
       }}
     >
+      {/* hovering a workspace previews its windows, same as arrowing onto it */}
+      <Gtk.EventControllerMotion
+        onEnter={() => sel.get().ws !== index && setSel({ row: "ws", ws: index, win: 0 })}
+      />
       <label xalign={0} yalign={0} label={`${id} · ${name}`} />
     </button>
   )
@@ -224,8 +225,8 @@ function WindowCard({ client, index }: { client: Hyprland.Client; index: Accesso
   const shot = shots((s) => s[a])
   const size = geos((g) => fit(g[a]))
   const cls = createComputed(
-    [row, winIdx, index],
-    (r: Row, i: number, ix: number) => (r === "win" && i === ix ? "win sel" : "win"),
+    [sel, index],
+    (s: Sel, ix: number) => (s.row === "win" && s.win === ix ? "win sel" : "win"),
   )
 
   return (
@@ -326,6 +327,7 @@ export default function Overview() {
           <For each={windows}>
             {(client, index) => <WindowCard client={client} index={index} />}
           </For>
+          <label class="win-empty" label="No windows" visible={windows((l) => l.length === 0)} />
         </box>
       </box>
     </window>

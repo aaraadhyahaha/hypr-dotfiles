@@ -55,6 +55,11 @@ window.Overview {
     margin-bottom: 70px;
   }
 
+  .win-empty {
+    color: $text-faint;
+    font-size: $font-size-lg;
+  }
+
   .win {
     margin: 0 $spacing-3;
     border-radius: $radius-lg;
