@@ -1,6 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
-import { enter, exit, exiting } from "../common/motion"
+import { Motion, ENTER } from "../common/motion"
+import { surfaceTop } from "../common/surface"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import Pango from "gi://Pango"
@@ -27,7 +28,7 @@ const parse = (out: string): Item[] =>
 
 export default function Clipboard() {
     let win: Astal.Window
-    let card: Gtk.Box
+    let motion: Motion
     let list: Gtk.Box
     let entry: Gtk.Entry
     let status: Gtk.Label
@@ -115,11 +116,11 @@ export default function Clipboard() {
         status.visible = !results.length
     }
 
-    const close = () => exit(card, () => (win.visible = false))
+    const close = () => (win.visible = false) // instant; Hyprland fades the last frame
 
     const open = () => {
         entry.set_text("")
-        enter(card)
+        motion.animate(ENTER.card)
         win.visible = true
         entry.grab_focus()
         execAsync(["cliphist", "list"])
@@ -127,7 +128,7 @@ export default function Clipboard() {
             .catch(() => { all = []; filter("") })
     }
 
-    toggleFn = () => (win.visible && !exiting(card) ? close() : open())
+    toggleFn = () => (win.visible ? close() : open())
 
     return (
         <window
@@ -150,29 +151,33 @@ export default function Clipboard() {
             layer={Astal.Layer.OVERLAY}
             keymode={Astal.Keymode.EXCLUSIVE}
             exclusivity={Astal.Exclusivity.IGNORE}
+            anchor={Astal.WindowAnchor.TOP}
+            marginTop={surfaceTop()}
             application={app}
         >
-            <box $={(self) => (card = self)} class="card" orientation={Gtk.Orientation.VERTICAL}>
-                <box class="window-clip-header">
-                    <label class="window-clip-title" label="Clipboard History" />
+            <Motion $={(self) => (motion = self)}>
+                <box class="card" orientation={Gtk.Orientation.VERTICAL}>
+                    <box class="window-clip-header">
+                        <label class="window-clip-title" label="Clipboard History" />
+                    </box>
+                    <entry
+                        $={(self) => (entry = self)}
+                        class="ffsearch"
+                        placeholderText="Search clipboard..."
+                        onNotifyText={(self) => filter(self.text)}
+                        onActivate={() => pick(results[sel])}
+                    />
+                    <scrolledwindow
+                        propagateNaturalHeight
+                        propagateNaturalWidth
+                        maxContentHeight={600}
+                        hscrollbarPolicy={Gtk.PolicyType.NEVER}
+                    >
+                        <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
+                    </scrolledwindow>
+                    <label $={(self) => (status = self)} class="empty" />
                 </box>
-                <entry
-                    $={(self) => (entry = self)}
-                    class="ffsearch"
-                    placeholderText="Search clipboard..."
-                    onNotifyText={(self) => filter(self.text)}
-                    onActivate={() => pick(results[sel])}
-                />
-                <scrolledwindow
-                    propagateNaturalHeight
-                    propagateNaturalWidth
-                    maxContentHeight={600}
-                    hscrollbarPolicy={Gtk.PolicyType.NEVER}
-                >
-                    <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
-                </scrolledwindow>
-                <label $={(self) => (status = self)} class="empty" />
-            </box>
+            </Motion>
         </window>
     )
 }

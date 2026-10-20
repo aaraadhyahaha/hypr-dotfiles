@@ -1,6 +1,6 @@
 import { Gtk } from "ags/gtk4"
 import { Accessor, createState } from "ags"
-import { MOTION } from "../../common/motion"
+import { Motion, ENTER } from "../../common/motion"
 import Pango from "gi://Pango?version=1.0"
 
 export interface Half {
@@ -51,6 +51,23 @@ function PairTile({ h, expanded, onChev }: {
   )
 }
 
+// The list takes its space at once and its content settles in. Animating the height
+// instead would resize the popover's surface every frame, which is what jitters.
+function Expand({ show, children }: { show: Accessor<boolean>; children?: any }) {
+  return (
+    <Motion
+      visible={show}
+      $={(self) =>
+        self.connect("notify::visible", () => {
+          if (self.visible) self.animate(ENTER.content)
+        })
+      }
+    >
+      {children}
+    </Motion>
+  )
+}
+
 export default function Pair({ a, b }: { a: Half; b: Half }) {
   const [open, setOpen] = createState("")
 
@@ -66,20 +83,8 @@ export default function Pair({ a, b }: { a: Half; b: Half }) {
         <PairTile h={a} expanded={open.as((o) => o === "a")} onChev={() => flip("a", a)} />
         <PairTile h={b} expanded={open.as((o) => o === "b")} onChev={() => flip("b", b)} />
       </box>
-      <revealer
-        transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-        transitionDuration={MOTION.base}
-        revealChild={open.as((o) => o === "a")}
-      >
-        {a.list}
-      </revealer>
-      <revealer
-        transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-        transitionDuration={MOTION.base}
-        revealChild={open.as((o) => o === "b")}
-      >
-        {b.list}
-      </revealer>
+      <Expand show={open.as((o) => o === "a")}>{a.list}</Expand>
+      <Expand show={open.as((o) => o === "b")}>{b.list}</Expand>
     </box>
   )
 }

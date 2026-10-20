@@ -1,7 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { timeout } from "ags/time"
-import { enter, exit, exiting } from "../common/motion"
+import { Motion, ENTER } from "../common/motion"
 import { readFile } from "ags/file"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
@@ -21,7 +21,7 @@ export const toggleWallpapers = () => toggleFn()
 
 export default function Wallpapers() {
   let win: Astal.Window
-  let card: Gtk.Box
+  let motion: Motion
   let flow: Gtk.FlowBox
   let paths: string[] = []
   let currentIdx = 0
@@ -110,11 +110,11 @@ export default function Wallpapers() {
     })
   }
 
-  const close = () => exit(card, () => (win.visible = false))
+  const close = () => (win.visible = false) // instant; Hyprland fades the last frame
 
   const open = () => {
     render()
-    enter(card)
+    motion.animate(ENTER.card)
     win.visible = true
     timeout(16, () => flow.get_child_at_index(currentIdx)?.grab_focus())
   }
@@ -125,7 +125,7 @@ export default function Wallpapers() {
     execAsync([SCRIPT, path]).catch(console.error)
   }
 
-  toggleFn = () => (win.visible && !exiting(card) ? close() : open())
+  toggleFn = () => (win.visible ? close() : open())
 
   timeout(3000, () => {
     const todo = listImages()
@@ -158,29 +158,27 @@ export default function Wallpapers() {
       exclusivity={Astal.Exclusivity.IGNORE}
       application={app}
     >
-      <box
-        $={(self) => (card = self)}
-        class="wp-card"
-        orientation={Gtk.Orientation.VERTICAL}
-      >
-        <label class="wp-title" label="Wallpapers" xalign={0} />
-        <scrolledwindow
-          propagateNaturalHeight
-          propagateNaturalWidth
-          maxContentHeight={440}
-          hscrollbarPolicy={Gtk.PolicyType.NEVER}
-        >
-          <Gtk.FlowBox
-            $={(self) => (flow = self)}
-            class="wp-grid"
-            homogeneous
-            minChildrenPerLine={3}
-            maxChildrenPerLine={3}
-            selectionMode={Gtk.SelectionMode.SINGLE}
-            onChildActivated={(_, child) => apply(paths[child.get_index()])}
-          />
-        </scrolledwindow>
-      </box>
+      <Motion $={(self) => (motion = self)}>
+        <box class="wp-card" orientation={Gtk.Orientation.VERTICAL}>
+          <label class="wp-title" label="Wallpapers" xalign={0} />
+          <scrolledwindow
+            propagateNaturalHeight
+            propagateNaturalWidth
+            maxContentHeight={440}
+            hscrollbarPolicy={Gtk.PolicyType.NEVER}
+          >
+            <Gtk.FlowBox
+              $={(self) => (flow = self)}
+              class="wp-grid"
+              homogeneous
+              minChildrenPerLine={3}
+              maxChildrenPerLine={3}
+              selectionMode={Gtk.SelectionMode.SINGLE}
+              onChildActivated={(_, child) => apply(paths[child.get_index()])}
+            />
+          </scrolledwindow>
+        </box>
+      </Motion>
     </window>
   )
 }

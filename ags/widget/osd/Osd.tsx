@@ -1,7 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk } from "ags/gtk4"
 import { timeout } from "ags/time"
-import { enter, exit, exiting, MOTION } from "../common/motion"
+import { Motion, ENTER, MOTION, EASE } from "../common/motion"
 import { execAsync } from "ags/process"
 import { readFile } from "ags/file"
 import GLib from "gi://GLib"
@@ -34,6 +34,7 @@ export const showBrightness = () => showBrightnessFn()
 export default function Osd() {
   let win: Astal.Window
   let card: Gtk.Box
+  let motion: Motion
   let icon: Gtk.Label
   let pct: Gtk.Label
   let bar: Gtk.ProgressBar
@@ -51,7 +52,7 @@ export default function Osd() {
     // frame times share the monotonic clock, and land on actual frame boundaries
     bar.add_tick_callback((_w, clock) => {
       const p = Math.min(1, Math.max(0, clock.get_frame_time() - t0) / (MOTION.base * 1000))
-      const e = 1 - Math.pow(1 - p, 3)
+      const e = EASE.out(p)
       cur = from + (to - from) * e
       bar.fraction = cur
       if (p >= 1) { ticking = false; return GLib.SOURCE_REMOVE }
@@ -59,7 +60,8 @@ export default function Osd() {
     })
   }
 
-  const hide = () => exit(card, () => (win.visible = false))
+  // instant; Hyprland fades the last frame out
+  const hide = () => (win.visible = false)
 
   const show = (glyph: string, value: number, dim = false) => {
     value = Math.max(0, Math.min(1, value))
@@ -87,12 +89,12 @@ export default function Osd() {
 
   const present = (value: number | null) => {
     hideTimer?.cancel()
-    if (!win.visible || exiting(card)) {
+    if (!win.visible) {
       if (value !== null) {
         cur = value
         bar.fraction = value // appear at the right value, no sweep from the old one
       }
-      enter(card)
+      motion.animate(ENTER.rise)
       win.visible = true
     } else if (value !== null) {
       animateTo(value)
@@ -167,11 +169,13 @@ export default function Osd() {
       exclusivity={Astal.Exclusivity.IGNORE}
       application={app}
     >
-      <box $={(self) => (card = self)} class="osd-card">
-        <label $={(self) => (icon = self)} class="osd-icon" />
-        <Gtk.ProgressBar $={(self) => (bar = self)} class="osd-bar" hexpand valign={Gtk.Align.CENTER} />
-        <label $={(self) => (pct = self)} class="osd-pct" widthChars={4} xalign={1} />
-      </box>
+      <Motion $={(self) => (motion = self)}>
+        <box $={(self) => (card = self)} class="osd-card">
+          <label $={(self) => (icon = self)} class="osd-icon" />
+          <Gtk.ProgressBar $={(self) => (bar = self)} class="osd-bar" hexpand valign={Gtk.Align.CENTER} />
+          <label $={(self) => (pct = self)} class="osd-pct" widthChars={4} xalign={1} />
+        </box>
+      </Motion>
     </window>
   )
 }

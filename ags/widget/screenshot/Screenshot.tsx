@@ -1,7 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { timeout } from "ags/time"
-import { MOTION } from "../common/motion"
+import { Motion, ENTER, LEAVE } from "../common/motion"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import GdkPixbuf from "gi://GdkPixbuf"
@@ -21,14 +21,15 @@ export function ShotPreview() {
     let box: Gtk.Box
     let timer: { cancel: () => void } | null = null
 
-    const dismiss = (card: Gtk.Box) => {
-        card.remove_css_class("in")
-        card.add_css_class("out")
-        timeout(MOTION.exit, () => {
-            if (card.get_parent() === box) {
-                box.remove(card)
+    // slide back out past the screen edge, then hide
+    const dismiss = (m: Motion) => {
+        m.animate({
+            ...LEAVE.edge,
+            done: () => {
+                if (m.get_parent() !== box) return
+                box.remove(m)
                 win.visible = false
-            }
+            },
         })
     }
 
@@ -40,7 +41,8 @@ export function ShotPreview() {
         const card = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL })
         card.add_css_class("toast")
         card.add_css_class("shot-toast")
-        card.add_css_class("in")
+        const motion = new Motion()
+        motion.append(card)
 
         try {
             const pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(file, 240, 135, true)
@@ -63,14 +65,14 @@ export function ShotPreview() {
         const click = new Gtk.GestureClick()
         click.connect("pressed", () => {
             execAsync(["xdg-open", file]).catch(console.error)
-            dismiss(card)
+            dismiss(motion)
         })
         card.add_controller(click)
 
-        box.append(card)
+        motion.animate(ENTER.edge)
+        box.append(motion)
         win.visible = true
-        timeout(MOTION.enter, () => card.remove_css_class("in"))
-        timer = timeout(4500, () => dismiss(card))
+        timer = timeout(4500, () => dismiss(motion))
     }
 
     return (

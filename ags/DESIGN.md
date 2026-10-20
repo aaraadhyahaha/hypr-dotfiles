@@ -77,27 +77,34 @@ Every bar item is `$bar-item-h` (24px) tall and shares `interactive($radius-sm)`
 
 ## Motion
 
-AGS owns all shell motion. Hyprland's `ags-no-anim` layer rule disables its animations on every AGS namespace (it still blurs them). Hyprland only animates windows and workspaces.
+One split, everywhere: **Hyprland owns opacity, AGS owns geometry.**
 
-No springs. Short durations, gentle curves and small travel: mostly opacity, with at most a 0.98 scale and a few px of offset. Exits are quicker than entries.
+- Hyprland fades every AGS layer and popup (`fadeLayersIn/Out`, `fadePopupsIn/Out`, curve `glassIn`), so the blur behind a panel fades with its tint. An opacity fade drawn by AGS can't do that: with `ignore_alpha` the blur snaps on and off at the threshold, which is a flicker. Only `shot` (the region selector) keeps `no_anim`.
+- AGS moves content with `<Motion>` (`widget/common/motion.ts`), a wrapper that transforms its children at paint time on the frame clock. There's no relayout and no CSS-animation start race; the first frame paints the start pose, it can be interrupted, and it honours GTK's animations setting.
+- Surfaces leave by hiding at once (`win.visible = false`, popover popdown); the compositor fades the last frame out. There are no exit timers.
+- Never animate the size of a popover or other surface: a popup or layer that resizes every frame jitters. Content inside an open panel takes its space at once and settles in (`ENTER.content`).
+- Launcher, files and clipboard are pinned from the top (`surfaceTop()`), not centred, so the search field holds still while the results change height.
 
-| Token (SCSS) | `MOTION` (TS) | Use |
+| SCSS | `MOTION` (TS) | Use |
 |---|---|---|
-| `$dur-fast` 120ms + `$ease` | `fast` | hover, colour and other small state changes, workspace pip |
-| `$dur` 180ms + `$ease` | `base` | revealers, OSD bar tween, window-title fade |
-| `$dur-enter` 220ms + `$ease-out` | `enter` | surfaces appearing |
-| `$dur-exit` 140ms + `$ease-in` | `exit` | surfaces leaving |
+| `$dur-fast` 110ms + `$ease` | `fast` | hover, press, colour |
+| `$dur` 200ms + `$ease` | `base` | routine state, revealer widths, OSD bar tween |
+| `$dur-enter` 380ms + `$ease-out` | `enter` | geometry settling in, workspace pip stretch |
+| `$dur-exit` 180ms + `$ease-in` | `exit` | geometry leaving |
+| — | `slide` 460ms | toasts arriving from the screen edge |
 
-Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.2,.8,.2,1)` and `$ease-in` is `(.4,0,.7,.2)`.
+Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.16,1,.3,1)` (fast arrival, then a long quiet settle) and `$ease-in` is `(.4,0,1,1)`. `EASE.*` in TS uses the same curves. No springs, no bounce.
 
-`widget/common/motion.ts` mirrors the tokens. `enter(w)` adds `.in` synchronously, so call it *before* showing the surface; otherwise the first frame paints fully opaque and then blinks. `exit(w, done)` adds `.out` and runs `done` (usually hiding the window) one frame after `MOTION.exit`. Keyframes:
+`ENTER` presets (call `motion.animate(preset)` *before* showing; `onShow(popover, motion, preset)` wires a popover):
 
-- `surface-in` / `surface-out`: launcher, files, clipboard and wallpapers cards, plus bar popovers (enter only). Enter is a 4px drop with a 0.98 scale; exit fades and scales in place.
-- `slide-in-x` / `slide-out-x`: toasts and the screenshot preview, 24px of travel with no scale. A leaving toast's `Gtk.Revealer` slot then collapses, so the toasts below glide up.
-- `rise-in` / `rise-out`: OSD, 8px of travel.
-- `fade-in` / `fade-out`: overview
+- `card`: launcher, files, clipboard, wallpapers. Scale 0.96 → 1 about the centre.
+- `popover`: every bar popover. 4px drop and 0.97 scale, pivot at the top.
+- `rise`: OSD, 14px up.
+- `zoom`: overview, 1.04 → 1 (zooming out from the desktop). It captures *before* mapping, so it never opens invisible.
+- `edge`: toasts and the screenshot preview slide in from past the screen edge. There's no fade, so the blur travels with the glass. `LEAVE.edge` slides them back out, then the slot's revealer collapses so the toasts below glide up.
+- `content` / `side`: content appearing inside an already-open panel (Wi-Fi/BT lists, the clock's date). These fade themselves, because no compositor fade applies there.
 
-Never hard-code a duration. Use a token in SCSS and `MOTION.*` in TS.
+Window titles cross-fade with no travel, so text never shimmers. Never hard-code a duration: use a token in SCSS and `MOTION.*`/`ENTER.*` in TS.
 
 ## Fields
 

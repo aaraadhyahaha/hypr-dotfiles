@@ -39,35 +39,3 @@ window.Osd {
 .osd-card.dim .osd-bar progress {
   background-color: $outline;
 }
-
-.osd-card.in {
-  animation: rise-in $dur-enter $ease-out both;
-}
-
-.osd-card.out {
-  animation: rise-out $dur-exit $ease-in both;
-}
-
-@keyframes rise-in {
-  from {
-    opacity: 0;
-    transform: translateY($spacing-2) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes rise-out {
-  from {
-    opacity: 1;
-    transform: none;
-  }
-
-  to {
-    opacity: 0;
-    transform: translateY($spacing-1) scale(0.98);
-  }
-}

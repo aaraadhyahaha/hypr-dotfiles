@@ -1,7 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
-import { timeout } from "ags/time"
-import { enter, exit, exiting, MOTION } from "../common/motion"
+import { Motion, ENTER } from "../common/motion"
+import { surfaceTop } from "../common/surface"
 import { readFile } from "ags/file"
 import GLib from "gi://GLib"
 import Pango from "gi://Pango"
@@ -20,14 +20,14 @@ const WALLPAPER_ITEM: Item = {
     name: "Wallpapers",
     description: "Pick a wallpaper",
     iconName: "preferences-desktop-wallpaper",
-    launch: () => timeout(MOTION.exit, () => toggleWallpapers()),
+    launch: () => toggleWallpapers(),
 }
 
 const FILES_ITEM: Item = {
     name: "Search Files",
     description: "Fuzzy find files and folders",
     iconName: "system-file-manager",
-    launch: () => timeout(MOTION.exit, () => toggleFiles()),
+    launch: () => toggleFiles(),
 }
 
 const MAX = 40
@@ -37,7 +37,7 @@ export const toggleLauncher = () => toggleFn()
 export default function Launcher() {
     const apps = new Apps.Apps()
     let win: Astal.Window
-    let card: Gtk.Box
+    let motion: Motion
     let list: Gtk.Box
     let entry: Gtk.Entry
     let provider: Gtk.CssProvider | null = null
@@ -49,7 +49,8 @@ export default function Launcher() {
     let rows: Gtk.Box[] = []
     let sel = 0
 
-    const close = () => exit(card, () => (win.visible = false))
+    // hiding is instant; Hyprland fades the last frame out
+    const close = () => (win.visible = false)
 
     const setSel = (i: number) => {
         if (!rows.length) return
@@ -137,12 +138,12 @@ export default function Launcher() {
         apps.reload()
         entry.set_text("")
         search("")
-        enter(card)
+        motion.animate(ENTER.card)
         win.visible = true
         entry.grab_focus()
     }
 
-    toggleFn = () => (win.visible && !exiting(card) ? close() : open())
+    toggleFn = () => (win.visible ? close() : open())
 
     return (
         <window
@@ -173,33 +174,34 @@ export default function Launcher() {
             layer={Astal.Layer.OVERLAY}
             keymode={Astal.Keymode.EXCLUSIVE}
             exclusivity={Astal.Exclusivity.IGNORE}
+            // pinned from the top, so the search field holds still while results change height
+            anchor={Astal.WindowAnchor.TOP}
+            marginTop={surfaceTop()}
             application={app}
         >
-            <box
-                $={(self) => (card = self)}
-                class="card"
-                orientation={Gtk.Orientation.VERTICAL}
-            >
-                <overlay class="hero" overflow={Gtk.Overflow.HIDDEN}>
-                    <box class="hero-img" widthRequest={480} heightRequest={110} />
-                    <entry
-                        $type="overlay"
-                        $={(self) => (entry = self)}
-                        placeholderText="Search..."
-                        valign={Gtk.Align.CENTER}
-                        onNotifyText={(self) => search(self.text)}
-                        onActivate={() => launch(results[sel])}
-                    />
-                </overlay>
-                <scrolledwindow
-                    $={(self) => (scroller = self)}
-                    propagateNaturalHeight
-                    maxContentHeight={380}
-                    hscrollbarPolicy={Gtk.PolicyType.NEVER}
-                >
-                    <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
-                </scrolledwindow>
-            </box>
+            <Motion $={(self) => (motion = self)}>
+                <box class="card" orientation={Gtk.Orientation.VERTICAL}>
+                    <overlay class="hero" overflow={Gtk.Overflow.HIDDEN}>
+                        <box class="hero-img" widthRequest={480} heightRequest={110} />
+                        <entry
+                            $type="overlay"
+                            $={(self) => (entry = self)}
+                            placeholderText="Search..."
+                            valign={Gtk.Align.CENTER}
+                            onNotifyText={(self) => search(self.text)}
+                            onActivate={() => launch(results[sel])}
+                        />
+                    </overlay>
+                    <scrolledwindow
+                        $={(self) => (scroller = self)}
+                        propagateNaturalHeight
+                        maxContentHeight={380}
+                        hscrollbarPolicy={Gtk.PolicyType.NEVER}
+                    >
+                        <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
+                    </scrolledwindow>
+                </box>
+            </Motion>
         </window>
     )
 }

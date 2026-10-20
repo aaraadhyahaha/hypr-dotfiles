@@ -144,6 +144,8 @@ hl.config({
 hl.curve("easeOutQuint", { type = "bezier", points = { {0.23, 1}, {0.32, 1} } })
 hl.curve("quick",        { type = "bezier", points = { {0.15, 0}, {0.1, 1} } })
 hl.curve("almostLinear", { type = "bezier", points = { {0.5, 0.5}, {0.75, 1} } })
+-- AGS glass: opacity of shell layers and popups (AGS moves their content itself)
+hl.curve("glassIn",      { type = "bezier", points = { {0.2, 0.7}, {0.3, 1} } })
 hl.curve("easy",         { type = "spring", mass = 1, stiffness = 71.2633, dampening = 15.8273644 })
 
 -- Default springs
@@ -158,8 +160,10 @@ hl.animation({ leaf = "windowsMove",   enabled = true, speed = 5,   spring = "ea
 hl.animation({ leaf = "fade",          enabled = true, speed = 3,   bezier = "quick" })
 hl.animation({ leaf = "workspaces",    enabled = true, speed = 6,   bezier = "easeOutQuint", style = "slide" })
 hl.animation({ leaf = "layers",        enabled = true, speed = 4,   bezier = "easeOutQuint" })
-hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 1.8, bezier = "almostLinear" })
-hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.4, bezier = "almostLinear" })
+hl.animation({ leaf = "fadeLayersIn",  enabled = true, speed = 1.8, bezier = "glassIn" })
+hl.animation({ leaf = "fadeLayersOut", enabled = true, speed = 1.6, bezier = "almostLinear" })
+hl.animation({ leaf = "fadePopupsIn",  enabled = true, speed = 1.5, bezier = "glassIn" })
+hl.animation({ leaf = "fadePopupsOut", enabled = true, speed = 1.3, bezier = "almostLinear" })
 
 -- Ref https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
 -- "Smart gaps" / "No gaps when only"
@@ -373,10 +377,11 @@ hl.window_rule({
 -- })
 -- overlayLayerRule:set_enabled(false)
 
--- AGS shell layers: AGS animates its own surfaces (styles/_tokens.scss motion tokens),
--- so Hyprland only blurs them and never animates them.
+-- AGS shell layers: Hyprland fades them (fadeLayers*/fadePopups*), so the blur fades with
+-- the glass; AGS moves their content (ags/widget/common/motion.ts).
+-- "shot" is the region selector: it must vanish instantly before grim captures.
 hl.layer_rule({
-  match = { namespace = "^(bar|launcher|files|clipboard|wallpapers|overview|toasts|osd|shot|shotpreview)$" },
+  match = { namespace = "^shot$" },
   name = "ags-no-anim",
   no_anim = true,
 })

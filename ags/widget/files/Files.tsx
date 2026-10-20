@@ -1,7 +1,8 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { timeout } from "ags/time"
-import { enter, exit, exiting } from "../common/motion"
+import { Motion, ENTER } from "../common/motion"
+import { surfaceTop } from "../common/surface"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import Gio from "gi://Gio"
@@ -16,7 +17,7 @@ export const toggleFiles = () => toggleFn()
 
 export default function Files() {
     let win: Astal.Window
-    let card: Gtk.Box
+    let motion: Motion
     let list: Gtk.Box
     let entry: Gtk.Entry
     let status: Gtk.Label
@@ -131,7 +132,7 @@ export default function Files() {
             })
     }
 
-    const close = () => exit(card, () => (win.visible = false))
+    const close = () => (win.visible = false) // instant; Hyprland fades the last frame
 
     const open = () => {
         reindex()
@@ -139,12 +140,12 @@ export default function Files() {
         results = []
         render()
         setStatus()
-        enter(card)
+        motion.animate(ENTER.card)
         win.visible = true
         entry.grab_focus()
     }
 
-    toggleFn = () => (win.visible && !exiting(card) ? close() : open())
+    toggleFn = () => (win.visible ? close() : open())
 
     return (
         <window
@@ -167,19 +168,23 @@ export default function Files() {
             layer={Astal.Layer.OVERLAY}
             keymode={Astal.Keymode.EXCLUSIVE}
             exclusivity={Astal.Exclusivity.IGNORE}
+            anchor={Astal.WindowAnchor.TOP}
+            marginTop={surfaceTop()}
             application={app}
         >
-            <box $={(self) => (card = self)} class="card" orientation={Gtk.Orientation.VERTICAL}>
-                <entry
-                    $={(self) => (entry = self)}
-                    class="ffsearch"
-                    placeholderText="Search files..."
-                    onNotifyText={(self) => search(self.text)}
-                    onActivate={() => openPath(results[sel])}
-                />
-                <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
-                <label $={(self) => (status = self)} class="empty" />
-            </box>
+            <Motion $={(self) => (motion = self)}>
+                <box class="card" orientation={Gtk.Orientation.VERTICAL}>
+                    <entry
+                        $={(self) => (entry = self)}
+                        class="ffsearch"
+                        placeholderText="Search files..."
+                        onNotifyText={(self) => search(self.text)}
+                        onActivate={() => openPath(results[sel])}
+                    />
+                    <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
+                    <label $={(self) => (status = self)} class="empty" />
+                </box>
+            </Motion>
         </window>
     )
 }

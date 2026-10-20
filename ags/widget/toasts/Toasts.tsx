@@ -2,7 +2,7 @@ import app from "ags/gtk4/app"
 import { Astal, Gtk } from "ags/gtk4"
 import { createRoot } from "ags"
 import { timeout } from "ags/time"
-import { MOTION } from "../common/motion"
+import { Motion, ENTER, LEAVE, MOTION } from "../common/motion"
 import AstalNotifd from "gi://AstalNotifd"
 import NotifRow from "../notifications/NotifRow"
 import { toastTimeout } from "../notifications/model"
@@ -18,7 +18,6 @@ export default function Toasts() {
 
     const w = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL })
     w.add_css_class("toast")
-    w.add_css_class("in")
     if (n.urgency === AstalNotifd.Urgency.CRITICAL) w.add_css_class("critical")
     // built in its own root so its bindings are disposed when the toast leaves
     let dispose = () => {}
@@ -42,14 +41,15 @@ export default function Toasts() {
         if (!box.get_first_child()) win.visible = false
       }
       if (instant) return finish()
-      w.remove_css_class("in")
-      w.add_css_class("out")
-      timeout(MOTION.exit, () => {
-        // last one out: the window hides, nothing to glide
-        if (box.get_first_child() === slot && !slot.get_next_sibling()) return finish()
-        // collapse the empty slot so the toasts below glide up instead of snapping
-        slot.revealChild = false
-        timeout(MOTION.base, finish)
+      // back out past the screen edge, then collapse the empty slot so the toasts below glide up
+      motion.animate({
+        ...LEAVE.edge,
+        done: () => {
+          // last one out: the window hides, nothing to glide
+          if (box.get_first_child() === slot && !slot.get_next_sibling()) return finish()
+          slot.revealChild = false
+          timeout(MOTION.base, finish)
+        },
       })
     }
 
@@ -62,18 +62,21 @@ export default function Toasts() {
     })
     w.add_controller(click)
 
+    // the toast slides in from past the screen edge: the window clips it there.
+    // No fade, so the compositor blur travels with the glass instead of popping in.
+    const motion = new Motion()
+    motion.append(w)
     const slot = new Gtk.Revealer({
       transitionType: Gtk.RevealerTransitionType.SLIDE_UP,
       transitionDuration: MOTION.base,
       revealChild: true,
-      child: w,
+      child: motion,
     })
 
     live.set(n.id, { leave })
+    motion.animate(ENTER.edge)
     box.append(slot)
     win.visible = true
-
-    timeout(MOTION.enter, () => w.remove_css_class("in")) // so the entry animation never replays
     const ms = toastTimeout(n)
     if (ms !== null) timeout(ms, () => leave())
     resolved = n.connect("resolved", () => leave())

@@ -1,6 +1,6 @@
 import { Gtk } from "ags/gtk4"
 import { createBinding, createState } from "ags"
-import { MOTION } from "../../common/motion"
+import { Motion, ENTER, onShow } from "../../common/motion"
 import AstalNetwork from "gi://AstalNetwork?version=0.1"
 import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
 import AstalWp from "gi://AstalWp?version=0.1"
@@ -18,6 +18,7 @@ export default function QuickSettings() {
   const bt = AstalBluetooth.get_default()
   const speaker = AstalWp.get_default()!.audio.defaultSpeaker
   const [open, setOpen] = createState(false)
+  let motion: Motion
 
   return (
     <menubutton class="qs-btn">
@@ -40,13 +41,12 @@ export default function QuickSettings() {
       <popover
         class="qs-pop"
         hasArrow={false}
-        $={(self) => self.connect("notify::visible", () => setOpen(self.visible))}
+        $={(self) => {
+          self.connect("notify::visible", () => setOpen(self.visible))
+          onShow(self, motion, ENTER.popover)
+        }}
       >
-        <revealer
-          transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-          transitionDuration={MOTION.base}
-          revealChild={open}
-        >
+        <Motion origin="top" $={(self) => (motion = self)}>
           <box class="qs" orientation={Gtk.Orientation.VERTICAL}>
             <label class="qs-title" xalign={0} label="Quick settings" />
             <VolumeSlider />
@@ -58,7 +58,7 @@ export default function QuickSettings() {
             <Accents active={open} />
             <Resources active={open} />
           </box>
-        </revealer>
+        </Motion>
       </popover>
     </menubutton>
   )

@@ -3,7 +3,7 @@ import { Astal, Gdk, Gtk } from "ags/gtk4"
 import { createBinding, createComputed, createState, For, Accessor } from "ags"
 import { execAsync } from "ags/process"
 import { timeout, type Timer } from "ags/time"
-import { enter, exit, exiting } from "../common/motion"
+import { Motion, ENTER } from "../common/motion"
 import Gio from "gi://Gio"
 import Hyprland from "gi://AstalHyprland"
 import Pango from "gi://Pango"
@@ -87,18 +87,24 @@ const [shots, setShots] = createState<Record<string, string>>({})
 
 // ---------- helpers ----------
 
+let motion: Motion
+let opening = false
+
 function close() {
   const win = app.get_window("overview")
-  if (win?.visible) exit(win, () => (win.visible = false))
+  if (win?.visible) win.visible = false // instant; Hyprland fades the last frame out
 }
 
-// `ags toggle` would hide the window without its exit animation
-export function toggleOverview() {
+export async function toggleOverview() {
   const win = app.get_window("overview")
-  if (!win) return
-  if (!win.visible) win.visible = true
-  else if (exiting(win)) enter(win)
-  else close()
+  if (!win || opening) return
+  if (win.visible) return close()
+  // capture before mapping: the overlay must not land in the shot, nor pop in after it
+  opening = true
+  const fid = focused.get()?.id
+  if (fid !== undefined) await captureWorkspace(fid)
+  opening = false
+  win.visible = true
 }
 
 // Use the window class as icon name only if the theme has it, else a generic icon.
@@ -174,16 +180,11 @@ function trackPointer(x: number, y: number) {
   else if (pointerMoved(pointerOrigin, x, y)) hoverArmed = true
 }
 
-async function onShow(win: Astal.Window) {
+function onShow() {
   hoverArmed = false
   pointerOrigin = null
-  const fid = focused.get()?.id
-  setSel(initialSel(fid, WORKSPACES.map((w) => w.id)))
-
-  win.opacity = 0 // invisible while we screenshot, so the overlay is not captured
-  if (fid !== undefined) await captureWorkspace(fid)
-  enter(win) // before opacity returns, so no frame paints fully opaque
-  win.opacity = 1
+  setSel(initialSel(focused.get()?.id, WORKSPACES.map((w) => w.id)))
+  motion.animate(ENTER.zoom)
 }
 
 const NAV_KEYS: Record<number, NavKey> = {
@@ -363,34 +364,36 @@ export default function Overview() {
         pointer.connect("motion", (_c, x, y) => trackPointer(x, y))
         self.add_controller(pointer)
 
-        // Screenshot + reset selection every time the overview opens.
+        // Reset selection and play the entry every time the overview opens.
         self.connect("notify::visible", () => {
-          if (self.visible) onShow(self)
+          if (self.visible) onShow()
         })
       }}
     >
-      {/* fills the screen so a click on empty space closes the overview */}
-      <box
-        class="content"
-        orientation={Gtk.Orientation.VERTICAL}
-        $={(self) => {
-          const click = new Gtk.GestureClick()
-          click.connect("pressed", () => close())
-          self.add_controller(click)
-        }}
-      >
-        <box class="ws-strip" halign={Gtk.Align.CENTER}>
-          {WORKSPACES.map((w, i) => (
-            <WorkspaceCard id={w.id} name={w.name} index={i} />
-          ))}
+      <Motion $={(self) => (motion = self)}>
+        {/* fills the screen so a click on empty space closes the overview */}
+        <box
+          class="content"
+          orientation={Gtk.Orientation.VERTICAL}
+          $={(self) => {
+            const click = new Gtk.GestureClick()
+            click.connect("pressed", () => close())
+            self.add_controller(click)
+          }}
+        >
+          <box class="ws-strip" halign={Gtk.Align.CENTER}>
+            {WORKSPACES.map((w, i) => (
+              <WorkspaceCard id={w.id} name={w.name} index={i} />
+            ))}
+          </box>
+          <box class="win-row" halign={Gtk.Align.CENTER} valign={Gtk.Align.START}>
+            <For each={windows}>
+              {(client, index) => <WindowCard client={client} index={index} />}
+            </For>
+            <label class="win-empty" label="No windows" visible={windows((l) => l.length === 0)} />
+          </box>
         </box>
-        <box class="win-row" halign={Gtk.Align.CENTER} valign={Gtk.Align.START}>
-          <For each={windows}>
-            {(client, index) => <WindowCard client={client} index={index} />}
-          </For>
-          <label class="win-empty" label="No windows" visible={windows((l) => l.length === 0)} />
-        </box>
-      </box>
+      </Motion>
     </window>
   )
 }

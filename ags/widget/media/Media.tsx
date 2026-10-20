@@ -2,7 +2,7 @@ import { Gtk } from "ags/gtk4"
 import { createBinding, createComputed, createState, For, onCleanup, With } from "ags"
 import Pango from "gi://Pango"
 import AstalMpris from "gi://AstalMpris"
-import { MOTION } from "../common/motion"
+import { Motion, ENTER, MOTION, onShow } from "../common/motion"
 import Sep from "../bar/common/Sep"
 import { fmtTime, pickPlayer } from "./model"
 
@@ -127,6 +127,7 @@ export default function Media() {
   })
 
   let lastScroll = 0
+  let motion: Motion
 
   return (
     <box visible={current.as(Boolean)}>
@@ -162,30 +163,32 @@ export default function Media() {
             }
           </With>
         </box>
-        <popover class="qs-pop" hasArrow={false}>
-          <box class="media-card" orientation={Gtk.Orientation.VERTICAL}>
-            {/* own box: With re-inserts its child, which would otherwise land after the chips */}
-            <box orientation={Gtk.Orientation.VERTICAL}>
-              <With value={current}>{(player) => player && <Card player={player} />}</With>
+        <popover class="qs-pop" hasArrow={false} $={(self) => onShow(self, motion, ENTER.popover)}>
+          <Motion origin="top" $={(self) => (motion = self)}>
+            <box class="media-card" orientation={Gtk.Orientation.VERTICAL}>
+              {/* own box: With re-inserts its child, which would otherwise land after the chips */}
+              <box orientation={Gtk.Orientation.VERTICAL}>
+                <With value={current}>{(player) => player && <Card player={player} />}</With>
+              </box>
+              <box
+                class="players"
+                halign={Gtk.Align.CENTER}
+                spacing={4}
+                visible={players.as((l) => l.length > 1)}
+              >
+                <For each={players}>
+                  {(p) => (
+                    <button
+                      class={current.as((c) => (c === p ? "player-chip on" : "player-chip"))}
+                      onClicked={() => setPreferred(p.busName)}
+                    >
+                      <label label={p.identity} />
+                    </button>
+                  )}
+                </For>
+              </box>
             </box>
-            <box
-              class="players"
-              halign={Gtk.Align.CENTER}
-              spacing={4}
-              visible={players.as((l) => l.length > 1)}
-            >
-              <For each={players}>
-                {(p) => (
-                  <button
-                    class={current.as((c) => (c === p ? "player-chip on" : "player-chip"))}
-                    onClicked={() => setPreferred(p.busName)}
-                  >
-                    <label label={p.identity} />
-                  </button>
-                )}
-              </For>
-            </box>
-          </box>
+          </Motion>
         </popover>
       </menubutton>
     </box>

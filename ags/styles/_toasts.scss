@@ -14,38 +14,6 @@ window.Toasts {
   min-width: 300px;
 }
 
-.toast.in {
-  animation: slide-in-x $dur-enter $ease-out both;
-}
-
-.toast.out {
-  animation: slide-out-x $dur-exit $ease-in both;
-}
-
-@keyframes slide-in-x {
-  from {
-    opacity: 0;
-    transform: translateX($spacing-6);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes slide-out-x {
-  from {
-    opacity: 1;
-    transform: none;
-  }
-
-  to {
-    opacity: 0;
-    transform: translateX($spacing-6);
-  }
-}
-
 // the toast is the panel; the row inside draws no card of its own
 .toast .notif {
   background: transparent;

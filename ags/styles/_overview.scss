@@ -8,14 +8,6 @@ window.Overview {
   background-color: rgba($surface, 0.55);
   color: $text;
 
-  &.in {
-    animation: fade-in $dur-enter $ease-out both;
-  }
-
-  &.out {
-    animation: fade-out $dur-exit $ease-in both;
-  }
-
   button {
     all: unset;
   }

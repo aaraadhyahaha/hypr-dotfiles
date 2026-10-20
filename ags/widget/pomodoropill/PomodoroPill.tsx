@@ -1,6 +1,6 @@
 import { createState } from "ags"
 import { Gtk } from "ags/gtk4"
-import { MOTION } from "../common/motion"
+import { Motion, ENTER, onShow } from "../common/motion"
 import cairo from "cairo"
 import type CairoGi from "gi://cairo"
 import { pomodoro, type PomodoroState, type Settings } from "../../service/pomodoro"
@@ -91,7 +91,7 @@ function Stepper({
 }
 
 export default function PomodoroPill() {
-  const [open, setOpen] = createState(false)
+  let motion: Motion
 
   return (
     <menubutton
@@ -116,13 +116,9 @@ export default function PomodoroPill() {
       <popover
         class="qs-pop"
         hasArrow={false}
-        $={(self) => self.connect("notify::visible", () => setOpen(self.visible))}
+        $={(self) => onShow(self, motion, ENTER.popover)}
       >
-        <revealer
-          transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-          transitionDuration={MOTION.base}
-          revealChild={open}
-        >
+        <Motion origin="top" $={(self) => (motion = self)}>
           <box
             class={state.as((s) => `qs pomo-card ${s.phase}`)}
             orientation={Gtk.Orientation.VERTICAL}
@@ -204,7 +200,7 @@ export default function PomodoroPill() {
               <Stepper label="Goal" field="goal" min={1} max={24} />
             </box>
           </box>
-        </revealer>
+        </Motion>
       </popover>
     </menubutton>
   )

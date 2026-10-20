@@ -3,7 +3,7 @@ import { createBinding, createState, For } from "ags"
 import { interval } from "ags/time"
 import GLib from "gi://GLib"
 import AstalNotifd from "gi://AstalNotifd"
-import { MOTION } from "../../common/motion"
+import { Motion, ENTER, onShow } from "../../common/motion"
 import Sep from "../common/Sep"
 import Clock from "./Clock"
 import NotifRow from "../../notifications/NotifRow"
@@ -21,14 +21,13 @@ export default function DateMenu() {
   const list = createBinding(notifd, "notifications")
   const dnd = createBinding(notifd, "dontDisturb")
   const groups = list.as((l) => groupByApp(l))
-  const [open, setOpen] = createState(false)
   const [now, setNow] = createState(nowSec())
   const [heading, setHeading] = createState("")
   let calendar: Gtk.Calendar
+  let motion: Motion
   let ticker: { cancel: () => void } | null = null
 
   const onOpen = (visible: boolean) => {
-    setOpen(visible)
     ticker?.cancel()
     ticker = null
     if (!visible) return
@@ -60,12 +59,8 @@ export default function DateMenu() {
           />
         </box>
       </box>
-      <popover class="qs-pop" hasArrow={false}>
-        <revealer
-          transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-          transitionDuration={MOTION.base}
-          revealChild={open}
-        >
+      <popover class="qs-pop" hasArrow={false} $={(self) => onShow(self, motion, ENTER.popover)}>
+        <Motion origin="top" $={(self) => (motion = self)}>
           <box class="datemenu-panel" spacing={16}>
             <box class="notif-list" orientation={Gtk.Orientation.VERTICAL}>
               <box class="notif-head">
@@ -137,7 +132,7 @@ export default function DateMenu() {
               />
             </box>
           </box>
-        </revealer>
+        </Motion>
       </popover>
     </menubutton>
   )
