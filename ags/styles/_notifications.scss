@@ -1,0 +1,62 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+// notifications
+.notif-list,
+.notif-list scrolledwindow,
+.notif-list viewport {
+  background: transparent;
+}
+
+.notif-list {
+  min-width: 320px;
+}
+
+.empty {
+  color: $text-faint;
+  padding: $spacing-3;
+}
+
+.notif {
+  @include notif-text;
+  padding: $spacing-2 $spacing-3;
+  margin-bottom: $spacing-2;
+  border-radius: $radius-md;
+  background-color: $card-bg;
+}
+
+.notif button.x {
+  @include interactive($radius-full);
+  padding: $spacing-1;
+  color: $text-muted;
+}
+
+button.clear {
+  @include interactive($radius-sm);
+  padding: $spacing-1 $spacing-3;
+  color: $primary;
+  font-weight: 600;
+}
+
+.notif-icon {
+  -gtk-icon-size: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: $radius-sm;
+}
+
+// critical: an error edge, so it reads as different at a glance
+.notif.critical {
+  box-shadow: inset 2px 0 $error;
+}
+
+.notif .actions {
+  margin-top: $spacing-2;
+
+  button {
+    @include tile($radius-sm);
+    padding: $spacing-1 $spacing-3;
+    font-weight: 600;
+  }
+}
