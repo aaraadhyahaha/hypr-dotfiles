@@ -88,9 +88,26 @@ button.ws-btn {
     background-color: $on-surface-variant;
   }
 
+  &.occupied .pip {
+    background-color: $on-surface-variant;
+  }
+
   &.active .pip {
     min-width: 26px;
     background-color: $primary;
+  }
+
+  &.urgent .pip {
+    background-color: $error;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  // scratchpad: a ring, not a dot
+  .pip.special {
+    min-width: 6px;
+    min-height: 6px;
+    background-color: transparent;
+    border: 1px solid $primary;
   }
 }
 
