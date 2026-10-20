@@ -1,8 +1,11 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk } from "ags/gtk4"
+import { createRoot } from "ags"
 import { timeout } from "ags/time"
 import { MOTION } from "../common/motion"
 import AstalNotifd from "gi://AstalNotifd"
+import NotifRow from "../notifications/NotifRow"
+import { toastTimeout } from "../notifications/model"
 
 export default function Toasts() {
   const notifd = AstalNotifd.get_default()
@@ -10,28 +13,31 @@ export default function Toasts() {
   let win: Astal.Window
   let box: Gtk.Box
 
-  const label = (text: string, cls: string) => {
-    const l = new Gtk.Label({ label: text, xalign: 0, wrap: true })
-    l.add_css_class(cls)
-    return l
-  }
-
   const show = (n: AstalNotifd.Notification) => {
     live.get(n.id)?.leave(true) // same id = replaced: drop the old one instantly
 
     const w = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL })
     w.add_css_class("toast")
     w.add_css_class("in")
-    w.append(label(n.appName, "app"))
-    w.append(label(n.summary, "summary"))
-    if (n.body) w.append(label(n.body, "notif-body"))
+    if (n.urgency === AstalNotifd.Urgency.CRITICAL) w.add_css_class("critical")
+    // built in its own root so its bindings are disposed when the toast leaves
+    let dispose = () => {}
+    w.append(
+      createRoot((d) => {
+        dispose = d
+        return NotifRow({ n, onDone: () => leave() }) as Gtk.Widget
+      }),
+    )
 
     let gone = false
+    let resolved = 0
     const leave = (instant = false) => {
       if (gone) return
       gone = true
       live.delete(n.id)
       const finish = () => {
+        n.disconnect(resolved)
+        dispose()
         box.remove(w)
         if (!box.get_first_child()) win.visible = false
       }
@@ -50,7 +56,9 @@ export default function Toasts() {
     win.visible = true
 
     timeout(MOTION.enter, () => w.remove_css_class("in")) // so the entry animation never replays
-    timeout(5000, () => leave())
+    const ms = toastTimeout(n)
+    if (ms !== null) timeout(ms, () => leave())
+    resolved = n.connect("resolved", () => leave())
   }
 
   notifd.connect("notified", (_, id) => {

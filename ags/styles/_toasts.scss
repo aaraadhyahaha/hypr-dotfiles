@@ -45,3 +45,15 @@ window.Toasts {
     transform: translateX(60px) scale(0.96);
   }
 }
+
+// the toast is the panel; the row inside draws no card of its own
+.toast .notif {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+}
+
+.toast.critical {
+  border-color: $error;
+}
