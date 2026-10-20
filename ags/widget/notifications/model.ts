@@ -25,11 +25,12 @@ export function relTime(nowSec: number, timeSec: number): string {
 }
 
 // Groups ordered by their newest notification, items newest first.
-export function groupByApp<T extends { appName: string; time: number }>(
+// Times are whole seconds, so ties fall back to the (ever-growing) id.
+export function groupByApp<T extends { appName: string; time: number; id: number }>(
   list: T[],
 ): { app: string; items: T[] }[] {
   const groups = new Map<string, T[]>()
-  for (const n of [...list].sort((a, b) => b.time - a.time)) {
+  for (const n of [...list].sort((a, b) => b.time - a.time || b.id - a.id)) {
     const g = groups.get(n.appName)
     g ? g.push(n) : groups.set(n.appName, [n])
   }

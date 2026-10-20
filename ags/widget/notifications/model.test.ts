@@ -38,13 +38,26 @@ test("relTime: weekday within a week, date after", () => {
 
 test("groupByApp: newest group first, items newest first", () => {
   const list = [
-    { appName: "A", time: 1 },
-    { appName: "B", time: 5 },
-    { appName: "A", time: 3 },
+    { appName: "A", time: 1, id: 1 },
+    { appName: "B", time: 5, id: 3 },
+    { appName: "A", time: 3, id: 2 },
   ]
   const g = groupByApp(list)
   assert.deepEqual(g.map((x) => x.app), ["B", "A"])
   assert.deepEqual(g[1].items.map((x) => x.time), [3, 1])
+})
+
+test("groupByApp: same-second notifications fall back to id order", () => {
+  // notifd times are whole seconds, so a burst ties; ids only grow
+  const list = [
+    { appName: "A", time: 7, id: 2 },
+    { appName: "A", time: 7, id: 3 },
+    { appName: "A", time: 7, id: 1 },
+    { appName: "B", time: 7, id: 4 },
+  ]
+  const g = groupByApp(list)
+  assert.deepEqual(g.map((x) => x.app), ["B", "A"])
+  assert.deepEqual(g[1].items.map((x) => x.id), [3, 2, 1])
 })
 
 test("groupByApp: empty list gives no groups", () => {

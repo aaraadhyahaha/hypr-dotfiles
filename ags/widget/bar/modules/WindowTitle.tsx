@@ -17,7 +17,8 @@ export default function WindowTitle() {
               <label
                 maxWidthChars={36}
                 ellipsize={Pango.EllipsizeMode.END}
-                label={createBinding(client, "title")}
+                // title goes null while a closing client is torn down
+                label={createBinding(client, "title").as((t) => t ?? "")}
               />
             </box>
           )
