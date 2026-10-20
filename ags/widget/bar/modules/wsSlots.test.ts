@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { slots } from "./wsSlots.ts"
+import { slots, pruneUrgent } from "./wsSlots.ts"
 
 const ids = (s: { id: number }[]) => s.map((x) => x.id)
 
@@ -35,4 +35,9 @@ test("urgent comes from the urgent set", () => {
   const s = slots([], 1, new Set([3]))
   assert.equal(s[2].urgent, true)
   assert.equal(s[0].urgent, false)
+})
+
+test("pruneUrgent drops workspaces that are gone, empty or special", () => {
+  const ws = [{ id: 2, clients: 1 }, { id: 3, clients: 0 }, { id: -98, clients: 1 }]
+  assert.deepEqual([...pruneUrgent(new Set([2, 3, 4, -98]), ws)], [2])
 })

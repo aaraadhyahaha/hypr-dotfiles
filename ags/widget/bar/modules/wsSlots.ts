@@ -29,3 +29,12 @@ export function slots(
     }
   })
 }
+
+// Urgency only matters while its workspace still has windows; drops closed, emptied and special ones.
+export function pruneUrgent(
+  urgent: ReadonlySet<number>,
+  ws: { id: number; clients: number }[],
+): Set<number> {
+  const live = new Set(ws.filter((w) => w.id > 0 && w.clients > 0).map((w) => w.id))
+  return new Set([...urgent].filter((id) => live.has(id)))
+}

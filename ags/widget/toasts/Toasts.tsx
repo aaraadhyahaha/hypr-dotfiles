@@ -48,7 +48,12 @@ export default function Toasts() {
     }
 
     const click = new Gtk.GestureClick()
-    click.connect("pressed", () => leave())
+    click.connect("pressed", (_, _n, x, y) => {
+      // buttons (actions, dismiss) handle their own click; the body press must not remove them mid-click
+      const hit = w.pick(x, y, Gtk.PickFlags.DEFAULT)
+      if (hit && (hit instanceof Gtk.Button || hit.get_ancestor(Gtk.Button.$gtype))) return
+      leave()
+    })
     w.add_controller(click)
 
     live.set(n.id, { leave })
@@ -63,7 +68,8 @@ export default function Toasts() {
 
   notifd.connect("notified", (_, id) => {
     const n = notifd.get_notification(id)
-    if (n) show(n)
+    // DND silences toasts but keeps history; critical ones still get through
+    if (n && (!notifd.dontDisturb || n.urgency === AstalNotifd.Urgency.CRITICAL)) show(n)
   })
 
   const { TOP, RIGHT } = Astal.WindowAnchor

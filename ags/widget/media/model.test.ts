@@ -42,3 +42,15 @@ test("pickPlayer: nothing playing gives the first player", () => {
   const a = p("a", PAUSED)
   assert.equal(pickPlayer([a, p("b", PAUSED)]), a)
 })
+
+test("pickPlayer: with nothing playing, stays on the last shown player", () => {
+  const a = p("a", PAUSED)
+  const b = p("b", PAUSED)
+  assert.equal(pickPlayer([a, b], undefined, "b"), b)
+})
+
+test("pickPlayer: a playing player still beats the last shown one", () => {
+  const a = p("a", PLAYING)
+  const b = p("b", PAUSED)
+  assert.equal(pickPlayer([a, b], undefined, "b"), a)
+})

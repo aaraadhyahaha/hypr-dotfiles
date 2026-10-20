@@ -3,7 +3,7 @@ import { createBinding, createState, For } from "ags"
 import { execAsync } from "ags/process"
 import { MOTION } from "../../common/motion"
 import AstalHyprland from "gi://AstalHyprland"
-import { slots, type Slot } from "./wsSlots"
+import { slots, pruneUrgent, type Slot } from "./wsSlots"
 
 const dispatch = (lua: string) => execAsync(["hyprctl", "dispatch", lua]).catch(console.error)
 
@@ -16,11 +16,10 @@ export default function Workspaces() {
   const refresh = () => {
     const ws = hypr.workspaces.map((w) => ({ id: w.id, clients: w.clients.length }))
     const focused = hypr.focusedWorkspace?.id ?? 1
-    if (urgent.get().has(focused)) {
-      const next = new Set(urgent.get())
-      next.delete(focused)
-      setUrgent(next)
-    }
+    // visiting a workspace clears its urgency; so does it losing all its windows
+    const kept = pruneUrgent(urgent.get(), ws)
+    kept.delete(focused)
+    if (kept.size !== urgent.get().size) setUrgent(kept)
     setState(slots(ws, focused, urgent.get()))
     setSpecial(ws.some((w) => w.id < 0 && w.clients > 0))
   }
@@ -29,7 +28,7 @@ export default function Workspaces() {
     hypr.connect(sig, refresh)
   hypr.connect("urgent", (_, client: AstalHyprland.Client) => {
     const id = client.workspace?.id
-    if (!id || id === hypr.focusedWorkspace?.id) return
+    if (!id || id < 0 || id === hypr.focusedWorkspace?.id) return
     setUrgent(new Set([...urgent.get(), id]))
     refresh()
   })

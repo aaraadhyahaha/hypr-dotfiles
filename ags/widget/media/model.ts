@@ -13,14 +13,17 @@ export function fmtTime(sec: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(s % 60)}` : `${m}:${pad(s % 60)}`
 }
 
-// The player the user picked if it is still around, else whichever is playing, else the first.
+// The player the user picked if it is still around, else whichever is playing,
+// else the one already shown (`last`, so pausing doesn't swap players), else the first.
 export function pickPlayer<P extends { busName: string; playbackStatus: number }>(
   players: P[],
   preferred?: string,
+  last?: string,
 ): P | null {
   return (
     players.find((p) => p.busName === preferred) ??
     players.find((p) => p.playbackStatus === PLAYING) ??
+    players.find((p) => p.busName === last) ??
     players[0] ??
     null
   )
