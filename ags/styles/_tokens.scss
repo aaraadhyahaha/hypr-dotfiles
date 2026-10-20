@@ -3,6 +3,8 @@
 // fonts
 $font: "SF Pro Text", sans-serif;
 $font-mono: "JetBrainsMono Nerd Font", sans-serif;
+// Propo: glyph advance matches its ink, so icons centre inside their box
+$font-icon: "JetBrainsMono Nerd Font Propo", "Symbols Nerd Font", sans-serif;
 
 // spacing (4px grid)
 $spacing-0: 0px;
@@ -37,10 +39,14 @@ $font-size-6xl: 24px;
 $font-size-7xl: 32px;
 $font-size-pomo: 34px;
 
-// motion
+// motion — mirrored in widget/common/motion.ts; AGS owns all shell motion
+// (Hyprland has no_anim on every AGS layer)
 $ease: cubic-bezier(0.23, 1, 0.32, 1);
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
 $dur-fast: 160ms;
 $dur: 220ms;
+$dur-enter: 280ms;
+$dur-exit: 180ms;
 
 // state layers (M3): overlay alpha of on-surface over a container
 $state-hover: 0.08;
@@ -64,4 +70,7 @@ $on-fg: $on-primary;
 
 // iconography
 $icon-size: 16px;
-$glyph-size: 15px;
+$glyph-size: $icon-size;
+
+// bar
+$bar-item-h: 24px;

@@ -23,7 +23,8 @@ window.Bar {
   }
 }
 
-// every clickable item in the bar shares one shape and state layer
+// every clickable item in the bar shares one shape and state layer;
+// text/composite items get horizontal padding…
 button.edge,
 button.icon-btn,
 menubutton.bell>button,
@@ -33,7 +34,16 @@ menubutton.power>button,
 .tray menubutton>button {
   @include interactive($radius-sm);
   padding: 0 $spacing-2;
-  min-height: 24px;
+  min-height: $bar-item-h;
+}
+
+// …icon-only items are squares with the icon centred
+button.edge,
+button.icon-btn,
+menubutton.power>button,
+.tray menubutton>button {
+  padding: 0;
+  min-width: $bar-item-h;
 }
 
 // static items get the same horizontal rhythm, no hover
@@ -43,13 +53,9 @@ menubutton.power>button,
   padding: 0 $spacing-2;
 }
 
-.tray menubutton>button {
-  padding: 0 $spacing-1;
-}
-
 .wintitle {
   color: $text-muted;
-  animation: title-in 260ms ease-out both;
+  animation: title-in $dur-enter $ease both;
 }
 
 @keyframes title-in {
@@ -64,26 +70,25 @@ menubutton.power>button,
   }
 }
 
-// workspaces
-.workspaces {
-  margin: 0 $spacing-1;
-}
-
-.dot {
+// workspaces: the whole bar-height cell is clickable, the pip is just the visual
+button.ws-btn {
   @include flat-button;
-  min-width: $spacing-2;
-  min-height: $spacing-2;
-  padding: 0;
-  margin: 0 $spacing-1;
-  background-color: $outline-variant;
-  border-radius: $radius-full;
-  transition: all 250ms $ease;
+  min-height: $bar-item-h;
+  padding: 0 $spacing-1;
 
-  &:hover {
+  .pip {
+    min-width: $spacing-2;
+    min-height: $spacing-2;
+    border-radius: $radius-full;
+    background-color: $outline-variant;
+    transition: min-width $dur $ease, background-color $dur $ease;
+  }
+
+  &:hover .pip {
     background-color: $on-surface-variant;
   }
 
-  &.active {
+  &.active .pip {
     min-width: 26px;
     background-color: $primary;
   }
@@ -96,7 +101,7 @@ menubutton.power>button,
   color: $text-muted;
 }
 
-// battery
+// battery (icon → text gap)
 .battery label {
   margin-left: $spacing-2;
 }
@@ -107,7 +112,7 @@ menubutton.power>button,
 
 // notifications
 .count {
-  margin-left: $spacing-1;
+  margin-left: $spacing-2;
   min-width: 16px;
   padding: 0 5px;
   border-radius: $radius-full;
@@ -117,10 +122,7 @@ menubutton.power>button,
   font-weight: 700;
 }
 
-// quick settings pill
-.qs-pill image {
-  margin: 0 2px;
-}
+// quick settings pill: sibling icons are $spacing-1 apart (box spacing)
 
 // caffeine
 button.icon-btn.on {

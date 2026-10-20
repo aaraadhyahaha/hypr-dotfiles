@@ -54,12 +54,7 @@
   }
 
   entry.pomo-task {
-    background: $card-bg;
-    color: $text;
-    border: none;
-    box-shadow: none;
-    outline: none;
-    border-radius: $radius-md;
+    @include field;
     padding: $spacing-2 $spacing-3;
     min-height: 0;
   }

@@ -14,7 +14,7 @@ window.Osd {
 }
 
 .osd-icon {
-  font-family: $font-mono;
+  font-family: $font-icon;
   font-size: $font-size-5xl;
   min-width: 24px;
   margin-right: $spacing-3;
@@ -35,42 +35,33 @@ window.Osd {
 }
 
 .osd-card.in {
-  animation: osd-in 420ms ease-out both;
+  animation: rise-in $dur-enter $ease both;
 }
 
 .osd-card.out {
-  animation: osd-out 220ms ease-in both;
+  animation: rise-out $dur-exit $ease-in both;
 }
 
-@keyframes osd-in {
-  0% {
+@keyframes rise-in {
+  from {
     opacity: 0;
-    transform: translateY(24px) scale(0.9);
+    transform: translateY($spacing-6) scale(0.96);
   }
 
-  55% {
+  to {
     opacity: 1;
-    transform: translateY(-6px) scale(1.03);
-  }
-
-  80% {
-    transform: translateY(2px) scale(0.995);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
-@keyframes osd-out {
-  0% {
+@keyframes rise-out {
+  from {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 
-  100% {
+  to {
     opacity: 0;
-    transform: translateY(16px) scale(0.95);
+    transform: translateY($spacing-4) scale(0.96);
   }
 }

@@ -18,15 +18,10 @@ window.Launcher {
 }
 
 .hero entry {
+  @include field;
   margin: 0 $spacing-4;
   min-height: 38px;
   padding: 0 $spacing-3;
-  border-radius: $radius-md;
-  border: none;
-  box-shadow: none;
-  outline: none;
-  background: rgba($surface, 0.6);
-  color: $on-surface;
   font-size: $font-size-2xl;
 }
 

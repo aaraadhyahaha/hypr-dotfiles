@@ -1,6 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { timeout } from "ags/time"
+import { enter, exit, exiting, MOTION } from "../common/motion"
 import { readFile } from "ags/file"
 import GLib from "gi://GLib"
 import Pango from "gi://Pango"
@@ -19,14 +20,14 @@ const WALLPAPER_ITEM: Item = {
     name: "Wallpapers",
     description: "Pick a wallpaper",
     iconName: "preferences-desktop-wallpaper",
-    launch: () => timeout(240, () => toggleWallpapers()),
+    launch: () => timeout(MOTION.exit, () => toggleWallpapers()),
 }
 
 const FILES_ITEM: Item = {
     name: "Search Files",
     description: "Fuzzy find files and folders",
     iconName: "system-file-manager",
-    launch: () => timeout(240, () => toggleFiles()),
+    launch: () => timeout(MOTION.exit, () => toggleFiles()),
 }
 
 const MAX = 40
@@ -48,7 +49,7 @@ export default function Launcher() {
     let rows: Gtk.Box[] = []
     let sel = 0
 
-    const close = () => { win.visible = false }
+    const close = () => exit(card, () => (win.visible = false))
 
     const setSel = (i: number) => {
         if (!rows.length) return
@@ -136,13 +137,12 @@ export default function Launcher() {
         apps.reload()
         entry.set_text("")
         search("")
-        card.remove_css_class("pop")
         win.visible = true
+        enter(card)
         entry.grab_focus()
-        timeout(16, () => card.add_css_class("pop"))
     }
 
-    toggleFn = () => (win.visible ? close() : open())
+    toggleFn = () => (win.visible && !exiting(card) ? close() : open())
 
     return (
         <window

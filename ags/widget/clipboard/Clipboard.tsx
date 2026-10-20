@@ -1,6 +1,6 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
-import { timeout } from "ags/time"
+import { enter, exit, exiting } from "../common/motion"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import Pango from "gi://Pango"
@@ -115,20 +115,19 @@ export default function Clipboard() {
         status.visible = !results.length
     }
 
-    const close = () => { win.visible = false }
+    const close = () => exit(card, () => (win.visible = false))
 
     const open = () => {
         entry.set_text("")
-        card.remove_css_class("pop")
         win.visible = true
+        enter(card)
         entry.grab_focus()
-        timeout(16, () => card.add_css_class("pop"))
         execAsync(["cliphist", "list"])
             .then((out) => { all = parse(out); filter(entry.text) })
             .catch(() => { all = []; filter("") })
     }
 
-    toggleFn = () => (win.visible ? close() : open())
+    toggleFn = () => (win.visible && !exiting(card) ? close() : open())
 
     return (
         <window

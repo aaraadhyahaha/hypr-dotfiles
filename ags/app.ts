@@ -8,7 +8,7 @@ import Wallpapers, { toggleWallpapers } from "./widget/wallpapers/Wallpapers"
 import Files, { toggleFiles } from "./widget/files/Files"
 import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./widget/screenshot/Screenshot"
 import Clipboard, { toggleClipboard } from "./widget/clipboard/Clipboard"
-import Overview from "./widget/overview/Overview"
+import Overview, { toggleOverview } from "./widget/overview/Overview"
 
 app.start({
   css: style,
@@ -32,6 +32,7 @@ app.start({
     if (argv[0] === "screenshot") { screenshotRegion(); return response("ok") }
     if (argv[0] === "screenshot-full") { screenshotFull(); return response("ok") }
     if (argv[0] === "toggle-clipboard") { toggleClipboard(); return response("ok") }
+    if (argv[0] === "toggle-overview") { toggleOverview(); return response("ok") }
     response("unknown request")
   },
   main() {

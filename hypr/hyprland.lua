@@ -275,7 +275,7 @@ hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; cd ~/.config/ags && setsid ags run'"))
 
 -- AGS Overview
-hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("ags toggle overview"))
+hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("ags request toggle-overview"))
 
 -- AGS On Screen Display
 hl.bind("XF86MonBrightnessUp", hl.dsp.exec_cmd("brightnessctl -n1 set 5%+ && ags request osd-brightness"), { locked = true, repeating = true })
@@ -375,53 +375,23 @@ hl.window_rule({
 -- })
 -- overlayLayerRule:set_enabled(false)
 
+-- AGS shell layers: AGS animates its own surfaces (styles/_tokens.scss motion tokens),
+-- so Hyprland only blurs them and never animates them.
 hl.layer_rule({
-  match = { namespace = "^(launcher|files|wallpapers|clipboard)$" },
-  name = "popups-anim",
-  animation = "popin 90%",
+  match = { namespace = "^(bar|launcher|files|clipboard|wallpapers|overview|toasts|osd|shot|shotpreview)$" },
+  name = "ags-no-anim",
+  no_anim = true,
 })
 
-hl.layer_rule({ match = { namespace = "shot" }, name = "shot-no-anim", no_anim = true })
-hl.layer_rule({ match = { namespace = "shotpreview" }, name = "shotprev-blur", blur = true, ignore_alpha = 0.1 })
-hl.layer_rule({ match = { namespace = "shotpreview" }, name = "shotprev-no-anim", no_anim = true })
-
-hl.layer_rule({ match = { namespace = "osd" }, name = "osd-blur", blur = true, ignore_alpha = 0.1 })
-hl.layer_rule({ match = { namespace = "osd" }, name = "osd-no-anim", no_anim = true })
-
-hl.layer_rule({ match = { namespace = "wallpapers" }, name = "wp-blur", blur = true, ignore_alpha = 0.1 })
-
+-- "shot" is the region selector: it must stay unblurred.
 hl.layer_rule({
-    match = { namespace = "overview" },
-    name = "overview-blur",
-    blur = true,
-    ignore_alpha = 0.1
-})
-
-hl.layer_rule({
-    match = { namespace = "bar" },
-    name = "bar-blur",
-    blur = true,
-    blur_popups = true,
-    ignore_alpha = 0.1,
-})
-
-hl.layer_rule({
-    match = { namespace = "toasts" },
-    name = "toasts-blur",
-    blur = true,
-    ignore_alpha = 0.1,
-})
-
-hl.layer_rule({
-  match = { namespace = "launcher" },
-  name = "launcher-blur",
+  match = { namespace = "^(bar|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview)$" },
+  name = "ags-blur",
   blur = true,
   ignore_alpha = 0.1,
 })
 
-hl.layer_rule({ match = { namespace = "files" }, name = "files-blur", blur = true, ignore_alpha = 0.1 })
-
-hl.layer_rule({ match = { namespace = "clipboard" }, name = "clipboard-blur", blur = true, ignore_alpha = 0.1 })
+hl.layer_rule({ match = { namespace = "^bar$" }, name = "bar-blur-popups", blur_popups = true })
 
 -- Floating windowrules
 hl.window_rule({

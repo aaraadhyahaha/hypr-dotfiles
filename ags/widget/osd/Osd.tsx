@@ -1,6 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk } from "ags/gtk4"
 import { timeout } from "ags/time"
+import { enter, exit, exiting, MOTION } from "../common/motion"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import AstalWp from "gi://AstalWp"
@@ -18,8 +19,6 @@ export default function Osd() {
   let bar: Gtk.ProgressBar
 
   let hideTimer: { cancel: () => void } | null = null
-  let exitTimer: { cancel: () => void } | null = null
-  let leaving = false
   let ready = false
   timeout(1500, () => (ready = true)) // ignore startup noise
 
@@ -30,7 +29,7 @@ export default function Osd() {
     if (ticking) return
     ticking = true
     bar.add_tick_callback(() => {
-      const p = Math.min(1, (GLib.get_monotonic_time() - t0) / 220000)
+      const p = Math.min(1, (GLib.get_monotonic_time() - t0) / (MOTION.base * 1000))
       const e = 1 - Math.pow(1 - p, 3)
       cur = from + (to - from) * e
       bar.fraction = cur
@@ -39,16 +38,7 @@ export default function Osd() {
     })
   }
 
-  const hide = () => {
-    leaving = true
-    card.remove_css_class("in")
-    card.add_css_class("out")
-    exitTimer = timeout(240, () => {
-      win.visible = false
-      card.remove_css_class("out")
-      leaving = false
-    })
-  }
+  const hide = () => exit(card, () => (win.visible = false))
 
   const show = (glyph: string, value: number, dim = false) => {
     value = Math.max(0, Math.min(1, value))
@@ -57,15 +47,11 @@ export default function Osd() {
     dim ? card.add_css_class("dim") : card.remove_css_class("dim")
 
     hideTimer?.cancel()
-    if (!win.visible || leaving) {
-      exitTimer?.cancel()
-      leaving = false
-      card.remove_css_class("out")
-      card.remove_css_class("in")
+    if (!win.visible || exiting(card)) {
       cur = value
       bar.fraction = value // appear at the right value, no sweep from the old one
       win.visible = true
-      timeout(16, () => card.add_css_class("in"))
+      enter(card)
     } else {
       animateTo(value)
     }

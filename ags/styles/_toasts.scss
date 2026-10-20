@@ -15,42 +15,33 @@ window.Toasts {
 }
 
 .toast.in {
-  animation: toast-in 520ms ease-out both;
+  animation: slide-in-x $dur-enter $ease both;
 }
 
 .toast.out {
-  animation: toast-out 260ms ease-in both;
+  animation: slide-out-x $dur-exit $ease-in both;
 }
 
-@keyframes toast-in {
-  0% {
+@keyframes slide-in-x {
+  from {
     opacity: 0;
-    transform: translateX(60px) scale(0.92);
+    transform: translateX(60px) scale(0.96);
   }
 
-  55% {
+  to {
     opacity: 1;
-    transform: translateX(-8px) scale(1.02);
-  }
-
-  78% {
-    transform: translateX(3px) scale(0.995);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: none;
   }
 }
 
-@keyframes toast-out {
-  0% {
+@keyframes slide-out-x {
+  from {
     opacity: 1;
-    transform: translateX(0);
+    transform: none;
   }
 
-  100% {
+  to {
     opacity: 0;
-    transform: translateX(60px) scale(0.95);
+    transform: translateX(60px) scale(0.96);
   }
 }

@@ -8,13 +8,14 @@ export default function Workspaces() {
   const focused = createBinding(hypr, "focusedWorkspace")
 
   return (
-    <box class="workspaces" valign={Gtk.Align.CENTER}>
+    <box class="workspaces">
       {[1, 2, 3, 4, 5].map((id) => (
         <button
-          valign={Gtk.Align.CENTER}
-          class={focused.as((fw) => (fw.id === id ? "dot active" : "dot"))}
+          class={focused.as((fw) => (fw.id === id ? "ws-btn active" : "ws-btn"))}
           onClicked={() => execAsync(["hyprctl", "dispatch", `hl.dsp.focus({ workspace = ${id} })`])}
-        />
+        >
+          <box class="pip" valign={Gtk.Align.CENTER} halign={Gtk.Align.CENTER} />
+        </button>
       ))}
     </box>
   )

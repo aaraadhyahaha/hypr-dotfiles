@@ -1,6 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk } from "ags/gtk4"
 import { timeout } from "ags/time"
+import { MOTION } from "../common/motion"
 import AstalNotifd from "gi://AstalNotifd"
 
 export default function Toasts() {
@@ -37,7 +38,7 @@ export default function Toasts() {
       if (instant) return finish()
       w.remove_css_class("in")
       w.add_css_class("out")
-      timeout(260, finish)
+      timeout(MOTION.exit, finish)
     }
 
     const click = new Gtk.GestureClick()
@@ -48,7 +49,7 @@ export default function Toasts() {
     box.append(w)
     win.visible = true
 
-    timeout(520, () => w.remove_css_class("in")) // so the entry animation never replays
+    timeout(MOTION.enter, () => w.remove_css_class("in")) // so the entry animation never replays
     timeout(5000, () => leave())
   }
 

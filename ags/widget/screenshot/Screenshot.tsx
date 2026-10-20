@@ -1,6 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { timeout } from "ags/time"
+import { MOTION } from "../common/motion"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import GdkPixbuf from "gi://GdkPixbuf"
@@ -23,7 +24,7 @@ export function ShotPreview() {
     const dismiss = (card: Gtk.Box) => {
         card.remove_css_class("in")
         card.add_css_class("out")
-        timeout(260, () => {
+        timeout(MOTION.exit, () => {
             if (card.get_parent() === box) {
                 box.remove(card)
                 win.visible = false
@@ -68,7 +69,7 @@ export function ShotPreview() {
 
         box.append(card)
         win.visible = true
-        timeout(520, () => card.remove_css_class("in"))
+        timeout(MOTION.enter, () => card.remove_css_class("in"))
         timer = timeout(4500, () => dismiss(card))
     }
 

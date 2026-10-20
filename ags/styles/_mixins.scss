@@ -105,3 +105,23 @@ $transition: color $dur $ease, background-color $dur $ease, border-color $dur $e
     background-color: $primary;
   }
 }
+
+// flat translucent text field, so the layer blur shows through
+@mixin field {
+  border: none;
+  box-shadow: none;
+  outline: none;
+  border-radius: $radius-md;
+  background: rgba($surface, 0.5);
+  color: $text;
+  transition: $transition;
+
+  &:focus-within {
+    background: rgba($surface, 0.65);
+  }
+
+  placeholder,
+  text placeholder {
+    color: $text-faint;
+  }
+}

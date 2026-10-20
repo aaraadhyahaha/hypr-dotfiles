@@ -1,5 +1,6 @@
 import { Gtk } from "ags/gtk4"
 import { Accessor, createState } from "ags"
+import { MOTION } from "../../common/motion"
 import Pango from "gi://Pango?version=1.0"
 
 export interface Half {
@@ -67,14 +68,14 @@ export default function Pair({ a, b }: { a: Half; b: Half }) {
       </box>
       <revealer
         transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-        transitionDuration={250}
+        transitionDuration={MOTION.base}
         revealChild={open.as((o) => o === "a")}
       >
         {a.list}
       </revealer>
       <revealer
         transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-        transitionDuration={250}
+        transitionDuration={MOTION.base}
         revealChild={open.as((o) => o === "b")}
       >
         {b.list}

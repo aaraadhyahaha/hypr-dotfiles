@@ -60,8 +60,38 @@ Every toggle that is **on** — QS tiles, Wi-Fi/BT halves, the Dark/Light segmen
 - Radii: `$radius-xs` 4, `-sm` 8 (bar items, menu items), `-md` 12 (bar body, rows), `-lg` 16 (panels, tiles), `-xl` 20, `-full` 999 (pills, dots, badges).
   Nested radius = outer radius − padding (a card with `-lg` and 8px padding gets `-sm` children).
 - Type: `$font-size-base` 12 for secondary, `-lg` 13 for bar/UI, `-2xl` 15 for titles and entries.
-- Icons: `$icon-size` 16px for symbolic icons, `$glyph-size` 15px for Nerd Font glyphs.
+- Icons: everything is 16px (`$icon-size`; `$glyph-size` aliases it). Glyphs use `$font-icon` (JetBrainsMono Nerd Font **Propo**): in the plain Nerd Font variant the glyph's ink is wider than its advance, which pushes icons off-centre in their highlight.
 
 ## Bar
 
-Every clickable bar item (launcher, bell, tray, pomodoro, QS, caffeine, power) shares one rule: `interactive($radius-sm)`, `padding: 0 $spacing-2`, `min-height: 24px`. Static items (clock, battery, window title) get the same horizontal padding with no hover. Separators are `$outline-variant` with an 8px side margin.
+Every bar item is `$bar-item-h` (24px) tall and shares `interactive($radius-sm)`.
+
+- Icon-only buttons (launcher, caffeine, power, tray) are 24×24 squares with the icon centred.
+- Text or composite buttons (bell, pomodoro, QS pill) use `padding: 0 $spacing-2`. Static items (clock, battery, window title) use the same padding with no hover.
+- Gaps inside an item: `$spacing-1` between sibling icons (QS pill, tray) and `$spacing-2` between an icon and its text (battery, bell count, clock date).
+- Workspaces: each button fills the bar height with `$spacing-1` side padding, and the 8px `.pip` inside is only the visual. This keeps the click target large.
+- Separators are `$outline-variant` with an 8px side margin.
+
+## Motion
+
+AGS owns all shell motion. Hyprland's `ags-no-anim` layer rule disables its animations on every AGS namespace (it still blurs them). Hyprland only animates windows and workspaces.
+
+| Token (SCSS) | `MOTION` (TS) | Use |
+|---|---|---|
+| `$dur-fast` 160ms | `fast` | small state changes |
+| `$dur` 220ms + `$ease` | `base` | hover/state transitions, revealers |
+| `$dur-enter` 280ms + `$ease` | `enter` | surfaces appearing |
+| `$dur-exit` 180ms + `$ease-in` | `exit` | surfaces leaving |
+
+`widget/common/motion.ts` mirrors the tokens. `enter(w)` adds `.in` on the next frame; `exit(w, done)` adds `.out` and runs `done` (usually hiding the window) after `MOTION.exit`. Keyframes:
+
+- `surface-in` / `surface-out`: launcher, files, clipboard and wallpapers cards, plus bar popovers (enter only)
+- `slide-in-x` / `slide-out-x`: toasts and the screenshot preview
+- `rise-in` / `rise-out`: OSD
+- `fade-in` / `fade-out`: overview
+
+Never hard-code a duration. Use a token in SCSS and `MOTION.*` in TS.
+
+## Fields
+
+Text entries use `@include field`: a translucent `rgba($surface, .5)` fill, so the layer blur shows through. It never uses `$card-bg`.

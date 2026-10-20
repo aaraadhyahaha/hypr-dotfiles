@@ -3,6 +3,7 @@ import { Astal, Gdk, Gtk } from "ags/gtk4"
 import { createBinding, createComputed, createState, For, Accessor } from "ags"
 import { execAsync } from "ags/process"
 import { timeout, type Timer } from "ags/time"
+import { enter, exit, exiting } from "../common/motion"
 import Gio from "gi://Gio"
 import Hyprland from "gi://AstalHyprland"
 import Pango from "gi://Pango"
@@ -88,7 +89,16 @@ const [shots, setShots] = createState<Record<string, string>>({})
 
 function close() {
   const win = app.get_window("overview")
-  if (win) win.visible = false
+  if (win?.visible) exit(win, () => (win.visible = false))
+}
+
+// `ags toggle` would hide the window without its exit animation
+export function toggleOverview() {
+  const win = app.get_window("overview")
+  if (!win) return
+  if (!win.visible) win.visible = true
+  else if (exiting(win)) enter(win)
+  else close()
 }
 
 // Use the window class as icon name only if the theme has it, else a generic icon.
@@ -173,6 +183,7 @@ async function onShow(win: Astal.Window) {
   win.opacity = 0 // invisible while we screenshot, so the overlay is not captured
   if (fid !== undefined) await captureWorkspace(fid)
   win.opacity = 1
+  enter(win)
 }
 
 const NAV_KEYS: Record<number, NavKey> = {

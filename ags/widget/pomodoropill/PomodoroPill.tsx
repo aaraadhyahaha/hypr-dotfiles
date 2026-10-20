@@ -1,5 +1,6 @@
 import { createState } from "ags"
 import { Gtk } from "ags/gtk4"
+import { MOTION } from "../common/motion"
 import cairo from "cairo"
 import type CairoGi from "gi://cairo"
 import { pomodoro, type PomodoroState, type Settings } from "../../service/pomodoro"
@@ -119,7 +120,7 @@ export default function PomodoroPill() {
       >
         <revealer
           transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-          transitionDuration={300}
+          transitionDuration={MOTION.base}
           revealChild={open}
         >
           <box

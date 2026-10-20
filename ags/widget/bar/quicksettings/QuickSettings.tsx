@@ -1,5 +1,6 @@
 import { Gtk } from "ags/gtk4"
 import { createBinding, createState } from "ags"
+import { MOTION } from "../../common/motion"
 import AstalNetwork from "gi://AstalNetwork?version=0.1"
 import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
 import AstalWp from "gi://AstalWp?version=0.1"
@@ -20,7 +21,7 @@ export default function QuickSettings() {
 
   return (
     <menubutton class="qs-btn">
-      <box class="qs-pill">
+      <box class="qs-pill" spacing={4}>
         <Gtk.EventControllerScroll
           flags={Gtk.EventControllerScrollFlags.VERTICAL}
           onScroll={(_, _dx, dy) => {
@@ -43,7 +44,7 @@ export default function QuickSettings() {
       >
         <revealer
           transitionType={Gtk.RevealerTransitionType.SLIDE_DOWN}
-          transitionDuration={300}
+          transitionDuration={MOTION.base}
           revealChild={open}
         >
           <box class="qs" orientation={Gtk.Orientation.VERTICAL}>

@@ -1,6 +1,7 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { timeout } from "ags/time"
+import { enter, exit, exiting } from "../common/motion"
 import { readFile } from "ags/file"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
@@ -109,16 +110,13 @@ export default function Wallpapers() {
     })
   }
 
-  const close = () => { win.visible = false }
+  const close = () => exit(card, () => (win.visible = false))
 
   const open = () => {
     render()
-    card.remove_css_class("pop")
     win.visible = true
-    timeout(16, () => {
-      card.add_css_class("pop")
-      flow.get_child_at_index(currentIdx)?.grab_focus()
-    })
+    enter(card)
+    timeout(16, () => flow.get_child_at_index(currentIdx)?.grab_focus())
   }
 
   const apply = (path?: string) => {
@@ -127,7 +125,7 @@ export default function Wallpapers() {
     execAsync([SCRIPT, path]).catch(console.error)
   }
 
-  toggleFn = () => (win.visible ? close() : open())
+  toggleFn = () => (win.visible && !exiting(card) ? close() : open())
 
   timeout(3000, () => {
     const todo = listImages()

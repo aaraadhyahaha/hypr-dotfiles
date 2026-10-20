@@ -12,7 +12,7 @@ export default function Tray() {
   )
 
   return (
-    <box class="tray" visible={items.as((l) => l.length > 0)}>
+    <box class="tray" spacing={4} visible={items.as((l) => l.length > 0)}>
       <For each={items}>
         {(item) => (
           <menubutton
