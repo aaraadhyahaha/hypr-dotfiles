@@ -54,13 +54,13 @@ menubutton.power>button,
 
 .wintitle {
   color: $text-muted;
-  animation: title-in $dur-enter $ease both;
+  animation: title-in $dur $ease-out both;
 }
 
 @keyframes title-in {
   from {
     opacity: 0;
-    transform: translateY($spacing-1);
+    transform: translateY(2px);
   }
 
   to {
@@ -80,7 +80,7 @@ button.ws-btn {
     min-height: $spacing-2;
     border-radius: $radius-full;
     background-color: $outline-variant;
-    transition: min-width $dur $ease, background-color $dur $ease;
+    transition: min-width $dur-fast $ease, background-color $dur-fast $ease;
   }
 
   &:hover .pip {

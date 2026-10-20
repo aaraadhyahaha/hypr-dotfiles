@@ -182,8 +182,8 @@ async function onShow(win: Astal.Window) {
 
   win.opacity = 0 // invisible while we screenshot, so the overlay is not captured
   if (fid !== undefined) await captureWorkspace(fid)
+  enter(win) // before opacity returns, so no frame paints fully opaque
   win.opacity = 1
-  enter(win)
 }
 
 const NAV_KEYS: Record<number, NavKey> = {

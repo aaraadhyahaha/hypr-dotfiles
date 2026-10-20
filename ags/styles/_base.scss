@@ -39,7 +39,7 @@ button {
 @keyframes surface-in {
   from {
     opacity: 0;
-    transform: translateY(-$spacing-2) scale(0.96);
+    transform: translateY(-$spacing-1) scale(0.98);
   }
 
   to {
@@ -54,9 +54,10 @@ button {
     transform: none;
   }
 
+  // leaves in place, like a macOS menu dismissing
   to {
     opacity: 0;
-    transform: translateY(-$spacing-2) scale(0.96);
+    transform: scale(0.98);
   }
 }
 
@@ -83,7 +84,7 @@ button {
 .card.in,
 .wp-card.in,
 popover>contents {
-  animation: surface-in $dur-enter $ease both;
+  animation: surface-in $dur-enter $ease-out both;
 }
 
 .card.out,

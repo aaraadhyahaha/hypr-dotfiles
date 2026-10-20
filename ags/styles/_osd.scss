@@ -41,7 +41,7 @@ window.Osd {
 }
 
 .osd-card.in {
-  animation: rise-in $dur-enter $ease both;
+  animation: rise-in $dur-enter $ease-out both;
 }
 
 .osd-card.out {
@@ -51,7 +51,7 @@ window.Osd {
 @keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY($spacing-6) scale(0.96);
+    transform: translateY($spacing-2) scale(0.98);
   }
 
   to {
@@ -68,6 +68,6 @@ window.Osd {
 
   to {
     opacity: 0;
-    transform: translateY($spacing-4) scale(0.96);
+    transform: translateY($spacing-1) scale(0.98);
   }
 }

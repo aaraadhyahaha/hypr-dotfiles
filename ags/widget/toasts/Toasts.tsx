@@ -38,13 +38,19 @@ export default function Toasts() {
       const finish = () => {
         n.disconnect(resolved)
         dispose()
-        box.remove(w)
+        box.remove(slot)
         if (!box.get_first_child()) win.visible = false
       }
       if (instant) return finish()
       w.remove_css_class("in")
       w.add_css_class("out")
-      timeout(MOTION.exit, finish)
+      timeout(MOTION.exit, () => {
+        // last one out: the window hides, nothing to glide
+        if (box.get_first_child() === slot && !slot.get_next_sibling()) return finish()
+        // collapse the empty slot so the toasts below glide up instead of snapping
+        slot.revealChild = false
+        timeout(MOTION.base, finish)
+      })
     }
 
     const click = new Gtk.GestureClick()
@@ -56,8 +62,15 @@ export default function Toasts() {
     })
     w.add_controller(click)
 
+    const slot = new Gtk.Revealer({
+      transitionType: Gtk.RevealerTransitionType.SLIDE_UP,
+      transitionDuration: MOTION.base,
+      revealChild: true,
+      child: w,
+    })
+
     live.set(n.id, { leave })
-    box.append(w)
+    box.append(slot)
     win.visible = true
 
     timeout(MOTION.enter, () => w.remove_css_class("in")) // so the entry animation never replays

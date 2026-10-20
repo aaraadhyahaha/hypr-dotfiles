@@ -48,8 +48,9 @@ export default function Osd() {
     from = cur; to = v; t0 = GLib.get_monotonic_time()
     if (ticking) return
     ticking = true
-    bar.add_tick_callback(() => {
-      const p = Math.min(1, (GLib.get_monotonic_time() - t0) / (MOTION.base * 1000))
+    // frame times share the monotonic clock, and land on actual frame boundaries
+    bar.add_tick_callback((_w, clock) => {
+      const p = Math.min(1, Math.max(0, clock.get_frame_time() - t0) / (MOTION.base * 1000))
       const e = 1 - Math.pow(1 - p, 3)
       cur = from + (to - from) * e
       bar.fraction = cur
@@ -91,8 +92,8 @@ export default function Osd() {
         cur = value
         bar.fraction = value // appear at the right value, no sweep from the old one
       }
-      win.visible = true
       enter(card)
+      win.visible = true
     } else if (value !== null) {
       animateTo(value)
     }

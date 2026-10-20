@@ -139,8 +139,8 @@ export default function Files() {
         results = []
         render()
         setStatus()
-        win.visible = true
         enter(card)
+        win.visible = true
         entry.grab_focus()
     }
 

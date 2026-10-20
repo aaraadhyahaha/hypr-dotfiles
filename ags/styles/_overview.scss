@@ -9,7 +9,7 @@ window.Overview {
   color: $text;
 
   &.in {
-    animation: fade-in $dur-enter $ease both;
+    animation: fade-in $dur-enter $ease-out both;
   }
 
   &.out {

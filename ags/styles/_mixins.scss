@@ -2,8 +2,8 @@
 @use "../colors" as *;
 @use "tokens" as *;
 
-$transition: color $dur $ease, background-color $dur $ease, border-color $dur $ease,
-  box-shadow $dur $ease, opacity $dur $ease;
+$transition: color $dur-fast $ease, background-color $dur-fast $ease, border-color $dur-fast $ease,
+  box-shadow $dur-fast $ease, opacity $dur-fast $ease;
 
 // strip the theme's default button chrome
 @mixin flat-button {

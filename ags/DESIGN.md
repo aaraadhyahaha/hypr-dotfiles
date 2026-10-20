@@ -79,18 +79,22 @@ Every bar item is `$bar-item-h` (24px) tall and shares `interactive($radius-sm)`
 
 AGS owns all shell motion. Hyprland's `ags-no-anim` layer rule disables its animations on every AGS namespace (it still blurs them). Hyprland only animates windows and workspaces.
 
+No springs. Short durations, gentle curves and small travel: mostly opacity, with at most a 0.98 scale and a few px of offset. Exits are quicker than entries.
+
 | Token (SCSS) | `MOTION` (TS) | Use |
 |---|---|---|
-| `$dur-fast` 160ms | `fast` | small state changes |
-| `$dur` 220ms + `$ease` | `base` | hover/state transitions, revealers |
-| `$dur-enter` 280ms + `$ease` | `enter` | surfaces appearing |
-| `$dur-exit` 180ms + `$ease-in` | `exit` | surfaces leaving |
+| `$dur-fast` 120ms + `$ease` | `fast` | hover, colour and other small state changes, workspace pip |
+| `$dur` 180ms + `$ease` | `base` | revealers, OSD bar tween, window-title fade |
+| `$dur-enter` 220ms + `$ease-out` | `enter` | surfaces appearing |
+| `$dur-exit` 140ms + `$ease-in` | `exit` | surfaces leaving |
 
-`widget/common/motion.ts` mirrors the tokens. `enter(w)` adds `.in` on the next frame; `exit(w, done)` adds `.out` and runs `done` (usually hiding the window) after `MOTION.exit`. Keyframes:
+Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.2,.8,.2,1)` and `$ease-in` is `(.4,0,.7,.2)`.
 
-- `surface-in` / `surface-out`: launcher, files, clipboard and wallpapers cards, plus bar popovers (enter only)
-- `slide-in-x` / `slide-out-x`: toasts and the screenshot preview
-- `rise-in` / `rise-out`: OSD
+`widget/common/motion.ts` mirrors the tokens. `enter(w)` adds `.in` synchronously, so call it *before* showing the surface; otherwise the first frame paints fully opaque and then blinks. `exit(w, done)` adds `.out` and runs `done` (usually hiding the window) one frame after `MOTION.exit`. Keyframes:
+
+- `surface-in` / `surface-out`: launcher, files, clipboard and wallpapers cards, plus bar popovers (enter only). Enter is a 4px drop with a 0.98 scale; exit fades and scales in place.
+- `slide-in-x` / `slide-out-x`: toasts and the screenshot preview, 24px of travel with no scale. A leaving toast's `Gtk.Revealer` slot then collapses, so the toasts below glide up.
+- `rise-in` / `rise-out`: OSD, 8px of travel.
 - `fade-in` / `fade-out`: overview
 
 Never hard-code a duration. Use a token in SCSS and `MOTION.*` in TS.

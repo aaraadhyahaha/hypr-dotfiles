@@ -137,8 +137,8 @@ export default function Launcher() {
         apps.reload()
         entry.set_text("")
         search("")
-        win.visible = true
         enter(card)
+        win.visible = true
         entry.grab_focus()
     }
 

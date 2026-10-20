@@ -41,12 +41,14 @@ $font-size-pomo: 34px;
 
 // motion — mirrored in widget/common/motion.ts; AGS owns all shell motion
 // (Hyprland has no_anim on every AGS layer)
-$ease: cubic-bezier(0.23, 1, 0.32, 1);
-$ease-in: cubic-bezier(0.4, 0, 1, 1);
-$dur-fast: 160ms;
-$dur: 220ms;
-$dur-enter: 280ms;
-$dur-exit: 180ms;
+// no springs: short durations, gentle curves, small travel
+$ease: cubic-bezier(0.25, 0.1, 0.25, 1); // state changes, revealers
+$ease-out: cubic-bezier(0.2, 0.8, 0.2, 1); // surfaces entering
+$ease-in: cubic-bezier(0.4, 0, 0.7, 0.2); // surfaces leaving
+$dur-fast: 120ms;
+$dur: 180ms;
+$dur-enter: 220ms;
+$dur-exit: 140ms;
 
 // state layers (M3): overlay alpha of on-surface over a container
 $state-hover: 0.08;

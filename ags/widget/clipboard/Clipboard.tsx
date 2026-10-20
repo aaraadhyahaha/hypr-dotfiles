@@ -119,8 +119,8 @@ export default function Clipboard() {
 
     const open = () => {
         entry.set_text("")
-        win.visible = true
         enter(card)
+        win.visible = true
         entry.grab_focus()
         execAsync(["cliphist", "list"])
             .then((out) => { all = parse(out); filter(entry.text) })

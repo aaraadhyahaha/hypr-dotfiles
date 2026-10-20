@@ -114,8 +114,8 @@ export default function Wallpapers() {
 
   const open = () => {
     render()
-    win.visible = true
     enter(card)
+    win.visible = true
     timeout(16, () => flow.get_child_at_index(currentIdx)?.grab_focus())
   }
 
