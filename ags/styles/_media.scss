@@ -1,0 +1,111 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+// bar pill
+menubutton.media-pill>button {
+  @include interactive($radius-sm);
+  padding: 0 $spacing-2;
+  min-height: $bar-item-h;
+}
+
+// popover card
+.media-card {
+  @include panel($spacing-4);
+  min-width: 320px;
+}
+
+.cover {
+  min-width: 64px;
+  min-height: 64px;
+  border-radius: $radius-md;
+  background-color: $card-bg;
+}
+
+.cover-fallback {
+  -gtk-icon-size: 32px;
+  min-width: 64px;
+  min-height: 64px;
+  color: $text-muted;
+}
+
+.media-title {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+}
+
+.media-artist {
+  color: $text-muted;
+}
+
+.seek {
+  margin-top: $spacing-3;
+
+  scale {
+    min-height: $spacing-5;
+  }
+
+  trough {
+    min-height: $spacing-1;
+    border-radius: $radius-full;
+    background: $track-bg;
+  }
+
+  highlight {
+    border-radius: $radius-full;
+    background: $primary;
+  }
+
+  slider {
+    min-width: $spacing-3;
+    min-height: $spacing-3;
+    margin: -$spacing-1 0;
+    border-radius: $radius-full;
+    border: none;
+    box-shadow: none;
+    background: $primary;
+  }
+}
+
+.media-time {
+  font-size: $font-size-sm;
+  color: $text-muted;
+}
+
+.media-controls {
+  margin-top: $spacing-2;
+}
+
+button.media-ctl {
+  @include interactive($radius-full);
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+
+  &.main {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  &.on {
+    @include on-state;
+  }
+
+  &:disabled {
+    color: $text-faint;
+  }
+}
+
+.players {
+  margin-top: $spacing-3;
+}
+
+button.player-chip {
+  @include tile($radius-full);
+  padding: $spacing-1 $spacing-3;
+  font-size: $font-size-sm;
+
+  &.on {
+    @include on-state;
+  }
+}

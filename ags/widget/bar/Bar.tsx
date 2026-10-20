@@ -6,6 +6,7 @@ import Sep from "./common/Sep"
 import Workspaces from "./modules/Workspaces"
 import WindowTitle from "./modules/WindowTitle"
 import DateMenu from "./modules/DateMenu"
+import Media from "../media/Media"
 import Tray from "./modules/Tray"
 import Battery from "./modules/Battery"
 import Caffeine from "./modules/Caffeine"
@@ -37,6 +38,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
         </box>
         <box $type="center">
           <DateMenu />
+          <Media />
         </box>
         <box $type="end" class="end">
           <Tray />
