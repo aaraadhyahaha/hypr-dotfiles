@@ -26,6 +26,12 @@ window.Osd {
   margin-left: $spacing-3;
 }
 
+// text mode: a message where the bar and percentage would be
+.osd-card.text .osd-pct {
+  margin-left: 0;
+  font-weight: 600;
+}
+
 .osd-bar {
   @include track(6px);
 }
