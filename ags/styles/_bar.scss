@@ -27,7 +27,7 @@ window.Bar {
 // text/composite items get horizontal padding…
 button.edge,
 button.icon-btn,
-menubutton.bell>button,
+menubutton.datemenu>button,
 menubutton.pomo>button,
 menubutton.qs-btn>button,
 menubutton.power>button,
@@ -47,7 +47,6 @@ menubutton.power>button,
 }
 
 // static items get the same horizontal rhythm, no hover
-.clock,
 .battery,
 .wintitle {
   padding: 0 $spacing-2;
@@ -127,7 +126,11 @@ button.ws-btn {
   color: $error;
 }
 
-// notifications
+// date menu: clock + bell share one button
+.datemenu .sep {
+  margin: 0 $spacing-2;
+}
+
 .count {
   margin-left: $spacing-2;
   min-width: 16px;

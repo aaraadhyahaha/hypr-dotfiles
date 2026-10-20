@@ -29,12 +29,15 @@ function Icon({ n }: { n: AstalNotifd.Notification }) {
 
 // One notification: icon, app, summary, body, action buttons and a dismiss button.
 // `onDone` runs after an action is invoked (toasts use it to leave).
+// `showApp` is off inside a group, whose header already names the app.
 export default function NotifRow({
   n,
   onDone,
+  showApp = true,
 }: {
   n: AstalNotifd.Notification
   onDone?: () => void
+  showApp?: boolean
 }) {
   const actions = n.actions.filter((a) => a.id !== "default")
 
@@ -43,12 +46,16 @@ export default function NotifRow({
       <Icon n={n} />
       <box orientation={Gtk.Orientation.VERTICAL} hexpand>
         <box>
-          <label class="app" hexpand xalign={0} label={n.appName} />
-          <button class="x" onClicked={() => n.dismiss()}>
+          {showApp ? (
+            <label class="app" hexpand xalign={0} label={n.appName} />
+          ) : (
+            <label class="summary" hexpand xalign={0} wrap label={n.summary} />
+          )}
+          <button class="x" valign={Gtk.Align.START} onClicked={() => n.dismiss()}>
             <image iconName="window-close-symbolic" />
           </button>
         </box>
-        <label class="summary" xalign={0} wrap label={n.summary} />
+        <label class="summary" xalign={0} wrap visible={showApp} label={n.summary} />
         <label
           class="notif-body"
           xalign={0}

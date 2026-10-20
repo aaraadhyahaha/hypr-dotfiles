@@ -5,8 +5,7 @@ import PomodoroPill from "../pomodoropill/PomodoroPill"
 import Sep from "./common/Sep"
 import Workspaces from "./modules/Workspaces"
 import WindowTitle from "./modules/WindowTitle"
-import Clock from "./modules/Clock"
-import Notifications from "./modules/Notifications"
+import DateMenu from "./modules/DateMenu"
 import Tray from "./modules/Tray"
 import Battery from "./modules/Battery"
 import Caffeine from "./modules/Caffeine"
@@ -37,9 +36,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
           <WindowTitle />
         </box>
         <box $type="center">
-          <Clock />
-          <Sep />
-          <Notifications />
+          <DateMenu />
         </box>
         <box $type="end" class="end">
           <Tray />

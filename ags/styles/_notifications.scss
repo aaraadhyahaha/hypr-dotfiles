@@ -60,3 +60,99 @@ button.clear {
     font-weight: 600;
   }
 }
+
+// date menu panel: notifications | calendar
+.datemenu-panel {
+  @include panel($spacing-4);
+}
+
+.notif-head {
+  margin-bottom: $spacing-2;
+}
+
+button.dnd {
+  @include interactive($radius-full);
+  padding: $spacing-1;
+  color: $text-muted;
+
+  &.on {
+    @include on-state;
+  }
+}
+
+.notif-group {
+  margin-bottom: $spacing-2;
+}
+
+.group-head {
+  padding: 0 $spacing-1 $spacing-1 $spacing-1;
+
+  .group-app {
+    font-weight: 600;
+    font-size: $font-size-base;
+  }
+
+  .group-time {
+    margin-left: $spacing-2;
+    font-size: $font-size-sm;
+    color: $text-faint;
+  }
+
+  button.x {
+    @include interactive($radius-full);
+    padding: $spacing-1;
+    color: $text-muted;
+  }
+}
+
+.cal-col {
+  min-width: 260px;
+}
+
+.cal-heading {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  margin: 0 0 $spacing-3 $spacing-1;
+}
+
+calendar {
+  background: transparent;
+  border: none;
+  color: $text;
+
+  >header {
+    border: none;
+    background: transparent;
+
+    button {
+      @include interactive($radius-sm);
+      color: $text-muted;
+    }
+
+    label {
+      font-weight: 600;
+    }
+  }
+
+  >grid {
+    >label.day-name {
+      color: $text-muted;
+      font-size: $font-size-sm;
+    }
+
+    >label.day-number {
+      padding: $spacing-1;
+      border-radius: $radius-full;
+      min-width: 24px;
+      min-height: 24px;
+
+      &.other-month {
+        color: $text-faint;
+      }
+
+      &:selected {
+        @include on-state;
+      }
+    }
+  }
+}
