@@ -51,10 +51,11 @@ export const EASE = {
   in: bezier(0.4, 0, 1, 1),
 }
 
-// offset from rest: px translation, fx = fraction of own width, scale, opacity
-export type Pose = { x?: number; y?: number; fx?: number; scale?: number; opacity?: number }
+// offset from rest: px translation, fx = fraction of own width, scale, opacity;
+// sx/sy stretch one axis on top of scale (a widget morphing between sizes)
+export type Pose = { x?: number; y?: number; fx?: number; scale?: number; sx?: number; sy?: number; opacity?: number }
 type Full = Required<Pose>
-const REST: Full = { x: 0, y: 0, fx: 0, scale: 1, opacity: 1 }
+const REST: Full = { x: 0, y: 0, fx: 0, scale: 1, sx: 1, sy: 1, opacity: 1 }
 
 export type Anim = {
   from?: Pose // omitted: start from wherever it is now
@@ -70,13 +71,17 @@ const lerp = (a: Full, b: Full, e: number): Full => ({
   y: a.y + (b.y - a.y) * e,
   fx: a.fx + (b.fx - a.fx) * e,
   scale: a.scale + (b.scale - a.scale) * e,
+  sx: a.sx + (b.sx - a.sx) * e,
+  sy: a.sy + (b.sy - a.sy) * e,
   opacity: a.opacity + (b.opacity - a.opacity) * e,
 })
-const atRest = (p: Full) => p.x === 0 && p.y === 0 && p.fx === 0 && p.scale === 1 && p.opacity === 1
+const atRest = (p: Full) =>
+  p.x === 0 && p.y === 0 && p.fx === 0 && p.scale === 1 && p.sx === 1 && p.sy === 1 && p.opacity === 1
 
 const animationsOn = () => Gtk.Settings.get_default()?.gtkEnableAnimations ?? true
 
-// A transparent wrapper that paints its children at an animated pose; `origin` is the scale pivot.
+// A transparent wrapper that paints its children at an animated pose; `origin` is the scale pivot
+// (center, top, bottom, or top-left).
 // It is a Box only so JSX can append children; layout is a BinLayout.
 export const Motion = GObject.registerClass(
   {
@@ -152,11 +157,13 @@ export const Motion = GObject.registerClass(
       if (atRest(p)) return super.vfunc_snapshot(s)
       const w = this.get_width()
       const h = this.get_height()
-      const py = this.origin === "top" ? 0 : this.origin === "bottom" ? h : h / 2
+      const o = this.origin
+      const px = o === "top-left" ? 0 : w / 2
+      const py = o === "top" || o === "top-left" ? 0 : o === "bottom" ? h : h / 2
       s.save()
-      s.translate(new Graphene.Point({ x: w / 2 + p.x + p.fx * w, y: py + p.y }))
-      if (p.scale !== 1) s.scale(p.scale, p.scale)
-      s.translate(new Graphene.Point({ x: -w / 2, y: -py }))
+      s.translate(new Graphene.Point({ x: px + p.x + p.fx * w, y: py + p.y }))
+      if (p.scale !== 1 || p.sx !== 1 || p.sy !== 1) s.scale(p.scale * p.sx, p.scale * p.sy)
+      s.translate(new Graphene.Point({ x: -px, y: -py }))
       const fade = p.opacity < 1
       if (fade) s.push_opacity(Math.max(0, p.opacity))
       super.vfunc_snapshot(s)
@@ -183,11 +190,20 @@ export const ENTER = {
   content: { from: { y: -6, opacity: 0 }, duration: MOTION.enter * 0.8, ease: EASE.out },
   // a bar item widening (the clock's date)
   side: { from: { x: -6, opacity: 0 }, duration: MOTION.enter * 0.8, ease: EASE.out },
+  // a desktop widget appearing on the grid (added from the gallery)
+  add: { from: { scale: 0.9, opacity: 0 }, duration: MOTION.enter, ease: EASE.out },
 } satisfies Record<string, Anim>
+
+// a desktop widget dropped into its slot: glide the leftover offset (and lift) back to rest
+export const settle = (from: Pose): Anim => ({ from, duration: MOTION.enter, ease: EASE.out })
+// picked up: a slight lift that follows the pointer
+export const LIFT = 1.03
 
 export const LEAVE = {
   edge: { to: { fx: 1 }, duration: MOTION.exit + 60, ease: EASE.in },
   content: { to: { opacity: 0 }, duration: MOTION.exit * 0.7, ease: EASE.in },
+  // a desktop widget removed: shrink and fade where it stands
+  remove: { to: { scale: 0.9, opacity: 0 }, duration: MOTION.exit, ease: EASE.in },
 } satisfies Record<string, Anim>
 
 // play `anim` on `m` every time `w` (a popover, a window) is about to show

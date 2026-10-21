@@ -1,0 +1,160 @@
+@use "sass:color";
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+// Desktop widgets (widget/desktop). See DESIGN.md › Desktop widgets.
+
+window.Desktop {
+  background: transparent;
+  transition: background-color $dur-enter $ease-out;
+
+  // edit mode: dim (and, through Hyprland's blur, soften) the windows behind
+  &.editing {
+    background-color: rgba($scrim, 0.35);
+  }
+}
+
+// ── the card ────────────────────────────────────────────────────────────────
+
+.dw-card {
+  background: $panel-bg;
+  color: $text;
+  border: 1px solid rgba($outline-variant, 0.6);
+  border-radius: $radius-xl;
+  padding: $spacing-3;
+  box-shadow: 0 2px 10px rgba($shadow, 0.16);
+  transition: box-shadow $dur-enter $ease-out;
+}
+
+.dw-frame.lifted .dw-card {
+  box-shadow: 0 18px 40px rgba($shadow, 0.34), 0 2px 6px rgba($shadow, 0.2);
+}
+
+// ── affordances: invisible at rest ──────────────────────────────────────────
+
+// the corner handle: a quarter-round bracket hugging the card's corner
+.dw-resize {
+  min-width: 14px;
+  min-height: 14px;
+  margin: 17px; // 10px frame bleed + 7px inside the card
+  border-right: 2.5px solid rgba($on-surface, 0.55);
+  border-bottom: 2.5px solid rgba($on-surface, 0.55);
+  border-bottom-right-radius: 11px;
+  opacity: 0;
+  transition: opacity $dur-fast $ease;
+}
+
+.dw-frame:hover .dw-resize,
+.dw-frame.resizing .dw-resize {
+  opacity: 1;
+}
+
+.dw-frame.lifted .dw-resize {
+  opacity: 0;
+}
+
+.dw-remove {
+  @include flat-button;
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0;
+  margin: 0; // straddles the card's corner, across the 10px frame bleed
+  border-radius: $radius-full;
+  background-color: $surface-container-highest;
+  color: $text;
+  box-shadow: 0 1px 4px rgba($shadow, 0.3);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity $dur-fast $ease, transform $dur $ease-out, background-color $dur-fast $ease;
+
+  .glyph {
+    font-size: 10px;
+  }
+
+  &:hover {
+    background-color: color.mix($error, $surface-container-highest, 30%);
+  }
+}
+
+.dw-frame.editing .dw-remove {
+  opacity: 1;
+  transform: scale(1);
+}
+
+// the slot a dragged or resized widget will land in
+.dw-ghost {
+  border: 1.5px dashed rgba($outline, 0.9);
+  border-radius: $radius-xl;
+  background-color: rgba($on-surface, 0.05);
+
+  &.blocked {
+    border-color: rgba($error, 0.9);
+    background-color: rgba($error, 0.06);
+  }
+}
+
+.dw-ghost-size {
+  color: $text-muted;
+  font-size: $font-size-base;
+  font-weight: 600;
+}
+
+// ── menus ───────────────────────────────────────────────────────────────────
+
+.dw-sizes {
+  margin-bottom: $spacing-1;
+  padding: 2px;
+  border-radius: $radius-sm;
+  background-color: rgba($on-surface, 0.06);
+}
+
+.dw-size {
+  @include interactive($radius-xs + 2px);
+  padding: $spacing-1 0;
+  font-size: $font-size-sm;
+  font-weight: 700;
+
+  &.on {
+    @include on-state;
+  }
+}
+
+// ── shared type ─────────────────────────────────────────────────────────────
+
+.dw-eyebrow {
+  color: $primary;
+  font-size: $font-size-sm;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.dw-sub {
+  color: $text-muted;
+  font-size: $font-size-lg;
+}
+
+// ── clock ───────────────────────────────────────────────────────────────────
+
+.dw-card.dw-clock.size-s {
+  padding: $spacing-2;
+}
+
+.dw-clock-face {
+  color: $text-muted;
+}
+
+.dw-clock-hands {
+  color: $text;
+}
+
+.dw-clock-second {
+  color: $primary;
+}
+
+.dw-clock-time {
+  font-size: 56px;
+  font-weight: 300;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
+}

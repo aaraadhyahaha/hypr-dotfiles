@@ -3,6 +3,7 @@ import { Gtk } from "ags/gtk4"
 import cairo from "cairo"
 import type CairoGi from "gi://cairo"
 import { pomodoro, dayKey } from "../../service/pomodoro"
+import { roundRect } from "../desktop/widgets/draw"
 
 const [streak, setStreak] = createState(pomodoro.streak)
 pomodoro.subscribe(() => setStreak(pomodoro.streak))
@@ -40,15 +41,6 @@ function cellDate(col: number, row: number, today: Date): Date {
 }
 
 const easeOut = (x: number): number => 1 - Math.pow(1 - x, 3)
-
-function roundRect(cr: cairo.Context, x: number, y: number, w: number, h: number, r: number): void {
-  cr.newPath()
-  cr.arc(x + w - r, y + r, r, -Math.PI / 2, 0)
-  cr.arc(x + w - r, y + h - r, r, 0, Math.PI / 2)
-  cr.arc(x + r, y + h - r, r, Math.PI / 2, Math.PI)
-  cr.arc(x + r, y + r, r, Math.PI, (3 * Math.PI) / 2)
-  cr.closePath()
-}
 
 export function Heatmap() {
   return (

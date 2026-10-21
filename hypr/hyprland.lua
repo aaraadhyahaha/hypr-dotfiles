@@ -388,13 +388,13 @@ hl.layer_rule({
 
 -- "shot" is the region selector: it must stay unblurred.
 hl.layer_rule({
-  match = { namespace = "^(bar|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview)$" },
+  match = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview)$" },
   name = "ags-blur",
   blur = true,
   ignore_alpha = 0.1,
 })
 
-hl.layer_rule({ match = { namespace = "^bar$" }, name = "bar-blur-popups", blur_popups = true })
+hl.layer_rule({ match = { namespace = "^(bar|desktop)$" }, name = "bar-blur-popups", blur_popups = true })
 
 -- Floating windowrules
 hl.window_rule({

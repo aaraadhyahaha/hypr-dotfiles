@@ -10,6 +10,7 @@ import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./wid
 import Clipboard, { toggleClipboard } from "./widget/clipboard/Clipboard"
 import Overview, { toggleOverview } from "./widget/overview/Overview"
 import { toggleDateMenu } from "./widget/bar/modules/DateMenu"
+import Desktop, { toggleEditWidgets } from "./widget/desktop/Desktop"
 
 app.start({
   css: style,
@@ -35,9 +36,11 @@ app.start({
     if (argv[0] === "toggle-clipboard") { toggleClipboard(); return response("ok") }
     if (argv[0] === "toggle-overview") { toggleOverview(); return response("ok") }
     if (argv[0] === "toggle-datemenu") { toggleDateMenu(); return response("ok") }
+    if (argv[0] === "toggle-widgets") { toggleEditWidgets(); return response("ok") }
     response("unknown request")
   },
   main() {
+    Desktop()
     app.get_monitors().map(Bar)
     Toasts()
     Launcher()
