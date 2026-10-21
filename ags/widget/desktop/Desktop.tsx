@@ -259,7 +259,11 @@ export default function Desktop() {
           self.layer = on ? Astal.Layer.TOP : Astal.Layer.BOTTOM
           self.keymode = on ? Astal.Keymode.EXCLUSIVE : Astal.Keymode.ON_DEMAND
           if (on) self.add_css_class("editing")
-          else self.remove_css_class("editing")
+          else {
+            self.remove_css_class("editing")
+            // hand the keyboard back: nothing on the desktop keeps focus after editing
+            self.set_focus(null)
+          }
         }
         editing.subscribe(apply)
         apply()

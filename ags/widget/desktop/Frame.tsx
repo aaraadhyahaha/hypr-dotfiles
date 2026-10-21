@@ -200,7 +200,8 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
     motion.origin = "center"
     motion.animate({ ...LEAVE.remove, done: () => store.remove(item.id) })
   }
-  badge.connect("clicked", removeAnimated)
+  // only ever acts in edit mode, however it was activated
+  badge.connect("clicked", () => editing.get() && removeAnimated())
 
   // ── right-click menu ──────────────────────────────────────────────────────
   let pop: Gtk.Popover | null = null
