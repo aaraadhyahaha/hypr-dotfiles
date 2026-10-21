@@ -158,3 +158,343 @@ window.Desktop {
   font-feature-settings: "tnum";
   letter-spacing: -0.02em;
 }
+
+// ── shared pieces ───────────────────────────────────────────────────────────
+
+.dw-ring,
+.dw-meter,
+.dw-bars {
+  color: $primary;
+}
+
+.dw-ring-caption {
+  color: $text-muted;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.dw-empty-glyph {
+  color: $text-faint;
+  font-size: 22px;
+  margin-bottom: $spacing-1;
+}
+
+.dw-empty-title {
+  font-weight: 700;
+}
+
+.dw-empty-sub {
+  color: $text-muted;
+  font-size: $font-size-sm;
+}
+
+// severity: 5 matters most
+.dw-sev {
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: $radius-full;
+  background-color: $outline;
+
+  &.sev-5 {
+    background-color: $error;
+  }
+
+  &.sev-4 {
+    background-color: $tertiary;
+  }
+
+  &.sev-3 {
+    background-color: $primary;
+  }
+}
+
+.dw-task-row {
+  min-height: 22px;
+}
+
+.dw-task-title {
+  font-size: $font-size-lg;
+}
+
+.dw-task-effort {
+  color: $text-muted;
+  font-size: $font-size-sm;
+  font-feature-settings: "tnum";
+}
+
+.dw-task-row.done {
+  .dw-task-title {
+    color: $text-faint;
+    text-decoration-line: line-through;
+  }
+
+  .dw-sev {
+    opacity: 0.35;
+  }
+}
+
+// ── fx ──────────────────────────────────────────────────────────────────────
+
+.dw-score {
+  font-size: $font-size-6xl;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+.dw-score-big {
+  font-size: 28px;
+  margin-top: 2px;
+}
+
+.dw-focus-big {
+  font-size: 22px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+.dw-focus-of {
+  margin-bottom: 3px;
+}
+
+.dw-fx-now-text {
+  font-size: $font-size-base;
+  font-weight: 600;
+}
+
+.dw-live-dot {
+  color: $primary;
+  font-size: 7px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.dw-streak-glyph {
+  font-size: 12px;
+}
+
+.dw-streak.clean .dw-streak-glyph {
+  color: $primary;
+}
+
+.dw-streak.bent .dw-streak-glyph {
+  color: $tertiary;
+}
+
+.dw-streak.reset .dw-streak-glyph {
+  color: $error;
+}
+
+.dw-axis-label {
+  color: $text-faint;
+  font-size: $font-size-xs;
+  font-feature-settings: "tnum";
+}
+
+.dw-count {
+  font-size: $font-size-sm;
+}
+
+.dw-more {
+  font-size: $font-size-sm;
+}
+
+// ── calendar ────────────────────────────────────────────────────────────────
+
+.dw-cal-day {
+  font-size: 60px;
+  font-weight: 300;
+  font-feature-settings: "tnum";
+  margin: -6px 0 -4px;
+}
+
+.dw-cal-month {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+}
+
+.dw-cal-year {
+  font-size: $font-size-2xl;
+}
+
+.dw-cal-weekday {
+  color: $text-faint;
+  font-size: $font-size-xs;
+  font-weight: 700;
+}
+
+.dw-cal-cell {
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: $radius-full;
+  font-size: $font-size-base;
+  font-feature-settings: "tnum";
+
+  &.weekend {
+    color: $text-muted;
+  }
+
+  &.out {
+    color: $text-faint;
+    opacity: 0.5;
+  }
+
+  &.today {
+    background-color: $on-bg;
+    color: $on-fg;
+    font-weight: 700;
+  }
+}
+
+// ── system ──────────────────────────────────────────────────────────────────
+
+.dw-mini-val {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+.dw-mini-name {
+  color: $text-muted;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.dw-mini .hot .dw-ring {
+  color: $error;
+}
+
+// Quick Settings' Stat, flattened into the card
+.dw-system .qs-stat {
+  margin: 0;
+  padding: 2px $spacing-1;
+  background: transparent;
+}
+
+.dw-system .qs-graph {
+  margin-top: 2px;
+}
+
+// ── note ────────────────────────────────────────────────────────────────────
+
+.dw-card.dw-note {
+  background-color: rgba($tertiary-container, 0.72);
+  color: $on-tertiary-container;
+  border-color: rgba($tertiary, 0.25);
+}
+
+.dw-note-scroll,
+.dw-note-text,
+.dw-note-text text {
+  background: transparent;
+  color: inherit;
+}
+
+.dw-note-text {
+  font-size: $font-size-xl;
+  caret-color: $tertiary;
+}
+
+.dw-note-hint {
+  color: rgba($on-tertiary-container, 0.5);
+  font-size: $font-size-xl;
+}
+
+// ── vision ──────────────────────────────────────────────────────────────────
+
+.dw-card.dw-goal {
+  padding: 0;
+}
+
+.dw-goal-empty {
+  background-image: linear-gradient(135deg, rgba($tertiary-container, 0.9), rgba($primary-container, 0.9));
+  color: $on-tertiary-container;
+
+  .dw-empty-glyph,
+  .dw-empty-sub {
+    color: rgba($on-tertiary-container, 0.7);
+  }
+}
+
+// a scrim in the surface colour, so the type reads on any photo in light or dark mode
+.dw-goal-scrim {
+  padding: 36px $spacing-4 $spacing-3;
+  background-image: linear-gradient(to bottom, rgba($surface, 0), rgba($surface, 0.82));
+}
+
+.dw-goal-title {
+  font-size: $font-size-4xl;
+  font-weight: 700;
+}
+
+.dw-goal-caption {
+  color: $text-muted;
+  font-size: $font-size-base;
+}
+
+.dw-count-ring {
+  color: $tertiary;
+}
+
+.dw-count-big {
+  font-size: 28px;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+
+  &.glyph {
+    color: $tertiary;
+    font-size: 24px;
+  }
+}
+
+.dw-count-title {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+}
+
+.dw-count-title-s {
+  font-size: $font-size-base;
+  font-weight: 600;
+}
+
+.dw-count-left {
+  color: $tertiary;
+  font-size: $font-size-base;
+  font-weight: 600;
+}
+
+// ── editor popover ──────────────────────────────────────────────────────────
+
+.dw-editor {
+  min-width: 260px;
+  padding: $spacing-1;
+}
+
+.dw-editor-title {
+  font-size: $font-size-lg;
+  font-weight: 700;
+}
+
+.dw-field-name {
+  color: $text-muted;
+  font-size: $font-size-sm;
+  font-weight: 600;
+}
+
+.dw-field {
+  @include field;
+  padding: $spacing-2 $spacing-3;
+}
+
+.dw-button {
+  @include tile($radius-sm);
+  padding: $spacing-2 $spacing-3;
+}
+
+.dw-done {
+  @include flat-button;
+  @include on-state;
+  border-radius: $radius-sm;
+  padding: $spacing-1 + 2px $spacing-4;
+  font-weight: 700;
+}

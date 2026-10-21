@@ -3,6 +3,7 @@
 // The render functions live in registry.ts.
 
 import type { Item, Size } from "./layout.ts"
+import { isoDay } from "./dates.ts"
 
 export type Category = "focus" | "time" | "system" | "notes" | "vision"
 
@@ -24,9 +25,6 @@ export const CATEGORIES: { id: Category; name: string; glyph: string }[] = [
   { id: "notes", name: "Notes", glyph: "" },
   { id: "vision", name: "Vision", glyph: "" },
 ]
-
-const isoDay = (d: Date) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
 
 export const CATALOG: Entry[] = [
   {

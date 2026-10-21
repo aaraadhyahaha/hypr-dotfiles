@@ -3,7 +3,7 @@ import { createRoot, createState } from "ags"
 import { Motion, ENTER, LEAVE, LIFT, MOTION, EASE, onShow, settle } from "../common/motion"
 import { cellToPx, nearestSize, pxToCell, sizePx, type Cell, type Item, type Size } from "./layout"
 import { entry, SIZE_NAMES } from "./catalog"
-import { render } from "./registry"
+import { editorFor, render } from "./registry"
 import { editing, live, setEditing } from "./state"
 import * as store from "./store"
 import type { Config } from "./widgets/types"
@@ -44,7 +44,7 @@ const glyph = (g: string, cls = "glyph") => {
   return l
 }
 
-export function createFrame(host: Host, initial: Item, opts: { animateIn?: boolean; editor?: (id: string) => void }): Frame {
+export function createFrame(host: Host, initial: Item, opts: { animateIn?: boolean }): Frame {
   let item = initial
   const e = entry(item.kind)
   const sizes = e?.sizes ?? [item.size]
@@ -245,7 +245,9 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
           else b.remove_css_class("on")
       })
     }
-    if (e?.editable && opts.editor) row("Edit Widget…", "", () => opts.editor!(item.id))
+    const edit = editorFor(item.kind)
+    if (e?.editable && edit)
+      row("Edit Widget…", "", () => edit(overlay, config.get(), (change) => store.setConfig(item.id, change)))
     row("Edit Widgets", "", () => setEditing(true))
     row("Remove Widget", "", removeAnimated, true)
     return pop

@@ -44,10 +44,12 @@ function load(): Item[] {
   return [...DEFAULT_LAYOUT]
 }
 
-const [items, setItems] = createState<Item[]>(load())
-export { items }
-
+// the grid of a 1536x816 desktop until the surface reports its real size
 let grid: Grid = { cols: 17, rows: 9 }
+let measured = false
+
+const [items, setItems] = createState<Item[]>(reflow(load(), grid))
+export { items }
 let pending = 0
 
 function save() {
@@ -76,7 +78,8 @@ export const getGrid = () => grid
 
 // the desktop surface knows its real size only once it's allocated
 export function setGrid(g: Grid) {
-  if (g.cols === grid.cols && g.rows === grid.rows) return
+  if (measured && g.cols === grid.cols && g.rows === grid.rows) return
+  measured = true
   grid = g
   const next = reflow(items.get(), g)
   if (next.some((it, i) => it !== items.get()[i])) commit(next)

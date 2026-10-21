@@ -1,5 +1,6 @@
 import { Gtk } from "ags/gtk4"
 import cairo from "cairo"
+import { EASE, MOTION } from "../../common/motion"
 
 // Cairo helpers shared by desktop widgets (and the pomodoro heatmap). Every colour comes from
 // the drawing area's CSS `color`, so a widget follows the matugen palette and light/dark mode.
@@ -46,14 +47,14 @@ export function bars(cr: cairo.Context, w: number, h: number, values: number[], 
   })
 }
 
-// a DrawingArea that redraws with `draw` and whose colour is its CSS class's `color`
+// a DrawingArea that redraws with `draw` and whose colour is its CSS classes' `color`
 export function canvas(
   cls: string,
   draw: (cr: cairo.Context, w: number, h: number, c: RGBA) => void,
   props: Partial<Gtk.DrawingArea.ConstructorProps> = {},
 ) {
   const area = new Gtk.DrawingArea({ hexpand: true, vexpand: true, ...props })
-  area.add_css_class(cls)
+  for (const c of cls.split(" ").filter(Boolean)) area.add_css_class(c)
   area.set_draw_func((a, cr, w, h) => draw(cr as unknown as cairo.Context, w, h, a.get_color()))
   return area
 }
@@ -83,5 +84,41 @@ export function tickWhile(widget: Gtk.Widget, live: { get(): boolean; subscribe(
     widget.disconnect(u)
     if (id) widget.remove_tick_callback(id)
     id = 0
+  }
+}
+
+// a number that eases to each new target on the frame clock and redraws `widget` as it goes:
+// rings fill on appear and glide between readings instead of jumping
+export function tween(widget: Gtk.Widget, initial = 0, duration = MOTION.enter * 2) {
+  let value = initial
+  let from = initial
+  let to = initial
+  let t0 = -1
+  let id = 0
+  const animations = () => Gtk.Settings.get_default()?.gtkEnableAnimations ?? true
+  return {
+    get: () => value,
+    set(v: number) {
+      if (v === to) return
+      from = value
+      to = v
+      t0 = -1
+      if (!animations() || !widget.get_mapped()) {
+        value = v
+        widget.queue_draw()
+        return
+      }
+      if (id) return
+      id = widget.add_tick_callback((_w, clock) => {
+        const now = clock.get_frame_time()
+        if (t0 < 0) t0 = now
+        const p = Math.min(1, (now - t0) / (duration * 1000))
+        value = from + (to - from) * EASE.out(p)
+        widget.queue_draw()
+        if (p < 1) return true
+        id = 0
+        return false
+      })
+    },
   }
 }
