@@ -272,6 +272,9 @@ hl.bind(mainMod .. " + SHIFT + V", hl.dsp.exec_cmd("ags request toggle-clipboard
 -- Wallpaper
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd("ags request toggle-wallpapers"))
 
+-- Desktop widgets: edit mode + widget gallery
+hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("ags request toggle-widgets"))
+
 -- Locking
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
 

@@ -3,12 +3,14 @@ import { Astal, Gdk, Gtk } from "ags/gtk4"
 import { createRoot } from "ags"
 import GObject from "gi://GObject"
 import GLib from "gi://GLib"
-import { Motion, ENTER, MOTION, EASE, onShow } from "../common/motion"
+import Graphene from "gi://Graphene"
+import { Motion, ENTER, LIFT, MOTION, EASE, onShow } from "../common/motion"
 import { toggleWallpapers } from "../wallpapers/Wallpapers"
-import { cellToPx, gridFor, sizePx, type Cell, type Size } from "./layout"
+import { cellToPx, gridFor, pxToCell, sizePx, type Cell, type Size } from "./layout"
 import { SIZE_NAMES } from "./catalog"
-import { createFrame, type Frame, type Ghost, type Host } from "./Frame"
-import { editing, setEditing } from "./state"
+import { createFrame, previewCard, type Frame, type Ghost, type Host } from "./Frame"
+import { Gallery, PREVIEW_SCALE } from "./Gallery"
+import { editing, live, setEditing } from "./state"
 import * as store from "./store"
 
 // The desktop: one full-screen layer under the windows (layer BOTTOM, inside the bar's exclusive
@@ -170,7 +172,74 @@ export default function Desktop() {
   })
   fixed.add_controller(left)
 
+  // ── the gallery, and widgets dragged out of it ────────────────────────────
+  let proxy: { m: Motion; w: number; h: number; fx: number; fy: number; size: Size; kind: string; config: Record<string, unknown> } | null = null
+  const proxyAt = (x: number, y: number) => ({ left: x - proxy!.fx * proxy!.w, top: y - proxy!.fy * proxy!.h })
+  const overSheet = (x: number, y: number) => {
+    const [ok, r] = gallery.sheet.compute_bounds(fixed)
+    return ok && r.contains_point(new Graphene.Point({ x, y }))
+  }
+  const gallery = Gallery({
+    live,
+    desktop: fixed,
+    add: (kind, size, config) => store.add(kind, size, undefined, config) !== null,
+    done: () => setEditing(false),
+    drag: {
+      begin(kind, size, config, x, y, fx, fy) {
+        const { w, h } = sizePx(size)
+        const m = new Motion()
+        m.append(previewCard(kind, size, config, live))
+        m.set_can_target(false)
+        proxy = { m, w, h, fx, fy, size, kind, config }
+        const { left, top } = proxyAt(x, y)
+        fixed.put(m, left, top)
+        // grow from the preview's scale about the grab point (the pivot is the centre: offset it)
+        const k = (s: number) => ({ x: (fx * w - w / 2) * (1 - s), y: (fy * h - h / 2) * (1 - s) })
+        const a = k(PREVIEW_SCALE)
+        const b = k(LIFT)
+        m.animate({
+          from: { ...a, scale: PREVIEW_SCALE },
+          to: { ...b, scale: LIFT },
+          duration: MOTION.enter,
+          ease: EASE.out,
+        })
+        m.add_css_class("dw-proxy")
+        gallery.dim(true)
+      },
+      move(x, y) {
+        if (!proxy) return
+        const { left, top } = proxyAt(x, y)
+        fixed.move(proxy.m, left, top)
+        const spot = overSheet(x, y) ? null : store.slotFor(null, proxy.size, pxToCell(left, top))
+        if (spot) ghost.show(spot, proxy.size)
+        else ghost.hide()
+      },
+      end(x, y) {
+        if (!proxy) return
+        const p = proxy
+        proxy = null
+        ghost.hide()
+        gallery.dim(false)
+        const { left, top } = { left: x - p.fx * p.w, top: y - p.fy * p.h }
+        const id = overSheet(x, y) ? null : store.add(p.kind, p.size, pxToCell(left, top), p.config)
+        const f = id ? frames.get(id) : null
+        if (f) {
+          // hand over to the real widget, which settles from right where the pointer let go
+          const it = store.items.get().find((i) => i.id === id)!
+          const slot = cellToPx(it.col, it.row)
+          f.frame.settleFrom(left - slot.x, top - slot.y, LIFT)
+          fixed.remove(p.m)
+          return
+        }
+        // dropped back on the gallery (or nowhere to go): shrink away
+        p.m.animate({ to: { scale: PREVIEW_SCALE, opacity: 0 }, duration: MOTION.exit, ease: EASE.in, done: () => fixed.remove(p.m) })
+      },
+    },
+  })
+
   const overlay = new Gtk.Overlay({ child: fixed })
+  overlay.add_overlay(gallery.widget)
+  editing.subscribe(() => (editing.get() ? gallery.open() : gallery.close()))
 
   return (
     <window

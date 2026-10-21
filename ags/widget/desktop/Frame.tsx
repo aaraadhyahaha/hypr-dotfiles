@@ -1,5 +1,5 @@
 import { Gdk, Gtk } from "ags/gtk4"
-import { createRoot, createState } from "ags"
+import { createRoot, createState, type Accessor } from "ags"
 import { Motion, ENTER, LEAVE, LIFT, MOTION, EASE, onShow, settle } from "../common/motion"
 import { cellToPx, nearestSize, pxToCell, sizePx, type Cell, type Item, type Size } from "./layout"
 import { entry, SIZE_NAMES } from "./catalog"
@@ -17,7 +17,13 @@ import type { Config } from "./widgets/types"
 export type Ghost = { show(cell: Cell, size: Size, blocked?: boolean): void; hide(): void }
 export type Host = { fixed: Gtk.Fixed; ghost: Ghost; raise(w: Gtk.Widget): void }
 
-export type Frame = { widget: Gtk.Widget; update(item: Item): void; destroy(): void }
+export type Frame = {
+  widget: Gtk.Widget
+  update(item: Item): void
+  // arrived from a drag (the gallery): glide from where the pointer let go
+  settleFrom(dx: number, dy: number, scale: number): void
+  destroy(): void
+}
 
 // GTK's own drag threshold is 8px; a little less feels more direct on a touchpad
 const THRESHOLD = 6
@@ -304,6 +310,11 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
         motion.animate(settle({ x: a.x - b.x, y: a.y - b.y }))
       }
     },
+    settleFrom(dx, dy, scale) {
+      host.raise(motion)
+      motion.origin = "center"
+      motion.animate(settle({ x: dx, y: dy, scale }))
+    },
     destroy() {
       unsubEditing()
       disposeContent()
@@ -314,4 +325,16 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
       host.fixed.remove(motion)
     },
   }
+}
+
+// a card as the gallery shows it: live content, no store, no gestures
+export function previewCard(kind: string, size: Size, config: Config, live: Accessor<boolean>) {
+  const card = new Gtk.Box({ hexpand: false, vexpand: false })
+  for (const c of ["dw-card", `size-${size}`, `dw-${kind}`]) card.add_css_class(c)
+  card.overflow = Gtk.Overflow.HIDDEN
+  const { w, h } = sizePx(size)
+  card.set_size_request(w, h)
+  const [cfg] = createState<Config>(config)
+  card.append(render(kind, { size, config: cfg, setConfig: () => {}, live, preview: true, onActivate: () => {} }))
+  return card
 }

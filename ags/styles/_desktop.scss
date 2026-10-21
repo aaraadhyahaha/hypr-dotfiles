@@ -498,3 +498,92 @@ window.Desktop {
   padding: $spacing-1 + 2px $spacing-4;
   font-weight: 700;
 }
+
+// ── widget gallery ──────────────────────────────────────────────────────────
+
+.dw-gallery {
+  @include panel($spacing-5);
+  min-width: 1120px;
+  margin-bottom: $spacing-6;
+  border-radius: $radius-xl + 4px;
+  background: rgba($surface-container, 0.9);
+  box-shadow: 0 24px 64px rgba($shadow, 0.4);
+}
+
+.dw-gal-side {
+  min-width: 184px;
+  padding-right: $spacing-4;
+  border-right: 1px solid rgba($outline-variant, 0.5);
+}
+
+.dw-gal-search {
+  @include field;
+  min-height: 32px;
+  padding: 0 $spacing-2;
+}
+
+.dw-gal-cat {
+  @include interactive($radius-sm);
+  padding: 7px $spacing-3;
+  font-weight: 600;
+
+  &.selected {
+    background-color: $secondary-container;
+    color: $on-secondary-container;
+  }
+}
+
+.dw-gal-title {
+  font-size: $font-size-5xl;
+  font-weight: 700;
+}
+
+.dw-gal-scroll {
+  min-height: 336px;
+}
+
+.dw-gal-row {
+  padding: $spacing-2 $spacing-1 $spacing-1;
+}
+
+.dw-gal-preview {
+  padding: $spacing-2;
+  border-radius: $radius-lg;
+  transition: background-color $dur-fast $ease, box-shadow $dur $ease;
+
+  &:hover {
+    background-color: rgba($on-surface, $state-hover);
+  }
+
+  &.full {
+    box-shadow: inset 0 0 0 2px rgba($error, 0.8);
+  }
+}
+
+.dw-gal-name {
+  font-size: $font-size-lg;
+  font-weight: 700;
+  margin-left: $spacing-2;
+}
+
+.dw-gal-desc {
+  color: $text-muted;
+  font-size: $font-size-sm;
+  margin-left: $spacing-2;
+}
+
+.dw-gal-sizes {
+  margin-left: $spacing-2;
+  padding: 2px;
+  border-radius: $radius-sm;
+  background-color: rgba($on-surface, 0.06);
+
+  .dw-size {
+    min-width: 32px;
+  }
+}
+
+// a widget being dragged out of the gallery
+.dw-proxy .dw-card {
+  box-shadow: 0 18px 40px rgba($shadow, 0.34), 0 2px 6px rgba($shadow, 0.2);
+}

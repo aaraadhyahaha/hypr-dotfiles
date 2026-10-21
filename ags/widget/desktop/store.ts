@@ -89,13 +89,14 @@ export function setGrid(g: Grid) {
 export const slotFor = (id: string | null, size: Size, target: Cell) =>
   nearestFree(items.get(), id, size, target, grid)
 
-export function add(kind: string, size: Size, target?: Cell): string | null {
+// target: aim near a cell (a drop); else the first free spot from the top-left
+export function add(kind: string, size: Size, target?: Cell, config?: Record<string, unknown>): string | null {
   const e = entry(kind)
   if (!e || !e.sizes.includes(size)) return null
   const spot = target ? slotFor(null, size, target) : firstFree(items.get(), size, grid)
   if (!spot) return null
   const id = makeId(kind, items.get())
-  commit([...items.get(), { id, kind, size, ...spot, config: e.defaultConfig?.() ?? {} }])
+  commit([...items.get(), { id, kind, size, ...spot, config: config ?? e.defaultConfig?.() ?? {} }])
   return id
 }
 
