@@ -139,14 +139,15 @@ export function Gallery(opts: {
         const bh = h * PREVIEW_SCALE
         // the preview sits at the bottom-left of its box
         const top = preview.get_height() - bh
-        opts.drag.begin(e.kind, size, config, p.x, p.y, Math.max(0, Math.min(1, gx / bw)), Math.max(0, Math.min(1, (gy - top) / bh)))
+        opts.drag.begin(e.kind, size, sampleConfig(e), p.x, p.y, Math.max(0, Math.min(1, gx / bw)), Math.max(0, Math.min(1, (gy - top) / bh)))
       }
       opts.drag.move(p.x, p.y)
     })
     g.connect("drag-end", (_g, dx, dy) => {
       const p = preview.compute_point(opts.desktop, new Graphene.Point({ x: gx + dx, y: gy + dy }))[1]
       if (dragging) opts.drag.end(p.x, p.y)
-      else if (Math.hypot(dx, dy) < 6 && !opts.add(e.kind, size, config)) flashFull()
+      // a fresh config: a countdown added days later counts from that day
+      else if (Math.hypot(dx, dy) < 6 && !opts.add(e.kind, size, sampleConfig(e))) flashFull()
       dragging = false
     })
     preview.add_controller(g)

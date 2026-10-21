@@ -10,7 +10,7 @@ import { cellToPx, gridFor, pxToCell, sizePx, type Cell, type Size } from "./lay
 import { SIZE_NAMES } from "./catalog"
 import { createFrame, previewCard, type Frame, type Ghost, type Host } from "./Frame"
 import { Gallery, PREVIEW_SCALE } from "./Gallery"
-import { editing, live, setEditing } from "./state"
+import { editing, setEditing } from "./state"
 import * as store from "./store"
 
 // The desktop: one full-screen layer under the windows (layer BOTTOM, inside the bar's exclusive
@@ -180,7 +180,8 @@ export default function Desktop() {
     return ok && r.contains_point(new Graphene.Point({ x, y }))
   }
   const gallery = Gallery({
-    live,
+    // miniatures animate only while the gallery is open
+    live: editing,
     desktop: fixed,
     add: (kind, size, config) => store.add(kind, size, undefined, config) !== null,
     done: () => setEditing(false),
@@ -188,7 +189,7 @@ export default function Desktop() {
       begin(kind, size, config, x, y, fx, fy) {
         const { w, h } = sizePx(size)
         const m = new Motion()
-        m.append(previewCard(kind, size, config, live))
+        m.append(previewCard(kind, size, config, editing))
         m.set_can_target(false)
         proxy = { m, w, h, fx, fy, size, kind, config }
         const { left, top } = proxyAt(x, y)
