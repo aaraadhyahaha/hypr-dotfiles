@@ -173,7 +173,12 @@ export default function Desktop() {
   fixed.add_controller(left)
 
   // ── the gallery, and widgets dragged out of it ────────────────────────────
-  let proxy: { m: Motion; w: number; h: number; fx: number; fy: number; size: Size; kind: string; config: Record<string, unknown> } | null = null
+  type Proxy = { m: Motion; dispose: () => void; w: number; h: number; fx: number; fy: number; size: Size; kind: string; config: Record<string, unknown> }
+  let proxy: Proxy | null = null
+  const drop = (p: Proxy) => {
+    fixed.remove(p.m)
+    p.dispose()
+  }
   const proxyAt = (x: number, y: number) => ({ left: x - proxy!.fx * proxy!.w, top: y - proxy!.fy * proxy!.h })
   const overSheet = (x: number, y: number) => {
     const [ok, r] = gallery.sheet.compute_bounds(fixed)
@@ -189,9 +194,10 @@ export default function Desktop() {
       begin(kind, size, config, x, y, fx, fy) {
         const { w, h } = sizePx(size)
         const m = new Motion()
-        m.append(previewCard(kind, size, config, editing))
+        const { card, dispose } = previewCard(kind, size, config, editing)
+        m.append(card)
         m.set_can_target(false)
-        proxy = { m, w, h, fx, fy, size, kind, config }
+        proxy = { m, dispose, w, h, fx, fy, size, kind, config }
         const { left, top } = proxyAt(x, y)
         fixed.put(m, left, top)
         // grow from the preview's scale about the grab point (the pivot is the centre: offset it)
@@ -229,11 +235,11 @@ export default function Desktop() {
           const it = store.items.get().find((i) => i.id === id)!
           const slot = cellToPx(it.col, it.row)
           f.frame.settleFrom(left - slot.x, top - slot.y, LIFT)
-          fixed.remove(p.m)
+          drop(p)
           return
         }
         // dropped back on the gallery (or nowhere to go): shrink away
-        p.m.animate({ to: { scale: PREVIEW_SCALE, opacity: 0 }, duration: MOTION.exit, ease: EASE.in, done: () => fixed.remove(p.m) })
+        p.m.animate({ to: { scale: PREVIEW_SCALE, opacity: 0 }, duration: MOTION.exit, ease: EASE.in, done: () => drop(p) })
       },
     },
   })

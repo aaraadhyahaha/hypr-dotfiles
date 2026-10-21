@@ -97,7 +97,8 @@ export function Gallery(opts: {
     const built = new Set<Size>()
     const show = (s: Size) => {
       if (!built.has(s)) {
-        stack.add_named(new Scaled(previewCard(e.kind, s, config, opts.live), PREVIEW_SCALE), s)
+        // kept for the gallery's lifetime, so never disposed
+        stack.add_named(new Scaled(previewCard(e.kind, s, config, opts.live).card, PREVIEW_SCALE), s)
         built.add(s)
       }
       stack.set_visible_child_name(s)

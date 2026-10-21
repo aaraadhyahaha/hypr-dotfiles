@@ -135,8 +135,8 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
   drag.connect("drag-end", (_g, dx, dy) => {
     if (denied) return
     if (!dragging) {
-      // a click, not a drag
-      if (Math.hypot(dx, dy) < THRESHOLD) activate?.()
+      // a click, not a drag (in edit mode you're arranging, not opening apps)
+      if (Math.hypot(dx, dy) < THRESHOLD && !editing.get()) activate?.()
       return
     }
     dragging = false
@@ -328,14 +328,17 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
   }
 }
 
-// a card as the gallery shows it: live content, no store, no gestures
+// a card as the gallery shows it: live content, no store, no gestures. It owns a scope (it's
+// built from gesture callbacks, outside any): call dispose() when it's thrown away.
 export function previewCard(kind: string, size: Size, config: Config, live: Accessor<boolean>) {
-  const card = new Gtk.Box({ hexpand: false, vexpand: false })
-  for (const c of ["dw-card", `size-${size}`, `dw-${kind}`]) card.add_css_class(c)
-  card.overflow = Gtk.Overflow.HIDDEN
-  const { w, h } = sizePx(size)
-  card.set_size_request(w, h)
-  const [cfg] = createState<Config>(config)
-  card.append(render(kind, { size, config: cfg, setConfig: () => {}, live, preview: true, onActivate: () => {} }))
-  return card
+  return createRoot((dispose) => {
+    const card = new Gtk.Box({ hexpand: false, vexpand: false })
+    for (const c of ["dw-card", `size-${size}`, `dw-${kind}`]) card.add_css_class(c)
+    card.overflow = Gtk.Overflow.HIDDEN
+    const { w, h } = sizePx(size)
+    card.set_size_request(w, h)
+    const [cfg] = createState<Config>(config)
+    card.append(render(kind, { size, config: cfg, setConfig: () => {}, live, preview: true, onActivate: () => {} }))
+    return { card, dispose }
+  })
 }
