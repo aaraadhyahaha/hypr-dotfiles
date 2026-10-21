@@ -12,6 +12,7 @@ import Battery from "./modules/Battery"
 import Caffeine from "./modules/Caffeine"
 import Power from "./modules/Power"
 import QuickSettings from "./quicksettings/QuickSettings"
+import { editing } from "../desktop/state"
 
 export default function Bar(gdkmonitor: Gdk.Monitor) {
   const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
@@ -21,7 +22,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
       visible
       name="bar"
       namespace="bar"
-      class="Bar"
+      class={editing.as((on) => (on ? "Bar editing" : "Bar"))}
       gdkmonitor={gdkmonitor}
       exclusivity={Astal.Exclusivity.EXCLUSIVE}
       anchor={TOP | LEFT | RIGHT}

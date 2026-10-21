@@ -3,12 +3,18 @@
 @use "mixins" as *;
 
 window.Bar {
-  background: transparent;
+  background-color: transparent;
+  transition: background-color $dur-enter $ease-out;
   color: $text;
   font-family: $font;
   font-size: $font-size-lg;
   font-weight: 600;
   font-feature-settings: "tnum";
+}
+
+// desktop edit mode: the same scrim as the desktop layer below, so the dim reaches the top edge
+window.Bar.editing {
+  background-color: $edit-scrim;
 }
 
 .body {

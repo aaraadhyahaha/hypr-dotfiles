@@ -117,7 +117,7 @@ Text entries use `@include field`: a translucent `rgba($surface, .5)` fill, so t
 
 ## Desktop widgets
 
-`widget/desktop/`. One full-screen layer (`namespace="desktop"`) inside the bar's exclusive zone holds every widget on a grid. The window sits on BOTTOM, under the windows. Edit mode (Super+G, or right-click the desktop → Edit Widgets) moves it to TOP behind a scrim, which Hyprland blurs, and opens the gallery.
+`widget/desktop/`. One full-screen layer (`namespace="desktop"`) inside the bar's exclusive zone holds every widget on a grid. The window sits on BOTTOM, under the windows. Edit mode (Super+G, or right-click the desktop → Edit Widgets) moves it to TOP behind a scrim, which Hyprland blurs, and opens the gallery. The scrim is `$edit-scrim`, and the bar's window takes it too (`window.Bar.editing`): the desktop layer starts below the bar's exclusive zone, so without that the strip around the floating bar stays crisp and bright, leaving a hard line across the top.
 
 | File | Role |
 |---|---|

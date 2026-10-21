@@ -9,9 +9,10 @@ window.Desktop {
   background: transparent;
   transition: background-color $dur-enter $ease-out;
 
-  // edit mode: dim (and, through Hyprland's blur, soften) the windows behind
+  // edit mode: dim (and, through Hyprland's blur, soften) the windows behind. The bar's window
+  // takes the same scrim (_bar.scss), so it runs edge to edge with no seam under the bar.
   &.editing {
-    background-color: rgba($scrim, 0.35);
+    background-color: $edit-scrim;
   }
 }
 

@@ -60,6 +60,8 @@ $bar-bg: $bar;
 $panel-bg: rgba($surface-container, 0.82);
 $card-bg: $surface-container-high;
 $track-bg: $surface-container-highest;
+// desktop edit mode: dims (and, through Hyprland's blur, softens) everything behind
+$edit-scrim: rgba($scrim, 0.35);
 
 // semantic text
 $text: $on-surface;
