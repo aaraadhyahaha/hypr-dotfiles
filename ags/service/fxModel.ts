@@ -25,7 +25,7 @@ function task(t: any): FxTask | null {
   if (!t || !Number.isInteger(t.id) || typeof t.title !== "string") return null
   return {
     id: t.id,
-    title: t.title,
+    title: padTimes(t.title),
     severity: Math.max(1, Math.min(5, Math.round(num(t.severity, 1)))),
     effort: num(t.effort),
     done: t.done === true,
@@ -60,17 +60,22 @@ export function parseStatus(text: string): FxStatus | null {
       status: status === "bent" || status === "reset" ? status : "clean",
     },
     active: a && typeof a.since === "string"
-      ? { taskId: Number.isInteger(a.task_id) ? a.task_id : null, title: a.title ?? null, since: a.since }
+      ? { taskId: Number.isInteger(a.task_id) ? a.task_id : null, title: typeof a.title === "string" ? padTimes(a.title) : null, since: a.since }
       : null,
     tasks: j.tasks.map(task).filter((t: FxTask | null): t is FxTask => t !== null),
   }
 }
 
-// "3h09" like fx's own report; under an hour reads "45m"
+const pad = (n: number) => String(n).padStart(2, "0")
+
+// "03:09" like fx's own report
 export function hm(minutes: number) {
   const m = Math.floor(minutes)
-  return m < 60 ? `${m}m` : `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}`
+  return `${pad(Math.floor(m / 60))}:${pad(m % 60)}`
 }
+
+// Task titles carry times like "Thu 4:00"; show them as "Thu 04:00"
+export const padTimes = (s: string) => s.replace(/(?<![\d:])(\d):(\d\d)(?!\d)/g, "0$1:$2")
 
 // fx stores naive local ISO times, which Date parses as local
 export function sinceMinutes(iso: string, now = new Date()) {

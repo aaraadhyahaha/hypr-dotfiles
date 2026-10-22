@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { hm, parseStatus, sinceMinutes } from "./fxModel.ts"
+import { hm, padTimes, parseStatus, sinceMinutes } from "./fxModel.ts"
 
 const raw = {
   date: "2026-10-21",
@@ -54,10 +54,16 @@ test("parseStatus treats an unknown streak status as clean", () => {
 })
 
 test("hm formats minutes like fx does", () => {
-  assert.equal(hm(189.2), "3h09")
-  assert.equal(hm(45), "45m")
-  assert.equal(hm(0), "0m")
-  assert.equal(hm(60), "1h00")
+  assert.equal(hm(189.2), "03:09")
+  assert.equal(hm(45), "00:45")
+  assert.equal(hm(0), "00:00")
+  assert.equal(hm(60), "01:00")
+})
+
+test("padTimes zero-pads single-digit hours in titles", () => {
+  assert.equal(padTimes("Thu 4:00 · SQL"), "Thu 04:00 · SQL")
+  assert.equal(padTimes("Thu 11:00 · Networks"), "Thu 11:00 · Networks")
+  assert.equal(padTimes("12:30:45 and 1:5"), "12:30:45 and 1:5")
 })
 
 test("sinceMinutes counts whole minutes from a local ISO time", () => {
