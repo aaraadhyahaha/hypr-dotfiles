@@ -1,7 +1,7 @@
 import { Gdk, Gtk } from "ags/gtk4"
 import { createRoot, createState, type Accessor } from "ags"
 import { Motion, ENTER, LEAVE, LIFT, MOTION, EASE, onShow, settle } from "../common/motion"
-import { cellToPx, nearestSize, pxToCell, sizePx, type Cell, type Item, type Size } from "./layout"
+import { cellToPx, nearestSize, NOMINAL, pxToCell, sizePx, type Cell, type Grid, type Item, type Size } from "./layout"
 import { entry, SIZE_NAMES } from "./catalog"
 import { editorFor, render } from "./registry"
 import { editing, live, setEditing } from "./state"
@@ -84,7 +84,7 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
     for (const s of ["s", "m", "l", "xl"]) card.remove_css_class(`size-${s}`)
     card.add_css_class(`size-${item.size}`)
     card.add_css_class(`dw-${item.kind}`)
-    const { w, h } = sizePx(item.size)
+    const { w, h } = sizePx(item.size, store.getGrid())
     card.set_size_request(w, h)
     createRoot((dispose) => {
       disposeContent = dispose
@@ -102,7 +102,7 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
   }
 
   const place = () => {
-    const { x, y } = cellToPx(item.col, item.row)
+    const { x, y } = cellToPx(store.getGrid(), item.col, item.row)
     host.fixed.move(motion, x - BLEED, y - BLEED)
   }
 
@@ -111,8 +111,8 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
   let dragging = false
   let denied = false
   const targetFor = (dx: number, dy: number) => {
-    const p = cellToPx(item.col, item.row)
-    return store.slotFor(item.id, item.size, pxToCell(p.x + dx, p.y + dy))
+    const p = cellToPx(store.getGrid(), item.col, item.row)
+    return store.slotFor(item.id, item.size, pxToCell(store.getGrid(), p.x + dx, p.y + dy))
   }
   drag.connect("drag-begin", (g, x, y) => {
     dragging = false
@@ -143,8 +143,8 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
     host.ghost.hide()
     overlay.remove_css_class("lifted")
     const spot = targetFor(dx, dy) ?? item
-    const from = cellToPx(item.col, item.row)
-    const to = cellToPx(spot.col, spot.row)
+    const from = cellToPx(store.getGrid(), item.col, item.row)
+    const to = cellToPx(store.getGrid(), spot.col, spot.row)
     motion.origin = "center"
     item = { ...item, col: spot.col, row: spot.row }
     place()
@@ -168,8 +168,8 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
       overlay.add_css_class("resizing")
     })
     rs.connect("drag-update", (_g, dx, dy) => {
-      const base = sizePx(item.size)
-      want = nearestSize(sizes, base.w + dx, base.h + dy)
+      const base = sizePx(item.size, store.getGrid())
+      want = nearestSize(sizes, base.w + dx, base.h + dy, store.getGrid())
       const spot = want === item.size ? item : store.slotFor(item.id, want, item)
       host.ghost.show(spot ?? item, want, !spot)
     })
@@ -194,6 +194,12 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
     else overlay.remove_css_class("editing")
   }
   const unsubEditing = editing.subscribe(syncBadge)
+  // the surface was measured (or resized): the cells stretched, so re-size and re-place
+  const unsubGrid = store.grid.subscribe(() => {
+    const { w, h } = sizePx(item.size, store.getGrid())
+    card.set_size_request(w, h)
+    place()
+  })
   syncBadge()
 
   const removeAnimated = () => {
@@ -271,7 +277,7 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
 
   // ── lifecycle ─────────────────────────────────────────────────────────────
   build()
-  const { x, y } = cellToPx(item.col, item.row)
+  const { x, y } = cellToPx(store.getGrid(), item.col, item.row)
   host.fixed.put(motion, x - BLEED, y - BLEED)
   if (opts.animateIn) motion.animate(ENTER.add)
 
@@ -284,10 +290,10 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
       if (next.size !== prev.size) {
         // morph from the old box: rebuild once at the new size, start stretched back to the
         // old one, and let it settle. Content fades up as it unstretches.
-        const a = sizePx(prev.size)
-        const b = sizePx(next.size)
-        const pa = cellToPx(prev.col, prev.row)
-        const pb = cellToPx(next.col, next.row)
+        const a = sizePx(prev.size, store.getGrid())
+        const b = sizePx(next.size, store.getGrid())
+        const pa = cellToPx(store.getGrid(), prev.col, prev.row)
+        const pb = cellToPx(store.getGrid(), next.col, next.row)
         build()
         place()
         host.raise(motion) // travels over its neighbours, never under
@@ -303,8 +309,8 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
         })
       } else if (next.col !== prev.col || next.row !== prev.row) {
         // moved from elsewhere (reflow): glide there rather than jump
-        const a = cellToPx(prev.col, prev.row)
-        const b = cellToPx(next.col, next.row)
+        const a = cellToPx(store.getGrid(), prev.col, prev.row)
+        const b = cellToPx(store.getGrid(), next.col, next.row)
         place()
         host.raise(motion)
         motion.origin = "center"
@@ -318,6 +324,7 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
     },
     destroy() {
       unsubEditing()
+      unsubGrid()
       disposeContent()
       if (pop) {
         pop.unparent()
@@ -330,12 +337,12 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
 
 // a card as the gallery shows it: live content, no store, no gestures. It owns a scope (it's
 // built from gesture callbacks, outside any): call dispose() when it's thrown away.
-export function previewCard(kind: string, size: Size, config: Config, live: Accessor<boolean>) {
+export function previewCard(kind: string, size: Size, config: Config, live: Accessor<boolean>, grid: Grid = NOMINAL) {
   return createRoot((dispose) => {
     const card = new Gtk.Box({ hexpand: false, vexpand: false })
     for (const c of ["dw-card", `size-${size}`, `dw-${kind}`]) card.add_css_class(c)
     card.overflow = Gtk.Overflow.HIDDEN
-    const { w, h } = sizePx(size)
+    const { w, h } = sizePx(size, grid)
     card.set_size_request(w, h)
     const [cfg] = createState<Config>(config)
     card.append(render(kind, { size, config: cfg, setConfig: () => {}, live, preview: true, onActivate: () => {} }))

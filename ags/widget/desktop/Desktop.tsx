@@ -19,18 +19,21 @@ import * as store from "./store"
 
 export const toggleEditWidgets = () => setEditing(!editing.get())
 
-// tells the store the real grid once the surface is allocated (and whenever it changes)
+// tells the store the real grid once the surface is allocated (and whenever it changes).
+// Checked at snapshot: GTK never calls size_allocate on a widget with a layout manager, as Fixed has.
 const DesktopFixed = GObject.registerClass(
   { GTypeName: "AgsDesktopFixed" },
   class DesktopFixed extends Gtk.Fixed {
     declare _w: number
     declare _h: number
-    vfunc_size_allocate(w: number, h: number, baseline: number) {
-      super.vfunc_size_allocate(w, h, baseline)
+    vfunc_snapshot(snapshot: Gtk.Snapshot) {
+      super.vfunc_snapshot(snapshot)
+      const w = this.get_width()
+      const h = this.get_height()
       if (w === this._w && h === this._h) return
       this._w = w
       this._h = h
-      // never change children from inside an allocation
+      // never change children from inside a snapshot
       GLib.idle_add(GLib.PRIORITY_DEFAULT, () => {
         store.setGrid(gridFor(w, h))
         return GLib.SOURCE_REMOVE
@@ -57,14 +60,14 @@ function createGhost(fixed: Gtk.Fixed): Ghost {
       if (blocked) box.add_css_class("blocked")
       else box.remove_css_class("blocked")
       if (at && size === s && at.col === cell.col && at.row === cell.row && motion.visible) return
-      const to = cellToPx(cell.col, cell.row)
-      const { w, h } = sizePx(s)
+      const to = cellToPx(store.getGrid(), cell.col, cell.row)
+      const { w, h } = sizePx(s, store.getGrid())
       box.set_size_request(w, h)
       label.label = SIZE_NAMES[s]
       fixed.move(motion, to.x, to.y)
       if (motion.visible && at && size === s) {
         // glide between cells instead of jumping
-        const from = cellToPx(at.col, at.row)
+        const from = cellToPx(store.getGrid(), at.col, at.row)
         motion.animate({ from: { x: from.x - to.x, y: from.y - to.y }, duration: MOTION.fast * 1.6, ease: EASE.out })
       } else {
         motion.set({})
@@ -192,9 +195,9 @@ export default function Desktop() {
     done: () => setEditing(false),
     drag: {
       begin(kind, size, config, x, y, fx, fy) {
-        const { w, h } = sizePx(size)
+        const { w, h } = sizePx(size, store.getGrid())
         const m = new Motion()
-        const { card, dispose } = previewCard(kind, size, config, editing)
+        const { card, dispose } = previewCard(kind, size, config, editing, store.getGrid())
         m.append(card)
         m.set_can_target(false)
         proxy = { m, dispose, w, h, fx, fy, size, kind, config }
@@ -217,7 +220,7 @@ export default function Desktop() {
         if (!proxy) return
         const { left, top } = proxyAt(x, y)
         fixed.move(proxy.m, left, top)
-        const spot = overSheet(x, y) ? null : store.slotFor(null, proxy.size, pxToCell(left, top))
+        const spot = overSheet(x, y) ? null : store.slotFor(null, proxy.size, pxToCell(store.getGrid(), left, top))
         if (spot) ghost.show(spot, proxy.size)
         else ghost.hide()
       },
@@ -228,12 +231,12 @@ export default function Desktop() {
         ghost.hide()
         gallery.dim(false)
         const { left, top } = { left: x - p.fx * p.w, top: y - p.fy * p.h }
-        const id = overSheet(x, y) ? null : store.add(p.kind, p.size, pxToCell(left, top), p.config)
+        const id = overSheet(x, y) ? null : store.add(p.kind, p.size, pxToCell(store.getGrid(), left, top), p.config)
         const f = id ? frames.get(id) : null
         if (f) {
           // hand over to the real widget, which settles from right where the pointer let go
           const it = store.items.get().find((i) => i.id === id)!
-          const slot = cellToPx(it.col, it.row)
+          const slot = cellToPx(store.getGrid(), it.col, it.row)
           f.frame.settleFrom(left - slot.x, top - slot.y, LIFT)
           drop(p)
           return

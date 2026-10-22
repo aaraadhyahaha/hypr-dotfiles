@@ -4,6 +4,7 @@ import {
   CELL,
   GAP,
   MARGIN,
+  NOMINAL,
   PITCH,
   cellToPx,
   firstFree,
@@ -30,16 +31,25 @@ const item = (id: string, size: Size, col: number, row: number, kind = "clock"):
   config: {},
 })
 
-const grid = { cols: 17, rows: 9 }
+const grid = { ...NOMINAL, cols: 17, rows: 9 }
 
 test("the grid fills the usable area between the margins", () => {
   // 1536x816 logical: the monitor minus the bar's exclusive zone
-  assert.deepEqual(gridFor(1536, 816), { cols: 17, rows: 9 })
+  const g = gridFor(1536, 816)
+  assert.deepEqual([g.cols, g.rows], [17, 9])
   assert.equal(PITCH, CELL + GAP)
 })
 
+test("stretched cells reach the right and bottom margins", () => {
+  const g = gridFor(1536, 816)
+  assert.equal(cellToPx(g, g.cols, 0).x - GAP, 1536 - MARGIN)
+  assert.equal(cellToPx(g, 0, g.rows).y - GAP, 816 - MARGIN)
+  assert.ok(sizePx("s", g).w > sizePx("s").w)
+  assert.ok(sizePx("s", g).h > sizePx("s").h)
+})
+
 test("a tiny area still has one cell", () => {
-  assert.deepEqual(gridFor(10, 10), { cols: 1, rows: 1 })
+  assert.deepEqual(gridFor(10, 10), { cols: 1, rows: 1, px: PITCH, py: PITCH })
 })
 
 test("sizes span whole cells and the gaps between them", () => {
@@ -50,10 +60,10 @@ test("sizes span whole cells and the gaps between them", () => {
 })
 
 test("cell and pixel positions round-trip, and pixels snap to the nearest cell", () => {
-  assert.deepEqual(cellToPx(0, 0), { x: MARGIN, y: MARGIN })
-  assert.deepEqual(cellToPx(3, 2), { x: MARGIN + 3 * PITCH, y: MARGIN + 2 * PITCH })
-  assert.deepEqual(pxToCell(MARGIN + 3 * PITCH + 30, MARGIN + 2 * PITCH - 30), { col: 3, row: 2 })
-  assert.deepEqual(pxToCell(MARGIN + 3 * PITCH + 50, MARGIN), { col: 4, row: 0 })
+  assert.deepEqual(cellToPx(NOMINAL, 0, 0), { x: MARGIN, y: MARGIN })
+  assert.deepEqual(cellToPx(NOMINAL, 3, 2), { x: MARGIN + 3 * PITCH, y: MARGIN + 2 * PITCH })
+  assert.deepEqual(pxToCell(NOMINAL, MARGIN + 3 * PITCH + 30, MARGIN + 2 * PITCH - 30), { col: 3, row: 2 })
+  assert.deepEqual(pxToCell(NOMINAL, MARGIN + 3 * PITCH + 50, MARGIN), { col: 4, row: 0 })
 })
 
 test("a rect fits only inside the grid and off other widgets", () => {
@@ -89,7 +99,7 @@ test("nearestFree clamps a target past the edge back into the grid", () => {
 
 test("nearestFree returns null when nothing fits", () => {
   const full = [item("a", "xl", 0, 0), item("b", "xl", 8, 0), item("c", "xl", 0, 4), item("d", "xl", 8, 4)]
-  assert.equal(nearestFree(full, null, "xl", { col: 0, row: 0 }, { cols: 16, rows: 8 }), null)
+  assert.equal(nearestFree(full, null, "xl", { col: 0, row: 0 }, { ...NOMINAL, cols: 16, rows: 8 }), null)
 })
 
 test("firstFree scans from the top-left, row by row", () => {
@@ -122,7 +132,7 @@ test("reflow resolves widgets that now overlap", () => {
 })
 
 test("reflow never drops a widget, even with no room left", () => {
-  const out = reflow([item("a", "xl", 0, 0), item("b", "xl", 0, 0)], { cols: 8, rows: 4 })
+  const out = reflow([item("a", "xl", 0, 0), item("b", "xl", 0, 0)], { ...NOMINAL, cols: 8, rows: 4 })
   assert.equal(out.length, 2)
 })
 

@@ -5,6 +5,7 @@ import GLib from "gi://GLib"
 import GdkPixbuf from "gi://GdkPixbuf"
 import Pango from "gi://Pango"
 import { sizePx } from "../layout"
+import { getGrid } from "../store"
 import { EmptyState, box, label } from "./common"
 import { editorPopover, field } from "./editor"
 import type { Config, WidgetProps } from "./types"
@@ -59,7 +60,7 @@ export default function Goal(p: WidgetProps) {
   stack.add_named(empty, "empty")
   stack.add_named(pic, "pic")
 
-  const { w, h } = sizePx(p.size)
+  const { w, h } = sizePx(p.size, getGrid())
   let shown = ""
   const sync = () => {
     const c = p.config.get()

@@ -12,7 +12,8 @@ export type Item = {
   config: Record<string, unknown>
 }
 
-export type Grid = { cols: number; rows: number }
+// px, py: the pitch (cell + gap) on each axis, stretched so the grid meets every edge
+export type Grid = { cols: number; rows: number; px: number; py: number }
 export type Cell = { col: number; row: number }
 export type Slot = Cell & { size: Size }
 
@@ -31,21 +32,32 @@ export const SPANS: Record<Size, { w: number; h: number }> = {
 
 const VERSION = 1
 
+// as many whole cells as fit, then widened to share out the remainder: no dead strip on the
+// right or bottom
 export function gridFor(width: number, height: number): Grid {
-  const n = (px: number) => Math.max(1, Math.floor((px - 2 * MARGIN + GAP) / PITCH))
-  return { cols: n(width), rows: n(height) }
+  const span = (px: number) => px - 2 * MARGIN + GAP
+  const n = (px: number) => Math.max(1, Math.floor(span(px) / PITCH))
+  const cols = n(width)
+  const rows = n(height)
+  return { cols, rows, px: Math.max(PITCH, span(width) / cols), py: Math.max(PITCH, span(height) / rows) }
 }
 
-export function sizePx(size: Size) {
+// unstretched cells: the gallery's miniatures, and the grid until the surface is measured
+export const NOMINAL: Grid = { ...gridFor(1536, 816), px: PITCH, py: PITCH }
+
+export function sizePx(size: Size, grid: Grid = NOMINAL) {
   const s = SPANS[size]
-  return { w: s.w * PITCH - GAP, h: s.h * PITCH - GAP }
+  return { w: Math.round(s.w * grid.px - GAP), h: Math.round(s.h * grid.py - GAP) }
 }
 
-export const cellToPx = (col: number, row: number) => ({ x: MARGIN + col * PITCH, y: MARGIN + row * PITCH })
+export const cellToPx = (grid: Grid, col: number, row: number) => ({
+  x: Math.round(MARGIN + col * grid.px),
+  y: Math.round(MARGIN + row * grid.py),
+})
 
-export const pxToCell = (x: number, y: number): Cell => ({
-  col: Math.round((x - MARGIN) / PITCH),
-  row: Math.round((y - MARGIN) / PITCH),
+export const pxToCell = (grid: Grid, x: number, y: number): Cell => ({
+  col: Math.round((x - MARGIN) / grid.px),
+  row: Math.round((y - MARGIN) / grid.py),
 })
 
 function overlaps(a: Slot, b: Slot) {
@@ -83,11 +95,11 @@ export function firstFree(items: Item[], size: Size, grid: Grid): Cell | null {
 }
 
 // the allowed size whose box is closest to a dragged w x h
-export function nearestSize(allowed: Size[], w: number, h: number): Size {
+export function nearestSize(allowed: Size[], w: number, h: number, grid: Grid = NOMINAL): Size {
   let best = allowed[0]
   let bestD = Infinity
   for (const s of allowed) {
-    const p = sizePx(s)
+    const p = sizePx(s, grid)
     const d = Math.abs(p.w - w) + Math.abs(p.h - h)
     if (d < bestD) {
       best = s

@@ -6,6 +6,7 @@ import {
   firstFree,
   fits,
   makeId,
+  NOMINAL,
   nearestFree,
   parseLayout,
   reflow,
@@ -44,11 +45,12 @@ function load(): Item[] {
   return [...DEFAULT_LAYOUT]
 }
 
-// the grid of a 1536x816 desktop until the surface reports its real size
-let grid: Grid = { cols: 17, rows: 9 }
+// unstretched 1536x816 cells until the surface reports its real size
+const [grid, setGridState] = createState<Grid>(NOMINAL)
+export { grid }
 let measured = false
 
-const [items, setItems] = createState<Item[]>(reflow(load(), grid))
+const [items, setItems] = createState<Item[]>(reflow(load(), NOMINAL))
 export { items }
 let pending = 0
 
@@ -74,26 +76,27 @@ function commit(next: Item[]) {
 const patch = (id: string, change: Partial<Item>) =>
   commit(items.get().map((it) => (it.id === id ? { ...it, ...change } : it)))
 
-export const getGrid = () => grid
+export const getGrid = () => grid.get()
 
 // the desktop surface knows its real size only once it's allocated
 export function setGrid(g: Grid) {
-  if (measured && g.cols === grid.cols && g.rows === grid.rows) return
+  const cur = grid.get()
+  if (measured && g.cols === cur.cols && g.rows === cur.rows && g.px === cur.px && g.py === cur.py) return
   measured = true
-  grid = g
+  setGridState(g)
   const next = reflow(items.get(), g)
   if (next.some((it, i) => it !== items.get()[i])) commit(next)
 }
 
 // where a widget of `size` would land if dropped aiming at `target`
 export const slotFor = (id: string | null, size: Size, target: Cell) =>
-  nearestFree(items.get(), id, size, target, grid)
+  nearestFree(items.get(), id, size, target, grid.get())
 
 // target: aim near a cell (a drop); else the first free spot from the top-left
 export function add(kind: string, size: Size, target?: Cell, config?: Record<string, unknown>): string | null {
   const e = entry(kind)
   if (!e || !e.sizes.includes(size)) return null
-  const spot = target ? slotFor(null, size, target) : firstFree(items.get(), size, grid)
+  const spot = target ? slotFor(null, size, target) : firstFree(items.get(), size, grid.get())
   if (!spot) return null
   const id = makeId(kind, items.get())
   commit([...items.get(), { id, kind, size, ...spot, config: config ?? e.defaultConfig?.() ?? {} }])
@@ -102,7 +105,7 @@ export function add(kind: string, size: Size, target?: Cell, config?: Record<str
 
 export function move(id: string, cell: Cell) {
   const it = items.get().find((i) => i.id === id)
-  if (it && fits(items.get(), { ...cell, size: it.size }, grid, id)) patch(id, cell)
+  if (it && fits(items.get(), { ...cell, size: it.size }, grid.get(), id)) patch(id, cell)
 }
 
 // keeps its corner when the new size fits there, else the nearest spot; false: no room anywhere
