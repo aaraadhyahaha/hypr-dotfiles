@@ -22,23 +22,34 @@ menubutton.media-pill>button {
   }
 }
 
-// popover card
+// popover card: 340px, column gap 12
 .media-card {
-  @include panel($spacing-4);
-  min-width: 320px;
+  @include glass-panel($spacing-4);
+  min-width: 340px - 2 * $spacing-4 - 2px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
+
+  // SF Pro's line box is taller than the mock's; pin it like the CC panels
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+
+  button {
+    font-weight: normal;
+  }
 }
 
 .cover {
-  min-width: 64px;
-  min-height: 64px;
+  min-width: 72px;
+  min-height: 72px;
   border-radius: $radius-md;
-  background-color: $card-bg;
+  background-color: $glass-card;
 }
 
 .cover-fallback {
   -gtk-icon-size: 32px;
-  min-width: 64px;
-  min-height: 64px;
   color: $text-muted;
 }
 
@@ -48,20 +59,28 @@ menubutton.media-pill>button {
 }
 
 .media-artist {
+  margin-top: 2px;
   color: $text-muted;
 }
 
-.seek {
-  margin-top: $spacing-3;
+.media-album {
+  margin-top: 2px;
+  font-size: $font-size-sm;
+  color: $text-faint;
+}
 
+// 4px track, 12px knob
+.seek {
   scale {
-    min-height: $spacing-5;
+    padding: 0;
+    margin: 0;
+    min-height: 12px;
   }
 
   trough {
-    min-height: $spacing-1;
+    min-height: 4px;
     border-radius: $radius-full;
-    background: $track-bg;
+    background: $glass-track;
   }
 
   highlight {
@@ -70,9 +89,9 @@ menubutton.media-pill>button {
   }
 
   slider {
-    min-width: $spacing-3;
-    min-height: $spacing-3;
-    margin: -$spacing-1 0;
+    min-width: 12px;
+    min-height: 12px;
+    margin: -4px 0;
     border-radius: $radius-full;
     border: none;
     box-shadow: none;
@@ -81,27 +100,49 @@ menubutton.media-pill>button {
 }
 
 .media-time {
+  margin-top: $spacing-1;
   font-size: $font-size-sm;
   color: $text-muted;
+  font-feature-settings: "tnum";
 }
 
-.media-controls {
-  margin-top: $spacing-2;
-}
-
+// shuffle 20 · prev 28 · play 48 · next 28 · repeat 20
 button.media-ctl {
   @include interactive($radius-full);
-  min-width: 36px;
-  min-height: 36px;
   padding: 0;
+  color: $text;
 
-  &.main {
-    min-width: 44px;
-    min-height: 44px;
+  &.side {
+    min-width: 32px;
+    min-height: 32px;
+    color: $text-muted;
+
+    .icon {
+      font-size: $font-size-5xl;
+    }
+
+    &.on {
+      color: $primary;
+    }
   }
 
-  &.on {
+  &.skip {
+    min-width: 40px;
+    min-height: 40px;
+
+    .icon {
+      font-size: 28px;
+    }
+  }
+
+  &.main {
     @include on-state;
+    min-width: 48px;
+    min-height: 48px;
+
+    .icon {
+      font-size: 26px;
+    }
   }
 
   &:disabled {
@@ -109,14 +150,12 @@ button.media-ctl {
   }
 }
 
-.players {
-  margin-top: $spacing-3;
-}
-
 button.player-chip {
-  @include tile($radius-full);
-  padding: $spacing-1 $spacing-3;
+  @include glass-tile($radius-full);
+  min-height: 22px;
+  padding: 0 $spacing-3;
   font-size: $font-size-sm;
+  font-weight: 600;
 
   &.on {
     @include on-state;

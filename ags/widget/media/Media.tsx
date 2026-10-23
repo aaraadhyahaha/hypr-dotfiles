@@ -6,8 +6,6 @@ import { Motion, ENTER, MOTION, onShow } from "../common/motion"
 import { fmtTime, pickPlayer } from "./model"
 import Icon from "../common/Icon"
 
-const G = { play: "", pause: "", prev: "", next: "" }
-
 const playing = (p: AstalMpris.Player) =>
   createBinding(p, "playbackStatus").as((s) => s === AstalMpris.PlaybackStatus.PLAYING)
 
@@ -17,13 +15,16 @@ function Card({ player }: { player: AstalMpris.Player }) {
   const canSeek = createBinding(player, "canSeek")
   const seekable = createComputed(() => canSeek() && length() > 0)
   const cover = createBinding(player, "coverArt")
+  const album = createBinding(player, "album")
+  const shuffle = createBinding(player, "shuffleStatus")
+  const loop = createBinding(player, "loopStatus")
 
   return (
-    <box orientation={Gtk.Orientation.VERTICAL}>
-      <box spacing={12}>
-        <box class="cover" valign={Gtk.Align.START} overflow={Gtk.Overflow.HIDDEN}>
+    <box orientation={Gtk.Orientation.VERTICAL} spacing={12}>
+      <box spacing={14}>
+        <box class="cover" valign={Gtk.Align.START} overflow={Gtk.Overflow.HIDDEN} homogeneous>
           <image
-            pixelSize={64}
+            pixelSize={72}
             file={cover.as((c) => c || "")}
             visible={cover.as(Boolean)}
           />
@@ -37,7 +38,7 @@ function Card({ player }: { player: AstalMpris.Player }) {
           <label
             class="media-title"
             xalign={0}
-            maxWidthChars={26}
+            maxWidthChars={24}
             ellipsize={Pango.EllipsizeMode.END}
             label={createBinding(player, "title").as((t) => t || player.identity)}
           />
@@ -47,6 +48,14 @@ function Card({ player }: { player: AstalMpris.Player }) {
             maxWidthChars={26}
             ellipsize={Pango.EllipsizeMode.END}
             label={createBinding(player, "artist").as((a) => a || "")}
+          />
+          <label
+            class="media-album"
+            xalign={0}
+            maxWidthChars={30}
+            ellipsize={Pango.EllipsizeMode.END}
+            visible={album.as(Boolean)}
+            label={album.as((a) => a || "")}
           />
         </box>
       </box>
@@ -76,29 +85,51 @@ function Card({ player }: { player: AstalMpris.Player }) {
         </box>
       </box>
 
-      <box class="media-controls" halign={Gtk.Align.CENTER} spacing={8}>
+      <box class="media-controls" halign={Gtk.Align.CENTER} spacing={28}>
         <button
-          class="media-ctl"
+          class={shuffle.as((s) =>
+            s === AstalMpris.Shuffle.ON ? "media-ctl side on" : "media-ctl side",
+          )}
+          valign={Gtk.Align.CENTER}
+          tooltipText="Shuffle"
+          sensitive={shuffle.as((s) => s !== AstalMpris.Shuffle.UNSUPPORTED)}
+          onClicked={() => player.shuffle()}
+        >
+          <Icon name="shuffle" />
+        </button>
+        <button
+          class="media-ctl skip"
+          valign={Gtk.Align.CENTER}
           sensitive={createBinding(player, "canGoPrevious")}
           onClicked={() => player.previous()}
         >
-          <label class="glyph" label={G.prev} />
+          <Icon name="skip_previous" fill />
+        </button>
+        <button class="media-ctl main" onClicked={() => player.play_pause()}>
+          <Icon name={playing(player).as((p) => (p ? "pause" : "play_arrow"))} fill />
         </button>
         <button
-          class={playing(player).as((p) => (p ? "media-ctl main on" : "media-ctl main"))}
-          onClicked={() => player.play_pause()}
-        >
-          <label class="glyph" label={playing(player).as((p) => (p ? G.pause : G.play))} />
-        </button>
-        <button
-          class="media-ctl"
+          class="media-ctl skip"
+          valign={Gtk.Align.CENTER}
           sensitive={createBinding(player, "canGoNext")}
           onClicked={() => player.next()}
         >
-          <label class="glyph" label={G.next} />
+          <Icon name="skip_next" fill />
+        </button>
+        <button
+          class={loop.as((l) =>
+            l === AstalMpris.Loop.TRACK || l === AstalMpris.Loop.PLAYLIST
+              ? "media-ctl side on"
+              : "media-ctl side",
+          )}
+          valign={Gtk.Align.CENTER}
+          tooltipText="Repeat"
+          sensitive={loop.as((l) => l !== AstalMpris.Loop.UNSUPPORTED)}
+          onClicked={() => player.loop()}
+        >
+          <Icon name={loop.as((l) => (l === AstalMpris.Loop.TRACK ? "repeat_one" : "repeat"))} />
         </button>
       </box>
-
     </box>
   )
 }
@@ -172,15 +203,15 @@ export default function Media() {
         </box>
         <popover class="qs-pop" hasArrow={false} $={(self) => onShow(self, motion, ENTER.popover)}>
           <Motion origin="top" $={(self) => (motion = self)}>
-            <box class="media-card" orientation={Gtk.Orientation.VERTICAL}>
+            <box class="media-card" orientation={Gtk.Orientation.VERTICAL} spacing={12}>
               {/* own box: With re-inserts its child, which would otherwise land after the chips */}
               <box orientation={Gtk.Orientation.VERTICAL}>
                 <With value={current}>{(player) => player && <Card player={player} />}</With>
               </box>
               <box
                 class="players"
-                halign={Gtk.Align.CENTER}
-                spacing={4}
+                halign={Gtk.Align.START}
+                spacing={6}
                 visible={players.as((l) => l.length > 1)}
               >
                 <For each={players}>
