@@ -57,9 +57,25 @@ menubutton.shot-btn>button,
   }
 }
 
+// the date menu and CC pill are the bar's two anchors: they rest on the hover fill,
+// so hover, press and open each step one layer up from it
+menubutton.datemenu>button,
+menubutton.cc-btn>button {
+  background-color: rgba($on-surface, $state-hover);
+
+  &:hover,
+  &:checked {
+    background-color: rgba($on-surface, $state-pressed);
+  }
+
+  &:active {
+    background-color: rgba($on-surface, $state-selected);
+  }
+}
+
 // popup() from the CC keybind doesn't check the button, so the pill also follows .open
 menubutton.cc-btn.open>button {
-  background-color: rgba($on-surface, $state-hover);
+  background-color: rgba($on-surface, $state-pressed);
 }
 
 // …icon-only items are squares with the icon centred
