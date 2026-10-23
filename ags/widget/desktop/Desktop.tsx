@@ -89,7 +89,7 @@ function desktopMenu(parent: Gtk.Widget) {
   pop.add_css_class("dw-menu-pop")
   pop.set_parent(parent)
   const m = new Motion({ origin: "top" })
-  const box = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL })
+  const box = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 2 })
   box.add_css_class("menu")
   m.append(box)
   pop.set_child(m)
@@ -97,9 +97,9 @@ function desktopMenu(parent: Gtk.Widget) {
   const row = (text: string, g: string, fn: () => void) => {
     const b = new Gtk.Button()
     b.add_css_class("menu-item")
-    const inner = new Gtk.Box()
+    const inner = new Gtk.Box({ spacing: 12 })
     const icon = new Gtk.Label({ label: g })
-    icon.add_css_class("glyph")
+    icon.add_css_class("icon")
     inner.append(icon)
     inner.append(new Gtk.Label({ label: text, xalign: 0, hexpand: true }))
     b.set_child(inner)
@@ -109,8 +109,8 @@ function desktopMenu(parent: Gtk.Widget) {
     })
     box.append(b)
   }
-  row("Edit Widgets", "", () => setEditing(true))
-  row("Change Wallpaper", "", () => toggleWallpapers())
+  row("Edit Widgets", "widgets", () => setEditing(true))
+  row("Change Wallpaper", "wallpaper", () => toggleWallpapers())
   return pop
 }
 

@@ -14,8 +14,9 @@ popover>contents {
   box-shadow: none;
 }
 
-// popovers whose child draws its own panel (quick settings, pomodoro)
-popover.qs-pop>contents {
+// popovers whose child draws its own panel (quick settings, pomodoro, desktop menu)
+popover.qs-pop>contents,
+popover.dw-menu-pop>contents {
   background: transparent;
   border: none;
   box-shadow: none;
