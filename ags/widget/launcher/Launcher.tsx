@@ -2,8 +2,6 @@ import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { Motion, ENTER } from "../common/motion"
 import { surfaceTop } from "../common/surface"
-import { readFile } from "ags/file"
-import GLib from "gi://GLib"
 import Pango from "gi://Pango"
 import Apps from "gi://AstalApps"
 import { toggleWallpapers } from "../wallpapers/Wallpapers"
@@ -40,7 +38,6 @@ export default function Launcher() {
     let motion: Motion
     let list: Gtk.Box
     let entry: Gtk.Entry
-    let provider: Gtk.CssProvider | null = null
     let results: Item[] = []
     let scroller: Gtk.ScrolledWindow
     let armed = false
@@ -77,11 +74,13 @@ export default function Launcher() {
         while ((c = list.get_first_child())) list.remove(c)
         rows = []
         results.forEach((a, i) => {
-            const row = new Gtk.Box()
-            row.add_css_class("row")
-            const icon = new Gtk.Image({ iconName: a.iconName ?? "application-x-executable", pixelSize: 32 })
-            icon.add_css_class("icon")
-            const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER })
+            const row = new Gtk.Box({ spacing: 12 })
+            row.add_css_class("lnch-row")
+            // 32px tile holding the app's own icon
+            const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, homogeneous: true })
+            tile.add_css_class("lnch-tile")
+            tile.append(new Gtk.Image({ iconName: a.iconName ?? "application-x-executable", pixelSize: 20 }))
+            const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER, hexpand: true })
             const name = new Gtk.Label({ label: a.name, xalign: 0 })
             name.add_css_class("name")
             text.append(name)
@@ -93,8 +92,11 @@ export default function Launcher() {
                 d.add_css_class("desc")
                 text.append(d)
             }
-            row.append(icon)
+            const hint = new Gtk.Label({ label: "↵", valign: Gtk.Align.CENTER })
+            hint.add_css_class("lnch-hint")
+            row.append(tile)
             row.append(text)
+            row.append(hint)
             const click = new Gtk.GestureClick()
             click.connect("pressed", () => launch(a))
             row.add_controller(click)
@@ -119,22 +121,6 @@ export default function Launcher() {
 
     const open = () => {
         armed = false; lastX = null; lastY = null
-        try {
-            const p = readFile(`${GLib.get_home_dir()}/.cache/last_wall`).trim()
-            const display = Gdk.Display.get_default()!
-            if (provider) Gtk.StyleContext.remove_provider_for_display(display, provider)
-            provider = new Gtk.CssProvider()
-            provider.load_from_string(
-                `.hero-img { background-image: url("file://${p}"); background-size: cover; background-position: center; }`,
-            )
-            Gtk.StyleContext.add_provider_for_display(
-                display,
-                provider,
-                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION + 1,
-            )
-        } catch (e) {
-            console.error("wallpaper error:", e)
-        }
         apps.reload()
         entry.set_text("")
         search("")
@@ -180,25 +166,25 @@ export default function Launcher() {
             application={app}
         >
             <Motion $={(self) => (motion = self)}>
-                <box class="card" orientation={Gtk.Orientation.VERTICAL}>
-                    <overlay class="hero" overflow={Gtk.Overflow.HIDDEN}>
-                        <box class="hero-img" widthRequest={480} heightRequest={110} />
+                <box class="lnch" orientation={Gtk.Orientation.VERTICAL}>
+                    <box class="lnch-search" spacing={10}>
+                        <label class="icon lnch-search-icon" label="search" />
                         <entry
-                            $type="overlay"
                             $={(self) => (entry = self)}
-                            placeholderText="Search..."
-                            valign={Gtk.Align.CENTER}
+                            hexpand
+                            placeholderText="Search apps"
                             onNotifyText={(self) => search(self.text)}
                             onActivate={() => launch(results[sel])}
                         />
-                    </overlay>
+                        <label class="lnch-key" label="Super" />
+                    </box>
                     <scrolledwindow
                         $={(self) => (scroller = self)}
                         propagateNaturalHeight
                         maxContentHeight={380}
                         hscrollbarPolicy={Gtk.PolicyType.NEVER}
                     >
-                        <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
+                        <box $={(self) => (list = self)} class="lnch-list" orientation={Gtk.Orientation.VERTICAL} />
                     </scrolledwindow>
                 </box>
             </Motion>

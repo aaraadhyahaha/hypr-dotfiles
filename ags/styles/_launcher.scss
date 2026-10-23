@@ -6,23 +6,10 @@ window.Launcher {
   background: transparent;
 }
 
-// shared by launcher, files and clipboard
+// shared by files and clipboard
 .card {
   @include panel($spacing-2);
   min-width: 480px;
-}
-
-.hero {
-  border-radius: $radius-sm;
-  min-height: 110px;
-}
-
-.hero entry {
-  @include field;
-  margin: 0 $spacing-4;
-  min-height: 38px;
-  padding: 0 $spacing-3;
-  font-size: $font-size-2xl;
 }
 
 .list {
@@ -56,4 +43,91 @@ window.Launcher {
     font-size: $font-size-base;
     color: $text-muted;
   }
+}
+
+// launcher: 520px, padding 8 · 46px search field · rows with a 32px icon tile
+.lnch {
+  @include glass-panel($spacing-2);
+  min-width: 520px - 2 * $spacing-2 - 2px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a layer's shadow room would blur into a halo
+  box-shadow: none;
+
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+}
+
+.lnch-search {
+  @include glass-field;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: $radius-md;
+
+  .lnch-search-icon {
+    font-size: $font-size-5xl;
+    color: $text-muted;
+  }
+
+  // the box is the field; the entry inside is bare
+  entry {
+    min-height: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    outline: none;
+    background: none;
+    font-size: $font-size-2xl;
+  }
+}
+
+.lnch-key,
+.lnch-hint {
+  font-family: $font-mono;
+  font-size: $font-size-sm;
+  color: $text-faint;
+}
+
+.lnch-list {
+  margin-top: $spacing-2;
+}
+
+.lnch-row {
+  padding: $spacing-2 $spacing-3;
+  margin-bottom: $spacing-1;
+  border-radius: $radius-md;
+  transition: $transition;
+
+  .name {
+    font-size: $font-size-xl;
+    font-weight: 700;
+  }
+
+  .desc {
+    font-size: $font-size-base;
+    opacity: 0.75;
+  }
+
+  .lnch-hint {
+    opacity: 0;
+  }
+
+  &.sel {
+    background-color: $secondary-container;
+    color: $on-secondary-container;
+
+    .lnch-hint {
+      opacity: 1;
+      color: $on-secondary-container;
+    }
+  }
+}
+
+.lnch-tile {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 9px;
+  border: 1px solid $glass-hairline;
+  background-color: $glass-card;
 }
