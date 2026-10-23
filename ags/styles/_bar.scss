@@ -142,11 +142,12 @@ button.ws-btn {
   }
 
   // scratchpad: a ring, not a dot
+  // GTK's min-size is the content box: 5 + 2×1.5 = an 8px ring, the same size as a pip
   .pip.special {
-    min-width: 6px;
-    min-height: 6px;
+    min-width: 5px;
+    min-height: 5px;
     background-color: transparent;
-    border: 1px solid $primary;
+    border: 1.5px solid $primary;
   }
 }
 
@@ -192,8 +193,12 @@ menubutton.battery.low>button {
   color: $error;
 }
 
-// date menu: clock + bell share one button
+// bar separators: a 14px hairline centred on the item row, 8px either side
+// (scoped by parent so the panels' full-width dividers inside popovers keep their own shape)
+.body>box>.sep,
+.tray>.sep,
 .datemenu .sep {
+  min-height: 14px;
   margin: 0 $spacing-2;
 }
 

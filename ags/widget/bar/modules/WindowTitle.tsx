@@ -1,4 +1,4 @@
-import { createBinding, With } from "ags"
+import { createBinding, createComputed, With } from "ags"
 import Pango from "gi://Pango?version=1.0"
 import AstalHyprland from "gi://AstalHyprland"
 
@@ -9,18 +9,23 @@ export default function WindowTitle() {
   return (
     <box>
       <With value={focused}>
-        {(client) =>
-          client && (
+        {(client) => {
+          if (!client) return
+          const cls = createBinding(client, "class")
+          const title = createBinding(client, "title")
+          return (
             <box class="wintitle">
               <label
-                maxWidthChars={36}
+                maxWidthChars={48}
                 ellipsize={Pango.EllipsizeMode.END}
-                // title goes null while a closing client is torn down
-                label={createBinding(client, "title").as((t) => t ?? "")}
+                // "kitty — ~/.config/ags"; title goes null while a closing client is torn down
+                label={createComputed(() =>
+                  [cls(), title()].filter(Boolean).join(" — "),
+                )}
               />
             </box>
           )
-        }
+        }}
       </With>
     </box>
   )

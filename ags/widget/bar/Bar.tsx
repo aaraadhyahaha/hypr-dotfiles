@@ -33,7 +33,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
       application={app}
     >
       <centerbox class="body">
-        <box $type="start">
+        <box $type="start" spacing={2}>
           <button class="edge" onClicked={() => toggleLauncher()}>
             <Icon name="apps" fill class="lg" />
           </button>
