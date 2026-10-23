@@ -94,6 +94,8 @@ menubutton.shot-btn>button,
 
 .wintitle {
   color: $text-muted;
+  // GTK's theme resets .body to 400; match the cpu / ram readout
+  font-weight: 600;
   // a new focused window cross-fades its title in; no travel, so text never shimmers
   animation: title-in $dur $ease both;
 }
