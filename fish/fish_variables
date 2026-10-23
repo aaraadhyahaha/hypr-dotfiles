@@ -1,5 +1,7 @@
 # This file contains fish universal variable definitions.
 # VERSION: 3.0
+SETUVAR --export ANDROID_HOME:/home/aaraadhya/Android/Sdk
+SETUVAR --export JAVA_HOME:/usr/lib/jvm/java\x2d17\x2dopenjdk
 SETUVAR fish_color_autosuggestion:90909a
 SETUVAR fish_color_command:bcc2ff
 SETUVAR fish_color_comment:90909a
@@ -10,4 +12,4 @@ SETUVAR fish_color_operator:c4c5dd
 SETUVAR fish_color_param:e4e1e9
 SETUVAR fish_color_quote:e6bad6
 SETUVAR fish_pager_color_selection_background:46464f
-SETUVAR fish_user_paths:/home/aaraadhya/\x2elocal/bin\x1e/home/aaraadhya/\x2epi/agent/bin
+SETUVAR fish_user_paths:/home/aaraadhya/Android/Sdk/platform\x2dtools\x1e/home/aaraadhya/Android/Sdk/emulator\x1e/home/aaraadhya/Android/Sdk/cmdline\x2dtools/latest/bin\x1e/home/aaraadhya/development/flutter/bin\x1e/home/aaraadhya/\x2elocal/bin\x1e/home/aaraadhya/\x2epi/agent/bin
