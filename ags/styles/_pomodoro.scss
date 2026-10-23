@@ -3,10 +3,25 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
+// pomodoro popover (PomodoroPill.tsx): 332px, column gap 12
 .pomo-card {
-  min-width: 300px;
+  @include glass-panel($spacing-4);
+  min-width: 332px - 2 * $spacing-4 - 2px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
 
-  // phase color drives the rings (DrawingArea uses currentColor)
+  // SF Pro's line box is taller than the mock's; pin it like the CC panels
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+
+  button {
+    font-weight: normal;
+  }
+
+  // phase color drives the rings and heatmap (DrawingArea uses currentColor)
   &.focus {
     color: $primary;
   }
@@ -21,6 +36,11 @@
     font-weight: 600;
   }
 
+  .pomo-session {
+    color: $text-faint;
+    font-size: $font-size-base;
+  }
+
   .pomo-big {
     color: $text;
     font-size: $font-size-pomo;
@@ -29,44 +49,58 @@
   }
 
   button.pomo-ctl {
-    @include tile($radius-full);
+    @include glass-tile($radius-full);
     min-width: 38px;
     min-height: 38px;
     padding: 0;
     color: $text;
 
+    .icon {
+      font-size: $font-size-4xl;
+    }
+
     &.main {
       @include on-state;
       min-width: 52px;
       min-height: 52px;
-      font-size: $font-size-3xl;
+
+      .icon {
+        font-size: 26px;
+      }
     }
   }
 
   &.short button.pomo-ctl.main,
   &.long button.pomo-ctl.main {
     background-color: $tertiary;
-    color: $on-tertiary;
 
     &:hover {
       background-color: color.mix($on-tertiary, $tertiary, $state-hover * 100%);
     }
+
+    &:active {
+      background-color: color.mix($on-tertiary, $tertiary, $state-pressed * 100%);
+    }
+
+    label {
+      color: $on-tertiary;
+    }
   }
 
   entry.pomo-task {
-    @include field;
-    padding: $spacing-2 $spacing-3;
-    min-height: 0;
+    @include glass-field;
+    color: $text;
+    min-height: 30px;
+    padding: 0 $spacing-3;
   }
 
   .pomo-goal-label,
   .pomo-step-label {
     color: $text-muted;
-    font-size: $font-size-base;
   }
 
   progressbar.pomo-goal {
-    @include track(6px);
+    @include glass-track(6px);
   }
 
   &.short progressbar.pomo-goal progress,
@@ -75,17 +109,21 @@
   }
 
   .pomo-step-val {
+    min-width: 20px;
     color: $text;
-    font-size: $font-size-base;
     font-feature-settings: "tnum";
   }
 
   button.pomo-step-btn {
-    @include tile($radius-full);
+    @include glass-tile($radius-full);
     min-width: 22px;
     min-height: 22px;
     padding: 0;
     color: $text;
+
+    .icon {
+      font-size: $font-size-xl;
+    }
   }
 
   .pomo-heat {
@@ -95,6 +133,10 @@
   .pomo-streak {
     color: $text-faint;
     transition: $transition;
+
+    .pomo-streak-icon {
+      font-size: $font-size-xl;
+    }
 
     &.lit {
       color: $text;
@@ -110,7 +152,6 @@
     }
 
     .pomo-streak-unit {
-      font-size: $font-size-base;
       color: $text-muted;
     }
   }

@@ -4,6 +4,8 @@ import cairo from "cairo"
 import type CairoGi from "gi://cairo"
 import { pomodoro, dayKey } from "../../service/pomodoro"
 import { roundRect } from "../desktop/widgets/draw"
+import Icon from "../common/Icon"
+import { HEAT_COLS as WEEKS, HEAT_ROWS, HEAT_GAP as GAP, heatAlpha, heatCell } from "./model"
 
 const [streak, setStreak] = createState(pomodoro.streak)
 pomodoro.subscribe(() => setStreak(pomodoro.streak))
@@ -15,17 +17,15 @@ export function Streak() {
       spacing={5}
       valign={Gtk.Align.CENTER}
     >
-      <label class="pomo-streak-icon" label={"\uf06d"} />
+      <Icon name="local_fire_department" fill class="pomo-streak-icon" />
       <label class="pomo-streak-val" label={streak.as((n) => String(n))} />
       <label class="pomo-streak-unit" label={streak.as((n) => (n === 1 ? "day" : "days"))} />
     </box>
   )
 }
 
-const WEEKS = 15
-const CELL = 13
-const GAP = 3
-const PITCH = CELL + GAP
+// content width of the 332px panel (padding 16, hairline 1); cells stretch to the real width
+const WIDTH = 298
 const ANIM_MS = 900
 
 const startOfToday = (): Date => {
@@ -46,15 +46,17 @@ export function Heatmap() {
   return (
     <Gtk.DrawingArea
       class="pomo-heat"
-      contentWidth={WEEKS * PITCH - GAP}
-      contentHeight={7 * PITCH - GAP}
-      halign={Gtk.Align.CENTER}
+      contentWidth={WIDTH}
+      contentHeight={Math.round(HEAT_ROWS * heatCell(WIDTH) + (HEAT_ROWS - 1) * GAP)}
+      hexpand
       $={(self: Gtk.DrawingArea) => {
         let t0 = 0
         let p = 1
 
-        self.set_draw_func((area, ctx: CairoGi.Context, _w, _h) => {
+        self.set_draw_func((area, ctx: CairoGi.Context, w, _h) => {
           const cr = ctx as unknown as cairo.Context
+          const cell = heatCell(w)
+          const pitch = cell + GAP
           const c = area.get_color()
           const goal = Math.max(1, pomodoro.settings.goal)
           const today = startOfToday()
@@ -65,25 +67,25 @@ export function Heatmap() {
             if (local <= 0) continue
             const k = easeOut(local)
 
-            for (let row = 0; row < 7; row++) {
+            for (let row = 0; row < HEAT_ROWS; row++) {
               const d = cellDate(col, row, today)
               if (d.getTime() > today.getTime()) continue
 
               const key = dayKey(d)
               const n = pomodoro.days[key]?.sessions ?? 0
-              const size = CELL * (0.4 + 0.6 * k)
-              const x = col * PITCH + (CELL - size) / 2
-              const y = row * PITCH + (CELL - size) / 2
-              const alpha = (n === 0 ? 0.1 : 0.3 + 0.7 * Math.min(1, n / goal)) * k
+              const size = cell * (0.4 + 0.6 * k)
+              const x = col * pitch + (cell - size) / 2
+              const y = row * pitch + (cell - size) / 2
 
-              roundRect(cr, x, y, size, size, 3.5)
-              cr.setSourceRGBA(c.red, c.green, c.blue, alpha)
+              roundRect(cr, x, y, size, size, 3)
+              cr.setSourceRGBA(c.red, c.green, c.blue, heatAlpha(n, goal) * k)
               cr.fill()
 
+              // today: a ring, so the current cell reads even before the first session
               if (key === todayKey) {
-                roundRect(cr, x, y, size, size, 3.5)
-                cr.setLineWidth(1.2)
-                cr.setSourceRGBA(c.red, c.green, c.blue, 0.9 * k)
+                roundRect(cr, x + 0.5, y + 0.5, size - 1, size - 1, 2.5)
+                cr.setLineWidth(1)
+                cr.setSourceRGBA(c.red, c.green, c.blue, 0.6 * k)
                 cr.stroke()
               }
             }
@@ -108,10 +110,12 @@ export function Heatmap() {
 
         self.set_has_tooltip(true)
         self.connect("query-tooltip", (_w, x, y, _kb, tip) => {
-          const col = Math.floor(x / PITCH)
-          const row = Math.floor(y / PITCH)
-          if (col < 0 || col >= WEEKS || row < 0 || row >= 7) return false
-          if (x - col * PITCH > CELL || y - row * PITCH > CELL) return false
+          const cell = heatCell(self.get_width())
+          const pitch = cell + GAP
+          const col = Math.floor(x / pitch)
+          const row = Math.floor(y / pitch)
+          if (col < 0 || col >= WEEKS || row < 0 || row >= HEAT_ROWS) return false
+          if (x - col * pitch > cell || y - row * pitch > cell) return false
 
           const today = startOfToday()
           const d = cellDate(col, row, today)

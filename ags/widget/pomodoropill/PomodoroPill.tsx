@@ -5,6 +5,8 @@ import cairo from "cairo"
 import type CairoGi from "gi://cairo"
 import { pomodoro, type PomodoroState, type Settings } from "../../service/pomodoro"
 import { Heatmap, Streak } from "./PomodoroStats"
+import Icon from "../common/Icon"
+import { sessionOf } from "./model"
 
 const [state, setState] = createState<PomodoroState>({ ...pomodoro.state })
 pomodoro.subscribe(() => setState({ ...pomodoro.state }))
@@ -16,8 +18,6 @@ const fmt = (sec: number): string => {
 }
 
 const PHASE_NAME = { focus: "Focus", short: "Short break", long: "Long break" } as const
-
-const ICON = { play: "\uf04b", pause: "\uf04c", skip: "\uf051", reset: "\uf0e2" }
 
 const ring =
   (lineWidth: number) =>
@@ -83,9 +83,13 @@ function Stepper({
   return (
     <box class="pomo-step" hexpand spacing={4}>
       <label class="pomo-step-label" label={label} xalign={0} hexpand />
-      <button class="pomo-step-btn" label="−" onClicked={() => step(-1)} />
-      <label class="pomo-step-val" label={value.as((v) => String(v))} widthChars={2} />
-      <button class="pomo-step-btn" label="+" onClicked={() => step(1)} />
+      <button class="pomo-step-btn" onClicked={() => step(-1)}>
+        <Icon name="remove" />
+      </button>
+      <label class="pomo-step-val" label={value.as((v) => String(v))} />
+      <button class="pomo-step-btn" onClicked={() => step(1)}>
+        <Icon name="add" />
+      </button>
     </box>
   )
 }
@@ -120,15 +124,25 @@ export default function PomodoroPill() {
       >
         <Motion origin="top" $={(self) => (motion = self)}>
           <box
-            class={state.as((s) => `qs pomo-card ${s.phase}`)}
+            class={state.as((s) => `pomo-card ${s.phase}`)}
             orientation={Gtk.Orientation.VERTICAL}
             spacing={12}
           >
-            <label
-              class="pomo-phase"
-              xalign={0}
-              label={state.as((s) => PHASE_NAME[s.phase])}
-            />
+            <box>
+              <label
+                class="pomo-phase"
+                xalign={0}
+                hexpand
+                label={state.as((s) => PHASE_NAME[s.phase])}
+              />
+              <label
+                class="pomo-session"
+                label={state.as(
+                  (s) =>
+                    `Session ${sessionOf(s.phase, s.cycle, pomodoro.settings.longEvery)} of ${pomodoro.settings.longEvery}`,
+                )}
+              />
+            </box>
 
             <overlay halign={Gtk.Align.CENTER}>
               <Ring size={150} line={7} tick={true} />
@@ -144,21 +158,21 @@ export default function PomodoroPill() {
             <box class="pomo-controls" halign={Gtk.Align.CENTER} spacing={10}>
               <button
                 class="pomo-ctl"
-                label={ICON.reset}
+                valign={Gtk.Align.CENTER}
                 tooltipText="Reset"
-                onClicked={() => pomodoro.reset()}
-              />
-              <button
-                class="pomo-ctl main"
-                label={state.as((s) => (s.running ? ICON.pause : ICON.play))}
-                onClicked={() => pomodoro.toggle()}
-              />
+                onClicked={() => pomodoro.reset()}>
+                <Icon name="replay" />
+              </button>
+              <button class="pomo-ctl main" onClicked={() => pomodoro.toggle()}>
+                <Icon name={state.as((s) => (s.running ? "pause" : "play_arrow"))} fill />
+              </button>
               <button
                 class="pomo-ctl"
-                label={ICON.skip}
+                valign={Gtk.Align.CENTER}
                 tooltipText="Skip"
-                onClicked={() => pomodoro.skip()}
-              />
+                onClicked={() => pomodoro.skip()}>
+                <Icon name="skip_next" fill />
+              </button>
             </box>
 
             <Gtk.Entry
@@ -191,13 +205,15 @@ export default function PomodoroPill() {
               <Heatmap />
             </box>
 
-            <box spacing={12}>
-              <Stepper label="Focus" field="focus" min={1} max={120} />
-              <Stepper label="Short" field="short" min={1} max={60} />
-            </box>
-            <box spacing={12}>
-              <Stepper label="Long" field="long" min={1} max={60} />
-              <Stepper label="Goal" field="goal" min={1} max={24} />
+            <box orientation={Gtk.Orientation.VERTICAL} spacing={8}>
+              <box spacing={12} homogeneous>
+                <Stepper label="Focus" field="focus" min={1} max={120} />
+                <Stepper label="Short" field="short" min={1} max={60} />
+              </box>
+              <box spacing={12} homogeneous>
+                <Stepper label="Long" field="long" min={1} max={60} />
+                <Stepper label="Goal" field="goal" min={1} max={24} />
+              </box>
             </box>
           </box>
         </Motion>
