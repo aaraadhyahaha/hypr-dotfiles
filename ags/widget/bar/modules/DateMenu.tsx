@@ -1,11 +1,11 @@
 import { Gtk } from "ags/gtk4"
 import { createBinding, createState, For } from "ags"
 import { interval } from "ags/time"
-import GLib from "gi://GLib"
 import AstalNotifd from "gi://AstalNotifd"
 import { Motion, ENTER, onShow } from "../../common/motion"
 import Sep from "../common/Sep"
 import Clock from "./Clock"
+import DateCalendar from "./DateCalendar"
 import Icon from "../../common/Icon"
 import NotifRow from "../../notifications/NotifRow"
 import { groupByApp, relTime } from "../../notifications/model"
@@ -14,7 +14,6 @@ let toggleFn = () => {}
 export const toggleDateMenu = () => toggleFn()
 
 const nowSec = () => Math.floor(Date.now() / 1000)
-const today = () => GLib.DateTime.new_now_local()
 
 // Clock and bell in one bar item; the popover pairs grouped notifications with a calendar.
 export default function DateMenu() {
@@ -23,8 +22,7 @@ export default function DateMenu() {
   const dnd = createBinding(notifd, "dontDisturb")
   const groups = list.as((l) => groupByApp(l))
   const [now, setNow] = createState(nowSec())
-  const [heading, setHeading] = createState("")
-  let calendar: Gtk.Calendar
+  let calendar: { reset: () => void }
   let motion: Motion
   let ticker: { cancel: () => void } | null = null
 
@@ -35,8 +33,7 @@ export default function DateMenu() {
     // ages only tick while someone can see them
     setNow(nowSec())
     ticker = interval(30_000, () => setNow(nowSec()))
-    setHeading(today().format("%A, %d %B %Y") ?? "")
-    calendar.select_day(today())
+    calendar.reset()
   }
 
   return (
@@ -63,15 +60,22 @@ export default function DateMenu() {
       <popover class="qs-pop" hasArrow={false} $={(self) => onShow(self, motion, ENTER.popover)}>
         <Motion origin="top" $={(self) => (motion = self)}>
           <box class="datemenu-panel" spacing={16}>
-            <box class="notif-list" orientation={Gtk.Orientation.VERTICAL}>
-              <box class="notif-head">
-                <label class="qs-title" hexpand xalign={0} label="Notifications" />
+            <box class="notif-list" orientation={Gtk.Orientation.VERTICAL} spacing={8}>
+              <box class="notif-head" spacing={8}>
+                <label class="notif-title" hexpand xalign={0} label="Notifications" />
                 <button
                   class={dnd.as((d) => (d ? "dnd on" : "dnd"))}
                   tooltipText="Do not disturb"
                   onClicked={() => (notifd.dontDisturb = !notifd.dontDisturb)}
                 >
                   <Icon name="do_not_disturb_on" />
+                </button>
+                <button
+                  class="clear"
+                  sensitive={list.as((l) => l.length > 0)}
+                  onClicked={() => list.get().forEach((n) => n.dismiss())}
+                >
+                  <label label="Clear" />
                 </button>
               </box>
               <label
@@ -86,11 +90,11 @@ export default function DateMenu() {
                 hscrollbarPolicy={Gtk.PolicyType.NEVER}
                 visible={list.as((l) => l.length > 0)}
               >
-                <box orientation={Gtk.Orientation.VERTICAL}>
+                <box orientation={Gtk.Orientation.VERTICAL} spacing={8}>
                   <For each={groups}>
                     {(g) => (
-                      <box class="notif-group" orientation={Gtk.Orientation.VERTICAL}>
-                        <box class="group-head">
+                      <box class="notif-group" orientation={Gtk.Orientation.VERTICAL} spacing={4}>
+                        <box class="group-head" spacing={8}>
                           <label class="group-app" xalign={0} label={g.app} />
                           <label
                             class="group-time"
@@ -114,24 +118,9 @@ export default function DateMenu() {
                   </For>
                 </box>
               </scrolledwindow>
-              <button
-                class="clear"
-                halign={Gtk.Align.END}
-                visible={list.as((l) => l.length > 0)}
-                onClicked={() => list.get().forEach((n) => n.dismiss())}
-              >
-                <label label="Clear all" />
-              </button>
             </box>
-            <box class="cal-col" orientation={Gtk.Orientation.VERTICAL}>
-              <label class="cal-heading" xalign={0} label={heading} />
-              <Gtk.Calendar
-                $={(self) => (calendar = self)}
-                showHeading
-                showDayNames
-                showWeekNumbers={false}
-              />
-            </box>
+            <box class="datemenu-sep" />
+            <DateCalendar onReady={(api) => (calendar = api)} />
           </box>
         </Motion>
       </popover>

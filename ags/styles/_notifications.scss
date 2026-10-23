@@ -2,48 +2,48 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
-// notifications
-.notif-list,
-.notif-list scrolledwindow,
-.notif-list viewport {
-  background: transparent;
-}
-
-.notif-list {
-  min-width: 320px;
-}
-
-.empty {
-  color: $text-faint;
-  padding: $spacing-3;
-}
-
+// notification row (NotifRow.tsx): shared by the date menu and toasts
 .notif {
   @include notif-text;
-  padding: $spacing-2 $spacing-3;
-  margin-bottom: $spacing-2;
+  padding: 10px $spacing-3;
   border-radius: $radius-md;
-  background-color: $card-bg;
+  background-color: $glass-card;
+
+  .notif-body {
+    line-height: 1.4;
+  }
+}
+
+// 32px icon tile: an image fills it, a themed icon or symbol sits on the secondary container
+.notif-tile {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: $radius-sm;
+  background-color: $secondary-container;
+  color: $on-secondary-container;
+
+  .icon {
+    font-size: $font-size-4xl;
+  }
+
+  .notif-app-icon {
+    -gtk-icon-size: 18px;
+  }
+
+  .notif-image {
+    -gtk-icon-size: 32px;
+    border-radius: $radius-sm;
+  }
 }
 
 .notif button.x {
   @include interactive($radius-full);
-  padding: $spacing-1;
+  padding: 2px;
   color: $text-muted;
-}
 
-button.clear {
-  @include interactive($radius-sm);
-  padding: $spacing-1 $spacing-3;
-  color: $primary;
-  font-weight: 600;
-}
-
-.notif-icon {
-  -gtk-icon-size: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  border-radius: $radius-sm;
+  .icon {
+    font-size: $font-size-3xl;
+  }
 }
 
 // critical: an error edge, so it reads as different at a glance
@@ -55,24 +55,75 @@ button.clear {
   margin-top: $spacing-2;
 
   button {
-    @include tile($radius-sm);
+    @include glass-tile($radius-sm);
     padding: $spacing-1 $spacing-3;
+    font-size: $font-size-base;
     font-weight: 600;
   }
 }
 
-// date menu panel: notifications | calendar
+// date menu (DateMenu.tsx): 330px notifications | 1px separator | 270px calendar
 .datemenu-panel {
-  @include panel($spacing-4);
+  @include glass-panel($spacing-4);
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
+
+  // SF Pro's line box is taller than the mock's; pin it like the CC panels
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+
+  .notif-body {
+    line-height: 1.4em;
+  }
+
+  button {
+    font-weight: normal;
+  }
+}
+
+.datemenu-sep {
+  min-width: 1px;
+  background-color: $separator;
+}
+
+.notif-list {
+  min-width: 330px;
+
+  scrolledwindow,
+  viewport {
+    background: transparent;
+  }
+
+  // inside a group the app sits in the header; a row's dismiss button only shows on hover
+  // it shares a line with the summary: keep it from making that line taller than the text
+  .notif button.x {
+    opacity: 0;
+    padding: 0;
+    margin: -2px 0 -6px;
+  }
+
+  .notif:hover button.x {
+    opacity: 1;
+  }
 }
 
 .notif-head {
-  margin-bottom: $spacing-2;
+  margin-bottom: 2px;
+}
+
+.notif-title {
+  font-size: $font-size-2xl;
+  font-weight: 700;
 }
 
 button.dnd {
   @include interactive($radius-full);
-  padding: $spacing-1;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
   color: $text-muted;
 
   .icon {
@@ -84,79 +135,104 @@ button.dnd {
   }
 }
 
-.notif-group {
-  margin-bottom: $spacing-2;
+button.clear {
+  @include interactive($radius-sm);
+  padding: $spacing-1 $spacing-3;
+  color: $primary;
+
+  label {
+    font-weight: 600;
+  }
+
+  &:disabled {
+    color: $text-faint;
+  }
+}
+
+.notif-list .empty {
+  color: $text-faint;
+  padding: $spacing-3;
 }
 
 .group-head {
-  padding: 0 $spacing-1 $spacing-1 $spacing-1;
+  padding: 0 $spacing-1;
 
   .group-app {
-    font-weight: 600;
     font-size: $font-size-base;
+    font-weight: 600;
   }
 
   .group-time {
-    margin-left: $spacing-2;
     font-size: $font-size-sm;
     color: $text-faint;
   }
 
   button.x {
     @include interactive($radius-full);
-    padding: $spacing-1;
+    padding: 0;
     color: $text-muted;
+
+    .icon {
+      font-size: $font-size-3xl;
+    }
   }
 }
 
+// calendar (DateCalendar.tsx): days are 30px circles in 34px rows, Monday first
 .cal-col {
-  min-width: 260px;
+  min-width: 270px;
 }
 
-.cal-heading {
-  font-size: $font-size-2xl;
+.cal-head,
+.cal-month {
+  padding: 0 $spacing-1;
+}
+
+.cal-weekday {
+  font-size: $font-size-base;
+  font-weight: 500;
+  color: $text-muted;
+}
+
+.cal-date {
+  font-size: $font-size-date;
   font-weight: 700;
-  margin: 0 0 $spacing-3 $spacing-1;
 }
 
-calendar {
-  background: transparent;
-  border: none;
-  color: $text;
+.cal-title {
+  font-weight: 600;
+}
 
-  >header {
-    border: none;
-    background: transparent;
+button.cal-nav {
+  @include interactive($radius-full);
+  padding: $spacing-1;
+  color: $text-muted;
 
-    button {
-      @include interactive($radius-sm);
-      color: $text-muted;
-    }
+  .icon {
+    font-size: $font-size-4xl;
+  }
+}
 
-    label {
-      font-weight: 600;
-    }
+.cal-dayname {
+  font-size: $font-size-sm;
+  color: $text-muted;
+  padding: $spacing-1 0;
+}
+
+.cal-day {
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: $radius-full;
+  font-size: $font-size-base;
+  font-weight: 500;
+
+  &.other {
+    color: $text-faint;
   }
 
-  >grid {
-    >label.day-name {
-      color: $text-muted;
-      font-size: $font-size-sm;
-    }
-
-    >label.day-number {
-      padding: $spacing-1;
-      border-radius: $radius-full;
-      min-width: 24px;
-      min-height: 24px;
-
-      &.other-month {
-        color: $text-faint;
-      }
-
-      &:selected {
-        @include on-state;
-      }
-    }
+  &.today {
+    background-color: $on-bg;
+    color: $on-fg;
+    font-weight: 700;
   }
 }
