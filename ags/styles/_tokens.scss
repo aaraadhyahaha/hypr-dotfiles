@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "../colors" as *;
 
 // fonts
@@ -56,10 +57,29 @@ $state-pressed: 0.12;
 $state-selected: 0.16;
 
 // semantic surfaces
-$bar-bg: $bar;
+$bar-bg: rgba($surface, 0.5);
 $panel-bg: rgba($surface-container, 0.82);
 $card-bg: $surface-container-high;
 $track-bg: $surface-container-highest;
+
+// frosted glass — the shell's translucent surfaces (the blur itself is Hyprland's layer rules).
+// $panel-bg / $card-bg / $track-bg stay as they are for widget/desktop; the shell uses these.
+// colors.scss doesn't expose the matugen mode, so read it off the surface lightness.
+$is-dark: color.channel($surface, "lightness", $space: hsl) < 50%;
+$glass-panel: rgba($surface-container, 0.62);
+$glass-card: rgba(#fff, 0.55);
+$glass-track: rgba($on-surface, 0.1);
+$glass-field: rgba($surface, 0.45);
+$glass-hairline: rgba(#fff, 0.65);
+$separator: rgba($on-surface-variant, 0.22);
+$panel-shadow: 0 16px 48px rgba($shadow, 0.28);
+@if $is-dark {
+  $glass-card: rgba($on-surface, 0.075);
+  $glass-track: rgba($on-surface, 0.14);
+  $glass-hairline: rgba(#fff, 0.1);
+  $panel-shadow: 0 16px 48px rgba($shadow, 0.4);
+}
+
 // desktop edit mode: dims (and, through Hyprland's blur, softens) everything behind
 $edit-scrim: rgba($scrim, 0.35);
 

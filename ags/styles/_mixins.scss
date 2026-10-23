@@ -76,6 +76,44 @@ $transition: color $dur-fast $ease, background-color $dur-fast $ease, border-col
   padding: $pad;
 }
 
+// the frosted counterparts of panel / tile / track / field, for the shell (desktop keeps the solid ones)
+@mixin glass-panel($pad: $spacing-3) {
+  background: $glass-panel;
+  color: $text;
+  border: 1px solid $glass-hairline;
+  border-radius: $radius-lg;
+  padding: $pad;
+  box-shadow: $panel-shadow;
+}
+
+@mixin glass-tile($r: $radius-lg) {
+  @include flat-button;
+  border-radius: $r;
+  background-color: $glass-card;
+  transition: $transition;
+
+  &:hover {
+    background-color: color.mix($on-surface, $glass-card, $state-hover * 100%);
+  }
+
+  &:active {
+    background-color: color.mix($on-surface, $glass-card, $state-pressed * 100%);
+  }
+}
+
+@mixin glass-track($h: 6px) {
+  @include track($h);
+
+  trough {
+    background-color: $glass-track;
+  }
+}
+
+@mixin glass-field {
+  @include field;
+  background: $glass-field;
+}
+
 // shared notification text (popover list + toasts)
 @mixin notif-text {
   .app {
