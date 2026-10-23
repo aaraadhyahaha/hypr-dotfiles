@@ -6,7 +6,7 @@ import { cpuSample, cpuUsage, memUsage, memUsedGb, tempFraction } from "./system
 // Shared 0..1 readings for Quick Settings and the desktop System widget. Polls only run while
 // something subscribes, and read /proc and /sys in-process instead of spawning a command.
 
-const read = (path: string) => {
+export const read = (path: string) => {
   try {
     const [ok, bytes] = GLib.file_get_contents(path)
     return ok ? new TextDecoder().decode(bytes) : ""
@@ -38,7 +38,7 @@ export const disk = createPoll(0, 30000, () => {
   }
 })
 
-const zones = (() => {
+export const zones = (() => {
   const out: string[] = []
   try {
     const d = GLib.Dir.open("/sys/class/thermal", 0)

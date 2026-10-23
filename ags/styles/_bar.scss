@@ -44,6 +44,7 @@ menubutton.pomo>button,
 menubutton.cc-btn>button,
 menubutton.power>button,
 menubutton.battery>button,
+menubutton.sysmini>button,
 .tray menubutton>button {
   @include interactive($radius-sm);
   padding: 0 $spacing-2;
@@ -144,8 +145,8 @@ button.ws-btn {
 }
 
 // cpu / ram readout
-.sysmini {
-  padding: 0 $spacing-2;
+// (on the button: a popover is the menubutton's CSS child and would inherit it)
+menubutton.sysmini>button {
   font-size: $font-size-base;
   color: $text-muted;
 }
@@ -169,7 +170,7 @@ button.recording {
   }
 }
 
-.battery.low {
+menubutton.battery.low>button {
   color: $error;
 }
 

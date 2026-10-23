@@ -301,3 +301,74 @@ button.batt-seg {
   font-size: $font-size-base;
   color: $text-muted;
 }
+
+// system stats popover (bar/modules/SysPanel.tsx): 320px, column gap 10
+.sys {
+  @include glass-panel($spacing-4);
+  min-width: 320px - 2 * $spacing-4 - 2px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
+
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+}
+
+.sys-card {
+  padding: $spacing-3;
+  border-radius: $radius-md;
+  background-color: $glass-card;
+}
+
+.sys-cpu {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $text-muted;
+}
+
+.sys-cpu-val {
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+.sys-bar {
+  border-radius: 2px;
+  background-color: rgba($primary, 0.85);
+}
+
+.sys-icon {
+  color: $text-muted;
+}
+
+.sys-name {
+  font-weight: 600;
+}
+
+.sys-val {
+  font-size: $font-size-base;
+  color: $text-muted;
+  font-feature-settings: "tnum";
+}
+
+progressbar.sys-track {
+  @include glass-track(6px);
+
+  &.temp progress {
+    background-color: $tertiary;
+  }
+
+  &.disk.danger progress {
+    background-color: $error;
+  }
+}
+
+.sys-procs {
+  margin: $spacing-1 $spacing-1 0;
+}
+
+.sys-num {
+  color: $text-muted;
+  font-feature-settings: "tnum";
+}
