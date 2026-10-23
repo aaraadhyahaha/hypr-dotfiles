@@ -46,8 +46,8 @@ local terminal    = "kitty"
 -- Or execute your favorite apps at launch like this:
 --
 hl.on("hyprland.start", function () 
-  -- GTK 4.24 sends an empty ext-background-effect blur region, which makes Hyprland skip layer-rule blur
-  hl.exec_cmd("env GDK_WAYLAND_DISABLE=ext_background_effect_manager_v1 ags run")
+  -- ~/.local/bin/ags sets GDK_WAYLAND_DISABLE so GTK 4.24 does not break layer-rule blur
+  hl.exec_cmd("ags run")
   hl.exec_cmd("hyprctl setcursor MacTahoe-dark-cursors 20")
   hl.exec_cmd("hypridle")
   hl.exec_cmd("nm-applet --indicator")
@@ -280,7 +280,7 @@ hl.bind(mainMod .. " + G", hl.dsp.exec_cmd("ags request toggle-widgets"))
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
 
 -- AGS restarting
-hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; cd ~/.config/ags && GDK_WAYLAND_DISABLE=ext_background_effect_manager_v1 setsid ags run'"))
+hl.bind(mainMod .. " + SHIFT + R", hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; cd ~/.config/ags && setsid ags run'"))
 
 -- AGS Overview
 hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd("ags request toggle-overview"))
