@@ -238,3 +238,66 @@ scale.pnl-app-vol {
     background: transparent;
   }
 }
+
+// battery popover (bar/modules/BatteryPanel.tsx): 300px, column gap 14
+.batt {
+  @include glass-panel($spacing-4);
+  min-width: 300px - 2 * $spacing-4 - 2px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
+
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+
+  button {
+    font-weight: normal;
+  }
+}
+
+.batt-pct {
+  font-size: $font-size-7xl;
+  font-weight: 700;
+  font-feature-settings: "tnum";
+}
+
+.batt-status {
+  color: $text-muted;
+}
+
+progressbar.batt-track {
+  @include glass-track(8px);
+
+  &.low progress {
+    background-color: $error;
+  }
+}
+
+// power profile segmented: icon 18 over an 11/600 label, active = on-state
+.batt-profiles {
+  padding: $spacing-1;
+  border-radius: $radius-lg;
+  background-color: $glass-card;
+}
+
+button.batt-seg {
+  @include interactive($radius-md);
+  padding: $spacing-2 0;
+  font-size: $font-size-sm;
+  font-weight: 600;
+
+  .icon {
+    font-size: $font-size-4xl;
+  }
+
+  &.on {
+    @include on-state;
+  }
+}
+
+.batt-foot {
+  font-size: $font-size-base;
+  color: $text-muted;
+}

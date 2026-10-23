@@ -4,13 +4,7 @@ import AstalBattery from "gi://AstalBattery?version=0.1"
 import { open, run } from "./cc"
 import Icon from "../../common/Icon"
 import { batteryIcon } from "../../common/icons"
-
-// 3 h 12 min, 45 min
-const dur = (s: number) => {
-  const h = Math.floor(s / 3600)
-  const m = Math.floor(s / 60) % 60
-  return h ? `${h} h ${m} min` : `${m} min`
-}
+import { batteryStatus } from "../modules/batteryModel"
 
 // power-saver → Power Saver
 const profileName = (p: string) => p.replace(/(^|-)(\w)/g, (_, d, c) => (d ? " " : "") + c.toUpperCase())
@@ -26,11 +20,14 @@ export default function Footer() {
 
   const text = createComputed(() => {
     const p = `${Math.round(pct() * 100)}%`
-    if (charging()) return toFull() > 0 ? `${p} · ${dur(toFull())} to full` : `${p} · Charging`
-    if (state() === AstalBattery.State.FULLY_CHARGED) return `${p} · Fully charged`
-    // plugged in but holding (charge limit): upower still reports a bogus time to empty
-    if (state() !== AstalBattery.State.DISCHARGING) return `${p} · Plugged in`
-    return toEmpty() > 0 ? `${p} · ${dur(toEmpty())} left` : p
+    const status = batteryStatus({
+      charging: charging(),
+      full: state() === AstalBattery.State.FULLY_CHARGED,
+      discharging: state() === AstalBattery.State.DISCHARGING,
+      toEmpty: toEmpty(),
+      toFull: toFull(),
+    })
+    return status ? `${p} · ${status}` : p
   })
 
   // powerprofilesctl has no events we listen to: read on open; empty when it isn't installed
