@@ -73,6 +73,11 @@ button.menu-item {
   }
 }
 
+// desktop right-click menu (desktop/Desktop.tsx): same rows, heavier labels
+popover.dw-menu-pop button.menu-item {
+  font-weight: 600;
+}
+
 // 40×22 pill switch (quicksettings/Switch.tsx): 16px knob inset 3px
 button.switch {
   @include flat-button;
