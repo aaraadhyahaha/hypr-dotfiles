@@ -11,8 +11,8 @@ window.Shot {
 }
 
 .shot-thumb {
-  margin-bottom: $spacing-2;
-  border-radius: $radius-md;
+  border-radius: 10px;
+  border: 1px solid $glass-hairline;
 }
 
 // screenshot / record toolbar (screenshot/Toolbar.tsx): a glass pill, padding 6, gap 6

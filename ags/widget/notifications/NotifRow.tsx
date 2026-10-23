@@ -3,6 +3,7 @@ import GLib from "gi://GLib"
 import Pango from "gi://Pango"
 import AstalNotifd from "gi://AstalNotifd"
 import Icon from "../common/Icon"
+import { relTime } from "./model"
 
 const CRITICAL = 2
 
@@ -38,17 +39,23 @@ function Tile({ n }: { n: AstalNotifd.Notification }) {
 // One notification: icon, app, summary, body, action buttons and a dismiss button.
 // `onDone` runs after an action is invoked (toasts use it to leave).
 // `showApp` is off inside a group, whose header already names the app (and whose
-// rows only show their dismiss button on hover).
+// rows only show their dismiss button on hover). `toast`: the time stands where the
+// dismiss button was (a click anywhere dismisses) and actions sit at their own width.
 export default function NotifRow({
   n,
   onDone,
   showApp = true,
+  toast = false,
 }: {
   n: AstalNotifd.Notification
   onDone?: () => void
   showApp?: boolean
+  toast?: boolean
 }) {
   const actions = n.actions.filter((a) => a.id !== "default")
+  // a wrapping label asks for its whole line as natural width: keep that small in a toast so
+  // the toast's 360px min-width sets the width, and the labels wrap to fill it
+  const cap = toast ? 20 : -1
 
   return (
     <box class={n.urgency === CRITICAL ? "notif critical" : "notif"} spacing={10}>
@@ -60,20 +67,31 @@ export default function NotifRow({
           ) : (
             <label class="summary" hexpand xalign={0} wrap label={n.summary} />
           )}
-          <button class="x" valign={Gtk.Align.START} onClicked={() => n.dismiss()}>
-            <Icon name="close" />
-          </button>
+          {toast ? (
+            <label class="notif-time" label={relTime(Math.floor(Date.now() / 1000), n.time)} />
+          ) : (
+            <button class="x" valign={Gtk.Align.START} onClicked={() => n.dismiss()}>
+              <Icon name="close" />
+            </button>
+          )}
         </box>
-        <label class="summary" xalign={0} wrap visible={showApp} label={n.summary} />
+        <label class="summary" xalign={0} wrap maxWidthChars={cap} visible={showApp} label={n.summary} />
         <label
           class="notif-body"
           xalign={0}
           wrap
+          maxWidthChars={cap}
           useMarkup
           visible={!!n.body}
           label={n.body ? safeMarkup(n.body) : ""}
         />
-        <box class="actions" spacing={4} homogeneous visible={actions.length > 0}>
+        <box
+          class="actions"
+          spacing={toast ? 6 : 4}
+          homogeneous={!toast}
+          halign={toast ? Gtk.Align.START : Gtk.Align.FILL}
+          visible={actions.length > 0}
+        >
           {actions.map((a) => (
             <button
               onClicked={() => {

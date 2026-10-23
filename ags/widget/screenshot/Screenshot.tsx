@@ -9,6 +9,12 @@ import GdkPixbuf from "gi://GdkPixbuf"
 const HOME = GLib.get_home_dir()
 const DIR = `${HOME}/Pictures/Screenshots`
 const stamp = () => GLib.DateTime.new_now_local().format("%Y%m%d_%H%M%S")!
+// an annotation tool for the toast's Edit, if one is installed; else it offers Open
+const EDITOR = GLib.find_program_in_path("satty")
+    ? ["satty", "--filename"]
+    : GLib.find_program_in_path("swappy")
+        ? ["swappy", "-f"]
+        : null
 
 let previewFn: (file: string) => void = () => { }
 let regionFn = () => { }
@@ -43,16 +49,23 @@ export function ShotPreview() {
         let c
         while ((c = box.get_first_child())) box.remove(c)
 
-        const card = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL })
+        // laid out like a toast's NotifRow: 48px thumbnail · app / now · summary · actions
+        const card = new Gtk.Box({ spacing: 12 })
         card.add_css_class("toast")
         card.add_css_class("shot-toast")
         const motion = new Motion()
         motion.append(card)
 
         try {
-            const pb = GdkPixbuf.Pixbuf.new_from_file_at_scale(file, 240, 135, true)
-            const pic = new Gtk.Picture({ halign: Gtk.Align.START })
-            pic.set_paintable(Gdk.Texture.new_for_pixbuf(pb))
+            // a centred square crop, drawn at 48px (an image sizes to pixelSize, a picture to its texture)
+            const full = GdkPixbuf.Pixbuf.new_from_file(file)
+            const side = Math.min(full.width, full.height)
+            const square = full
+                .new_subpixbuf((full.width - side) >> 1, (full.height - side) >> 1, side, side)
+                .scale_simple(120, 120, GdkPixbuf.InterpType.BILINEAR)!
+            const pic = Gtk.Image.new_from_paintable(Gdk.Texture.new_for_pixbuf(square))
+            pic.pixelSize = 48
+            pic.valign = Gtk.Align.START
             pic.overflow = Gtk.Overflow.HIDDEN
             pic.add_css_class("shot-thumb")
             card.append(pic)
@@ -60,15 +73,39 @@ export function ShotPreview() {
             console.error(e)
         }
 
-        const title = new Gtk.Label({ label: "Screenshot copied", xalign: 0 })
+        const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 3, hexpand: true })
+        const head = new Gtk.Box()
+        const app = new Gtk.Label({ label: "Screenshot", xalign: 0, hexpand: true })
+        app.add_css_class("app")
+        const time = new Gtk.Label({ label: "now" })
+        time.add_css_class("notif-time")
+        head.append(app)
+        head.append(time)
+        const title = new Gtk.Label({ label: `Saved to ${DIR.replace(HOME, "~")}`, xalign: 0, wrap: true })
         title.add_css_class("summary")
-        const sub = new Gtk.Label({ label: "Click to open", xalign: 0 })
-        sub.add_css_class("app")
-        card.append(title)
-        card.append(sub)
+        text.append(head)
+        text.append(title)
+
+        const actions = new Gtk.Box({ spacing: 6, halign: Gtk.Align.START })
+        actions.add_css_class("actions")
+        const action = (label: string, cmd: string[]) => {
+            const b = new Gtk.Button({ label })
+            b.connect("clicked", () => {
+                execAsync(cmd).catch(console.error)
+                dismiss(motion)
+            })
+            actions.append(b)
+        }
+        action(EDITOR ? "Edit" : "Open", EDITOR ? [...EDITOR, file] : ["xdg-open", file])
+        action("Copy", ["sh", "-c", 'wl-copy --type image/png < "$1"', "sh", file])
+        text.append(actions)
+        card.append(text)
 
         const click = new Gtk.GestureClick()
-        click.connect("pressed", () => {
+        click.connect("pressed", (_, _n, x, y) => {
+            // the buttons handle their own click
+            const hit = card.pick(x, y, Gtk.PickFlags.DEFAULT)
+            if (hit && (hit instanceof Gtk.Button || hit.get_ancestor(Gtk.Button.$gtype))) return
             execAsync(["xdg-open", file]).catch(console.error)
             dismiss(motion)
         })

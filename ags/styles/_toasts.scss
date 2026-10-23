@@ -6,12 +6,40 @@ window.Toasts {
   background: transparent;
 }
 
+// toast (toasts/Toasts.tsx, screenshot preview): 360px, padding 12, 48px thumbnail
 .toast {
-  @include panel(0);
+  @include glass-panel($spacing-3);
   @include notif-text;
-  padding: $spacing-3 $spacing-4;
+  min-width: 360px - 2 * $spacing-3 - 2px;
   margin: $spacing-2 $spacing-3 0 0;
-  min-width: 300px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // no shadow room around the glass: it would blur into a halo
+  box-shadow: none;
+
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+
+  .notif-body {
+    line-height: 1.4em;
+  }
+
+  .notif-time {
+    font-size: $font-size-sm;
+    color: $text-faint;
+  }
+
+  .actions {
+    margin-top: $spacing-1;
+
+    button {
+      @include glass-tile($radius-sm);
+      padding: $spacing-1 10px;
+      font-size: $font-size-base;
+      font-weight: 600;
+    }
+  }
 }
 
 // the toast is the panel; the row inside draws no card of its own
@@ -20,6 +48,21 @@ window.Toasts {
   padding: 0;
   margin: 0;
   box-shadow: none;
+}
+
+.toast .notif-tile {
+  min-width: 48px;
+  min-height: 48px;
+  border-radius: 10px;
+
+  .notif-app-icon {
+    -gtk-icon-size: 24px;
+  }
+
+  .notif-image {
+    -gtk-icon-size: 48px;
+    border-radius: 10px;
+  }
 }
 
 .toast.critical {

@@ -24,7 +24,7 @@ export default function Toasts() {
     w.append(
       createRoot((d) => {
         dispose = d
-        return NotifRow({ n, onDone: () => leave() }) as Gtk.Widget
+        return NotifRow({ n, onDone: () => leave(), toast: true }) as Gtk.Widget
       }),
     )
 
