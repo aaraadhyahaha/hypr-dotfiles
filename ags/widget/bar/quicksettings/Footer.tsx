@@ -2,6 +2,8 @@ import GLib from "gi://GLib"
 import { createBinding, createComputed, createState, onCleanup } from "ags"
 import AstalBattery from "gi://AstalBattery?version=0.1"
 import { open, run } from "./cc"
+import Icon from "../../common/Icon"
+import { batteryIcon } from "../../common/icons"
 
 // 3 h 12 min, 45 min
 const dur = (s: number) => {
@@ -43,7 +45,9 @@ export default function Footer() {
 
   return (
     <box class="cc-footer" spacing={8} visible={shown}>
-      <image iconName={createBinding(bat, "iconName")} visible={present} />
+      <box visible={present}>
+        <Icon name={createComputed(() => batteryIcon(pct(), charging()))} fill class="bat" />
+      </box>
       <label label={text} visible={present} />
       <box hexpand />
       <label label={profile} visible={profile.as(Boolean)} />

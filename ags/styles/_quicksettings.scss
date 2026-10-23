@@ -16,6 +16,11 @@
   // no shadow: Hyprland blurs a popup's whole surface (ignore_alpha doesn't reach popups),
   // so any room made for a shadow shows up as a blurred halo around the panel
   box-shadow: none;
+
+  // Adwaita bolds button labels; the CC sets its own weights
+  button {
+    font-weight: normal;
+  }
 }
 
 .cc-name {
@@ -28,7 +33,7 @@
 }
 
 .cc-icon {
-  -gtk-icon-size: $font-size-5xl;
+  font-size: $font-size-5xl;
 }
 
 // translucent card inside the panel
@@ -53,8 +58,8 @@ button.cc-round {
   min-height: 32px;
   padding: 0;
 
-  image {
-    -gtk-icon-size: $font-size-4xl;
+  .icon {
+    font-size: $font-size-4xl;
   }
 }
 
@@ -80,8 +85,8 @@ button.cc-round {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
 
-    image {
-      -gtk-icon-size: $font-size-4xl;
+    .icon {
+      font-size: $font-size-4xl;
     }
   }
 
@@ -89,8 +94,7 @@ button.cc-round {
     background-color: $on-bg;
     color: $on-fg;
 
-    label,
-    image {
+    label {
       color: $on-fg;
     }
 
@@ -139,7 +143,7 @@ button.cc-tile {
 
 .cc-slider {
   .cc-slider-icon {
-    -gtk-icon-size: $font-size-4xl;
+    font-size: $font-size-4xl;
   }
 
   scale {
@@ -183,8 +187,8 @@ button.cc-tile {
     padding: 0;
     color: $text-muted;
 
-    image {
-      -gtk-icon-size: $font-size-4xl;
+    .icon {
+      font-size: $font-size-4xl;
     }
   }
 }
@@ -202,7 +206,7 @@ button.cc-tile {
 }
 
 .cc-cover-fallback {
-  -gtk-icon-size: $font-size-5xl;
+  font-size: $font-size-5xl;
   color: $text-muted;
 }
 
@@ -216,8 +220,8 @@ button.cc-media-btn {
   padding: $spacing-1;
   color: $text-muted;
 
-  image {
-    -gtk-icon-size: 22px;
+  .icon {
+    font-size: 22px;
   }
 }
 
@@ -230,8 +234,8 @@ button.cc-media-play {
   border-radius: $radius-full;
   transition: $transition;
 
-  image {
-    -gtk-icon-size: 22px;
+  .icon {
+    font-size: 22px;
   }
 }
 
@@ -278,4 +282,8 @@ button.cc-seg {
   padding: 2px $spacing-1 0;
   font-size: $font-size-base;
   color: $text-muted;
+
+  .icon.bat {
+    transform: rotate(90deg);
+  }
 }

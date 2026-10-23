@@ -3,6 +3,8 @@ import { Accessor, createBinding, createComputed, createState } from "ags"
 import Pango from "gi://Pango"
 import AstalNetwork from "gi://AstalNetwork?version=0.1"
 import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
+import Icon from "../../common/Icon"
+import { wifiIcon, btIcon } from "../../common/icons"
 
 // one split button: the main part toggles, the chevron opens the panel (phase 4)
 function Half({ icon, title, sub, on, onToggle, onChevron }: {
@@ -17,7 +19,7 @@ function Half({ icon, title, sub, on, onToggle, onChevron }: {
     <box class={on.as((o) => (o ? "cc-half on" : "cc-half"))} hexpand>
       <button class="cc-half-main" hexpand onClicked={onToggle}>
         <box spacing={10}>
-          <image class="cc-icon" iconName={icon} />
+          <Icon name={icon} fill class="cc-icon" />
           <box orientation={Gtk.Orientation.VERTICAL} valign={Gtk.Align.CENTER} spacing={2}>
             <label class="cc-name" xalign={0} label={title} />
             <label
@@ -31,7 +33,7 @@ function Half({ icon, title, sub, on, onToggle, onChevron }: {
         </box>
       </button>
       <button class="cc-half-chev" onClicked={() => onChevron?.()}>
-        <image iconName="pan-end-symbolic" />
+        <Icon name="chevron_right" />
       </button>
     </box>
   )
@@ -41,7 +43,7 @@ function Wifi() {
   const wifi = AstalNetwork.get_default().wifi
   if (!wifi) {
     const [off] = createState(false)
-    const [icon] = createState("network-wireless-disabled-symbolic")
+    const [icon] = createState("wifi_off")
     const [sub] = createState("Unavailable")
     return <Half icon={icon} title="Wi-Fi" sub={sub} on={off} onToggle={() => {}} />
   }
@@ -52,7 +54,7 @@ function Wifi() {
 
   return (
     <Half
-      icon={createBinding(wifi, "iconName")}
+      icon={wifiIcon(wifi)}
       title="Wi-Fi"
       sub={sub}
       on={enabled}
@@ -75,7 +77,7 @@ function Bluetooth() {
 
   return (
     <Half
-      icon={powered.as((p) => (p ? "bluetooth-active-symbolic" : "bluetooth-disabled-symbolic"))}
+      icon={btIcon(bt)}
       title="Bluetooth"
       sub={sub}
       on={powered}

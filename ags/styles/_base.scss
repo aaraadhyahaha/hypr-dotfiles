@@ -29,6 +29,19 @@ button {
   font-size: $glyph-size;
 }
 
+// Material Symbols: 1em square glyphs, outline unless .fill
+.icon {
+  font-family: $font-symbols;
+  font-size: $icon-size;
+  font-weight: 400;
+  font-feature-settings: "liga" 1;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 20;
+
+  &.fill {
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 20;
+  }
+}
+
 .sep {
   min-width: 1px;
   margin: $spacing-1 $spacing-2;

@@ -1,7 +1,6 @@
 import { createBinding, With } from "ags"
 import Pango from "gi://Pango?version=1.0"
 import AstalHyprland from "gi://AstalHyprland"
-import Sep from "../common/Sep"
 
 export default function WindowTitle() {
   const hypr = AstalHyprland.get_default()
@@ -13,7 +12,6 @@ export default function WindowTitle() {
         {(client) =>
           client && (
             <box class="wintitle">
-              <Sep />
               <label
                 maxWidthChars={36}
                 ellipsize={Pango.EllipsizeMode.END}

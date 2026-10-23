@@ -6,6 +6,7 @@ import AstalNotifd from "gi://AstalNotifd"
 import { Motion, ENTER, onShow } from "../../common/motion"
 import Sep from "../common/Sep"
 import Clock from "./Clock"
+import Icon from "../../common/Icon"
 import NotifRow from "../../notifications/NotifRow"
 import { groupByApp, relTime } from "../../notifications/model"
 
@@ -50,7 +51,7 @@ export default function DateMenu() {
         <Clock />
         <Sep />
         <box class="bell">
-          <image iconName="preferences-system-notifications-symbolic" />
+          <Icon name={dnd.as((d) => (d ? "notifications_off" : "notifications"))} fill />
           <label
             class="count"
             valign={Gtk.Align.CENTER}
@@ -70,7 +71,7 @@ export default function DateMenu() {
                   tooltipText="Do not disturb"
                   onClicked={() => (notifd.dontDisturb = !notifd.dontDisturb)}
                 >
-                  <image iconName="notifications-disabled-symbolic" />
+                  <Icon name="do_not_disturb_on" />
                 </button>
               </box>
               <label
@@ -102,7 +103,7 @@ export default function DateMenu() {
                             tooltipText="Clear"
                             onClicked={() => g.items.forEach((n) => n.dismiss())}
                           >
-                            <image iconName="edit-clear-all-symbolic" />
+                            <Icon name="close" />
                           </button>
                         </box>
                         {g.items.map((n) => (

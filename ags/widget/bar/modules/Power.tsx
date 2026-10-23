@@ -2,6 +2,7 @@ import { Gtk } from "ags/gtk4"
 import { execAsync } from "ags/process"
 import { createState } from "ags"
 import { Motion, ENTER, onShow } from "../../common/motion"
+import Icon from "../../common/Icon"
 
 let menu: Gtk.MenuButton | null = null
 // the Control Center's power button opens this menu
@@ -11,7 +12,7 @@ export default function Power() {
   const [open, setOpen] = createState(false)
   let motion: Motion
 
-  const item = (glyph: string, text: string, cmd: string[], danger = false) => (
+  const item = (icon: string, text: string, cmd: string[], danger = false) => (
     <button
       class={danger ? "menu-item danger" : "menu-item"}
       onClicked={() => {
@@ -20,7 +21,7 @@ export default function Power() {
       }}
     >
       <box>
-        <label class="glyph" label={glyph} />
+        <Icon name={icon} />
         <label label={text} xalign={0} hexpand />
       </box>
     </button>
@@ -34,15 +35,15 @@ export default function Power() {
         self.connect("notify::visible", () => setOpen(self.visible))
       }}
     >
-      <label class="glyph" label={"\uf011"} />
+      <Icon name="power_settings_new" class="lg" />
       <popover class="power-pop" hasArrow={false} $={(self) => onShow(self, motion, ENTER.popover)}>
         <Motion origin="top" $={(self) => (motion = self)}>
           <box orientation={Gtk.Orientation.VERTICAL} class="menu">
-            {item("\uf023", "Lock", ["loginctl", "lock-session"])}
-            {item("\uf186", "Suspend", ["systemctl", "suspend"])}
-            {item("\uf08b", "Log out", ["hyprctl", "dispatch", "hl.dsp.exit()"])}
-            {item("\uf021", "Restart", ["systemctl", "reboot"], true)}
-            {item("\uf011", "Shut down", ["systemctl", "poweroff"], true)}
+            {item("lock", "Lock", ["loginctl", "lock-session"])}
+            {item("bedtime", "Suspend", ["systemctl", "suspend"])}
+            {item("logout", "Log out", ["hyprctl", "dispatch", "hl.dsp.exit()"])}
+            {item("restart_alt", "Restart", ["systemctl", "reboot"], true)}
+            {item("power_settings_new", "Shut down", ["systemctl", "poweroff"], true)}
           </box>
         </Motion>
       </popover>

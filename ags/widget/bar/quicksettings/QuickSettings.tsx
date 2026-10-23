@@ -1,10 +1,11 @@
 import { Gtk } from "ags/gtk4"
-import { createBinding } from "ags"
 import AstalNetwork from "gi://AstalNetwork?version=0.1"
 import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
 import AstalWp from "gi://AstalWp?version=0.1"
 import { Motion, ENTER, onShow } from "../../common/motion"
-import { setOpen, setPopover, nightOn, NIGHT_ICON } from "./cc"
+import { open, setOpen, setPopover, nightOn } from "./cc"
+import Icon from "../../common/Icon"
+import { wifiIcon, btIcon, volumeIcon } from "../../common/icons"
 import Header from "./Header"
 import Pair from "./Pair"
 import Tiles from "./Tiles"
@@ -22,8 +23,9 @@ export default function QuickSettings() {
   const speaker = AstalWp.get_default()!.audio.defaultSpeaker
   let motion: Motion
 
+  // popup() from the keybind doesn't check the button, so open state is a class
   return (
-    <menubutton class="cc-btn">
+    <menubutton class={open.as((o) => (o ? "cc-btn open" : "cc-btn"))}>
       <box class="cc-pill" spacing={6}>
         <Gtk.EventControllerScroll
           flags={Gtk.EventControllerScrollFlags.VERTICAL}
@@ -32,14 +34,12 @@ export default function QuickSettings() {
           }}
         />
         <Gtk.GestureClick button={2} onPressed={() => (speaker.mute = !speaker.mute)} />
-        <image class="cc-pill-night" iconName={NIGHT_ICON} visible={nightOn} />
-        {wifi && <image iconName={createBinding(wifi, "iconName")} />}
-        <image
-          iconName={createBinding(bt, "isPowered").as((p) =>
-            p ? "bluetooth-active-symbolic" : "bluetooth-disabled-symbolic",
-          )}
-        />
-        <image iconName={createBinding(speaker, "volumeIcon")} />
+        <box visible={nightOn}>
+          <Icon name="nightlight" fill class="cc-pill-night" />
+        </box>
+        {wifi && <Icon name={wifiIcon(wifi)} fill />}
+        <Icon name={btIcon(bt)} fill />
+        <Icon name={volumeIcon(speaker)} fill />
       </box>
       <popover
         class="qs-pop"

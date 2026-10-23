@@ -75,6 +75,10 @@ button.dnd {
   padding: $spacing-1;
   color: $text-muted;
 
+  .icon {
+    font-size: $font-size-4xl;
+  }
+
   &.on {
     @include on-state;
   }

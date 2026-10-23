@@ -7,6 +7,19 @@ menubutton.media-pill>button {
   @include interactive($radius-sm);
   padding: 0 $spacing-2;
   min-height: $bar-item-h;
+
+  &:checked {
+    background-color: rgba($on-surface, $state-hover);
+  }
+
+  .media-eq {
+    color: $primary;
+  }
+
+  .media-pill-artist {
+    font-weight: 500;
+    color: $text-muted;
+  }
 }
 
 // popover card

@@ -6,6 +6,8 @@ import { open } from "./cc"
 
 const BARS = 12
 const H = 18 // sparkline height, px
+const SPAN = 0.1 // smallest range the bars stretch over (10 points)
+const FLOOR = 0.2 // shortest bar, as a share of H
 
 const memTotalGiB = (() => {
   try {
@@ -32,7 +34,18 @@ function Stat({ name, source, format }: {
     history ??= new Array(BARS).fill(v) // first reading: a flat line at that value
     history.push(v)
     history.shift()
-    history.forEach((h, i) => bars[i]?.set_size_request(-1, Math.max(2, Math.round(h * H))))
+    // scaled to the window's own range (at least SPAN wide, centred on a flat line) so a
+    // steady 5% CPU or 32% RAM still reads as a shape; the label carries the absolute value
+    let lo = Math.min(...history)
+    let hi = Math.max(...history)
+    if (hi - lo < SPAN) {
+      const mid = (hi + lo) / 2
+      lo = mid - SPAN / 2
+      hi = mid + SPAN / 2
+    }
+    history.forEach((h, i) =>
+      bars[i]?.set_size_request(-1, Math.round(H * (FLOOR + (1 - FLOOR) * ((h - lo) / (hi - lo))))),
+    )
     setText(format(v))
   }
 

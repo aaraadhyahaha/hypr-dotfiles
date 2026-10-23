@@ -4,6 +4,7 @@ import { createState, onCleanup } from "ags"
 import { interval } from "ags/time"
 import { open, closeCC, run } from "./cc"
 import { openPowerMenu } from "../modules/Power"
+import Icon from "../../common/Icon"
 
 const user = GLib.get_user_name()
 const real = GLib.get_real_name()
@@ -26,7 +27,7 @@ function uptime() {
 function RoundBtn({ icon, tooltip, onClick }: { icon: string; tooltip: string; onClick: () => void }) {
   return (
     <button class="cc-round" tooltipText={tooltip} valign={Gtk.Align.CENTER} onClicked={onClick}>
-      <image iconName={icon} />
+      <Icon name={icon} />
     </button>
   )
 }
@@ -52,18 +53,18 @@ export default function Header() {
 
   return (
     <box class="cc-header" spacing={10}>
-      <label class="cc-avatar" label={user.charAt(0).toUpperCase()} />
+      <label class="cc-avatar" valign={Gtk.Align.CENTER} label={user.charAt(0).toUpperCase()} />
       <box orientation={Gtk.Orientation.VERTICAL} valign={Gtk.Align.CENTER} hexpand spacing={2}>
         <label class="cc-name" xalign={0} label={name} />
         <label class="cc-sub" xalign={0} label={up} />
       </box>
-      <RoundBtn icon="emblem-system-symbolic" tooltip="Settings" onClick={act(() => run(["nwg-look"]))} />
+      <RoundBtn icon="settings" tooltip="Settings" onClick={act(() => run(["nwg-look"]))} />
       <RoundBtn
-        icon="system-lock-screen-symbolic"
+        icon="lock"
         tooltip="Lock"
         onClick={act(() => run(["loginctl", "lock-session"]))}
       />
-      <RoundBtn icon="system-shutdown-symbolic" tooltip="Power" onClick={act(openPowerMenu)} />
+      <RoundBtn icon="power_settings_new" tooltip="Power" onClick={act(openPowerMenu)} />
     </box>
   )
 }

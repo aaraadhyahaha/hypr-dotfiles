@@ -25,8 +25,6 @@ export async function run(cmd: string | string[]) {
 
 // night light: hyprsunset is ours to start and stop, so track it here and re-check on open
 export const NIGHT_K = 4000
-// Papirus' night-light-symbolic doesn't render under GTK 4.22's SVG loader
-export const NIGHT_ICON = "redshift-status-on-symbolic"
 export const [nightOn, setNightOn] = createState(false)
 
 export const checkNight = () =>

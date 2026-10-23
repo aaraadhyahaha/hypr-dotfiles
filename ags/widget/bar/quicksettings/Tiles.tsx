@@ -4,9 +4,10 @@ import { Accessor, createBinding, createComputed, createState, onCleanup } from 
 import { timeout } from "ags/time"
 import AstalWp from "gi://AstalWp?version=0.1"
 import AstalNotifd from "gi://AstalNotifd?version=0.1"
-import { open, closeCC, run, NIGHT_K, NIGHT_ICON, nightOn, checkNight, toggleNight } from "./cc"
+import { open, closeCC, run, NIGHT_K, nightOn, checkNight, toggleNight } from "./cc"
 import { recording, elapsed, toggleRecording, fmtElapsed } from "../../../service/recorder"
 import { screenshotRegion } from "../../screenshot/Screenshot"
+import Icon from "../../common/Icon"
 
 const onOff = (o: boolean) => (o ? "On" : "Off")
 
@@ -20,7 +21,7 @@ function Tile({ icon, label, sub, on, onClick }: {
   return (
     <button class={on ? on.as((o) => (o ? "cc-tile on" : "cc-tile")) : "cc-tile"} hexpand onClicked={onClick}>
       <box orientation={Gtk.Orientation.VERTICAL} spacing={10}>
-        <image class="cc-icon" halign={Gtk.Align.START} iconName={icon} />
+        <Icon name={icon} fill class="cc-icon" halign={Gtk.Align.START} />
         <box orientation={Gtk.Orientation.VERTICAL} spacing={2}>
           <label class="cc-tile-label" xalign={0} label={label} />
           <label class="cc-sub" xalign={0} label={sub} />
@@ -64,21 +65,21 @@ export default function Tiles() {
     <box class="cc-tiles" orientation={Gtk.Orientation.VERTICAL} spacing={8}>
       <box homogeneous spacing={8}>
         <Tile
-          icon={NIGHT_ICON}
+          icon="nightlight"
           label="Night Light"
           sub={nightOn.as((o) => (o ? `${NIGHT_K} K` : "Off"))}
           on={nightOn}
           onClick={toggleNight}
         />
         <Tile
-          icon="notifications-disabled-symbolic"
+          icon="do_not_disturb_on"
           label="Do Not Disturb"
           sub={dnd.as(onOff)}
           on={dnd}
           onClick={() => (notifd.dontDisturb = !notifd.dontDisturb)}
         />
         <Tile
-          icon="airplane-mode-symbolic"
+          icon="flight"
           label="Airplane"
           sub={plane.as(onOff)}
           on={plane}
@@ -91,20 +92,20 @@ export default function Tiles() {
       </box>
       <box homogeneous spacing={8}>
         <Tile
-          icon="microphone-sensitivity-muted-symbolic"
+          icon="mic_off"
           label="Mic Mute"
           sub={micMuted.as(onOff)}
           on={micMuted}
           onClick={() => (mic.mute = !mic.mute)}
         />
         <Tile
-          icon="applets-screenshooter-symbolic"
+          icon="screenshot_region"
           label="Screenshot"
           sub="Region"
           onClick={() => afterClose(screenshotRegion)}
         />
         <Tile
-          icon="media-record-symbolic"
+          icon="radio_button_checked"
           label="Record"
           sub={createComputed(() =>
             recording() ? fmtElapsed(elapsed()) : canRecord ? "Off" : "Unavailable",

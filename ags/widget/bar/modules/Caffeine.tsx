@@ -1,5 +1,6 @@
 import { createPoll } from "ags/time"
 import { execAsync } from "ags/process"
+import Icon from "../../common/Icon"
 
 export default function Caffeine() {
   // "1" while hypridle is running; stopping it = staying awake
@@ -20,7 +21,7 @@ export default function Caffeine() {
         ])
       }
     >
-      <label class="glyph" label={"\uf0f4"} />
+      <Icon name="coffee" class="lg" />
     </button>
   )
 }

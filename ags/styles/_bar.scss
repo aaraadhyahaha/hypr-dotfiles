@@ -28,6 +28,11 @@ window.Bar.editing {
   image {
     -gtk-icon-size: $icon-size;
   }
+
+  // launcher, screenshot, battery, power, caffeine: a size up from the 16px status icons
+  .icon.lg {
+    font-size: 17px;
+  }
 }
 
 // every clickable item in the bar shares one shape and state layer;
@@ -42,6 +47,16 @@ menubutton.power>button,
   @include interactive($radius-sm);
   padding: 0 $spacing-2;
   min-height: $bar-item-h;
+
+  // a menu button keeps the hover fill while its popover is open
+  &:checked {
+    background-color: rgba($on-surface, $state-hover);
+  }
+}
+
+// popup() from the CC keybind doesn't check the button, so the pill also follows .open
+menubutton.cc-btn.open>button {
+  background-color: rgba($on-surface, $state-hover);
 }
 
 // …icon-only items are squares with the icon centred
@@ -54,9 +69,12 @@ menubutton.power>button,
 }
 
 // static items get the same horizontal rhythm, no hover
-.battery,
-.wintitle {
+.battery {
   padding: 0 $spacing-2;
+}
+
+.wintitle {
+  padding: 0 $spacing-2 0 $spacing-3;
 }
 
 .wintitle {
@@ -124,9 +142,9 @@ button.ws-btn {
   color: $text-muted;
 }
 
-// battery (icon → text gap)
-.battery label {
-  margin-left: 6px;
+// battery: Material's battery glyphs stand upright; the bar lays them on their side
+.battery .icon.bat {
+  transform: rotate(90deg);
 }
 
 // cpu / ram readout
@@ -134,10 +152,6 @@ button.ws-btn {
   padding: 0 $spacing-2;
   font-size: $font-size-base;
   color: $text-muted;
-
-  .glyph {
-    font-size: $font-size-base;
-  }
 }
 
 // recording indicator
@@ -168,9 +182,11 @@ button.recording {
   margin: 0 $spacing-2;
 }
 
+// GTK's min-size is the content box, so 16px outer = 6 + 2×5 padding
 .count {
-  margin-left: $spacing-2;
-  min-width: 16px;
+  margin-left: 6px;
+  min-width: 6px;
+  min-height: 16px;
   padding: 0 5px;
   border-radius: $radius-full;
   background: $primary;

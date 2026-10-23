@@ -2,6 +2,8 @@ import { Gtk } from "ags/gtk4"
 import { Accessor, createBinding, createState, onCleanup } from "ags"
 import AstalWp from "gi://AstalWp?version=0.1"
 import { open, run } from "./cc"
+import Icon from "../../common/Icon"
+import { volumeIcon } from "../../common/icons"
 
 // icon · 0..1 scale · value 0..100 · optional chevron (opens a panel in phase 4)
 function SliderRow({ icon, value, onChange, onChevron }: {
@@ -12,7 +14,7 @@ function SliderRow({ icon, value, onChange, onChevron }: {
 }) {
   return (
     <box class="cc-slider" spacing={12}>
-      <image class="cc-slider-icon" iconName={icon} />
+      <Icon name={icon} fill class="cc-slider-icon" />
       <Gtk.Scale
         hexpand
         drawValue={false}
@@ -34,7 +36,7 @@ function SliderRow({ icon, value, onChange, onChevron }: {
       <label class="cc-slider-val" xalign={1} label={value.as((v) => `${Math.round(v * 100)}`)} />
       {onChevron ? (
         <button class="cc-slider-chev" onClicked={onChevron}>
-          <image iconName="pan-end-symbolic" />
+          <Icon name="chevron_right" />
         </button>
       ) : (
         <box class="cc-slider-chev" />
@@ -47,7 +49,7 @@ function Volume() {
   const speaker = AstalWp.get_default()!.audio.defaultSpeaker
   return (
     <SliderRow
-      icon={createBinding(speaker, "volumeIcon")}
+      icon={volumeIcon(speaker)}
       value={createBinding(speaker, "volume")}
       onChange={(v) => {
         speaker.volume = v
@@ -74,7 +76,7 @@ function Brightness() {
   return (
     <box visible={present}>
       <SliderRow
-        icon="display-brightness-symbolic"
+        icon="light_mode"
         value={level}
         onChange={(v) => {
           setLevel(v)

@@ -3,6 +3,7 @@ import { createBinding, createComputed, With } from "ags"
 import Pango from "gi://Pango"
 import AstalMpris from "gi://AstalMpris"
 import { pickPlayer } from "../../media/model"
+import Icon from "../../common/Icon"
 
 function Mini({ player }: { player: AstalMpris.Player }) {
   const cover = createBinding(player, "coverArt")
@@ -17,12 +18,9 @@ function Mini({ player }: { player: AstalMpris.Player }) {
     <box class="cc-card cc-media" spacing={12}>
       <box class="cc-cover" valign={Gtk.Align.CENTER} overflow={Gtk.Overflow.HIDDEN}>
         <image pixelSize={44} file={cover.as((c) => c || "")} visible={cover.as(Boolean)} />
-        <image
-          class="cc-cover-fallback"
-          hexpand
-          visible={cover.as((c) => !c)}
-          iconName="audio-x-generic-symbolic"
-        />
+        <box hexpand halign={Gtk.Align.CENTER} visible={cover.as((c) => !c)}>
+          <Icon name="music_note" fill class="cc-cover-fallback" />
+        </box>
       </box>
       <box orientation={Gtk.Orientation.VERTICAL} valign={Gtk.Align.CENTER} hexpand spacing={3}>
         <label
@@ -41,15 +39,13 @@ function Mini({ player }: { player: AstalMpris.Player }) {
         />
       </box>
       <button class="cc-media-btn" valign={Gtk.Align.CENTER} onClicked={() => player.previous()}>
-        <image iconName="media-skip-backward-symbolic" />
+        <Icon name="skip_previous" fill />
       </button>
       <button class="cc-media-play" valign={Gtk.Align.CENTER} onClicked={() => player.play_pause()}>
-        <image
-          iconName={playing.as((p) => (p ? "media-playback-pause-symbolic" : "media-playback-start-symbolic"))}
-        />
+        <Icon name={playing.as((p) => (p ? "pause" : "play_arrow"))} fill />
       </button>
       <button class="cc-media-btn" valign={Gtk.Align.CENTER} onClicked={() => player.next()}>
-        <image iconName="media-skip-forward-symbolic" />
+        <Icon name="skip_next" fill />
       </button>
     </box>
   )

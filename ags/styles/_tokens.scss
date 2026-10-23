@@ -6,6 +6,8 @@ $font: "SF Pro Text", sans-serif;
 $font-mono: "JetBrainsMono Nerd Font", sans-serif;
 // Propo: glyph advance matches its ink, so icons centre inside their box
 $font-icon: "JetBrainsMono Nerd Font Propo", "Symbols Nerd Font", sans-serif;
+// Material Symbols Rounded (variable): the shell's icon set, see widget/common/Icon.tsx
+$font-symbols: "Material Symbols Rounded";
 
 // spacing (4px grid)
 $spacing-0: 0px;

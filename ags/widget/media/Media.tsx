@@ -3,10 +3,10 @@ import { createBinding, createComputed, createState, For, onCleanup, With } from
 import Pango from "gi://Pango"
 import AstalMpris from "gi://AstalMpris"
 import { Motion, ENTER, MOTION, onShow } from "../common/motion"
-import Sep from "../bar/common/Sep"
 import { fmtTime, pickPlayer } from "./model"
+import Icon from "../common/Icon"
 
-const G = { play: "", pause: "", prev: "", next: "", note: "" }
+const G = { play: "", pause: "", prev: "", next: "" }
 
 const playing = (p: AstalMpris.Player) =>
   createBinding(p, "playbackStatus").as((s) => s === AstalMpris.PlaybackStatus.PLAYING)
@@ -131,7 +131,6 @@ export default function Media() {
 
   return (
     <box visible={current.as(Boolean)}>
-      <Sep />
       <menubutton class="media-pill">
         <box spacing={8}>
           <Gtk.EventControllerScroll
@@ -149,14 +148,22 @@ export default function Media() {
             {(player) =>
               player && (
                 <box spacing={8}>
-                  <label
-                    class="glyph"
-                    label={playing(player).as((p) => (p ? G.pause : G.note))}
+                  <Icon
+                    name={playing(player).as((p) => (p ? "graphic_eq" : "music_note"))}
+                    fill
+                    class="media-eq"
                   />
                   <label
                     maxWidthChars={28}
                     ellipsize={Pango.EllipsizeMode.END}
                     label={createBinding(player, "title").as((t) => t || player.identity)}
+                  />
+                  <label
+                    class="media-pill-artist"
+                    maxWidthChars={20}
+                    ellipsize={Pango.EllipsizeMode.END}
+                    visible={createBinding(player, "artist").as(Boolean)}
+                    label={createBinding(player, "artist").as((a) => a || "")}
                   />
                 </box>
               )

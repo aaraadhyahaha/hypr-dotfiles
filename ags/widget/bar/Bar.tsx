@@ -16,6 +16,7 @@ import SysMini from "./modules/SysMini"
 import ScreenshotBtn from "./modules/ScreenshotBtn"
 import QuickSettings from "./quicksettings/QuickSettings"
 import { editing } from "../desktop/state"
+import Icon from "../common/Icon"
 
 export default function Bar(gdkmonitor: Gdk.Monitor) {
   const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
@@ -34,7 +35,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
       <centerbox class="body">
         <box $type="start">
           <button class="edge" onClicked={() => toggleLauncher()}>
-            <label class="glyph" label={"\uf303"} />
+            <Icon name="apps" fill class="lg" />
           </button>
           <Sep />
           <Workspaces />

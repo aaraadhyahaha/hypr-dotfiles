@@ -41,7 +41,7 @@ popover modelbutton {
   @include interactive($radius-sm);
   padding: $spacing-2 $spacing-3;
 
-  .glyph {
+  .icon {
     min-width: 22px;
     margin-right: $spacing-2;
   }

@@ -1,6 +1,7 @@
 import { Gtk } from "ags/gtk4"
 import { execAsync } from "ags/process"
 import { themeMode, setThemeMode } from "./theme"
+import Icon from "../../common/Icon"
 
 function choose(m: string) {
   setThemeMode(m)
@@ -13,7 +14,7 @@ function Segment({ mode, icon, label }: { mode: string; icon: string; label: str
   return (
     <button class={on.as((o) => (o ? "cc-seg on" : "cc-seg"))} onClicked={() => choose(mode)}>
       <box halign={Gtk.Align.CENTER} spacing={8}>
-        <image iconName={icon} />
+        <Icon name={icon} fill />
         <label label={label} />
       </box>
     </button>
@@ -23,8 +24,8 @@ function Segment({ mode, icon, label }: { mode: string; icon: string; label: str
 export default function ThemeMode() {
   return (
     <box class="cc-card cc-mode" homogeneous>
-      <Segment mode="dark" icon="weather-clear-night-symbolic" label="Dark" />
-      <Segment mode="light" icon="weather-clear-symbolic" label="Light" />
+      <Segment mode="dark" icon="dark_mode" label="Dark" />
+      <Segment mode="light" icon="light_mode" label="Light" />
     </box>
   )
 }
