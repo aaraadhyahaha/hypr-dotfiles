@@ -33,23 +33,42 @@ popover modelbutton {
   }
 }
 
-// power menu
+// power menu (bar/modules/Power.tsx): 200px, padding 8, mono key hints
 .menu {
-  min-width: 170px;
+  @include glass-panel($spacing-2);
+  min-width: 200px - 2 * $spacing-2 - 2px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
+
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
 }
 
-.menu-item {
+button.menu-item {
   @include interactive($radius-sm);
   padding: $spacing-2 $spacing-3;
+  font-weight: normal;
 
   .icon {
-    min-width: 22px;
-    margin-right: $spacing-2;
+    font-size: $font-size-4xl;
+  }
+
+  .menu-key {
+    font-family: $font-mono;
+    font-size: $font-size-sm;
+    color: $text-faint;
   }
 
   &.danger:hover {
     background-color: rgba($error, $state-selected);
     color: $error;
+
+    .menu-key {
+      color: rgba($error, 0.7);
+    }
   }
 }
 
