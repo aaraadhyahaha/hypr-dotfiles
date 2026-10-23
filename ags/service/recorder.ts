@@ -23,11 +23,15 @@ const finish = () => {
   setElapsed(0)
 }
 
-export function startRecording() {
+// geometry: wf-recorder's "x,y WxH" (none = the whole output); audio: the default source
+export function startRecording({ geometry, audio = false }: { geometry?: string; audio?: boolean } = {}) {
   if (proc) return
   GLib.mkdir_with_parents(DIR, 0o755)
+  const args = ["wf-recorder", "-f", `${DIR}/rec_${stamp()}.mp4`]
+  if (geometry) args.push("-g", geometry)
+  if (audio) args.push("-a")
   try {
-    proc = subprocess(["wf-recorder", "-f", `${DIR}/rec_${stamp()}.mp4`], () => {}, () => {})
+    proc = subprocess(args, () => {}, () => {})
   } catch (e) {
     console.error(`recorder: ${e}`)
     return

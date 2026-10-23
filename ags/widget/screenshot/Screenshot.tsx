@@ -12,9 +12,14 @@ const stamp = () => GLib.DateTime.new_now_local().format("%Y%m%d_%H%M%S")!
 
 let previewFn: (file: string) => void = () => { }
 let regionFn = () => { }
-let fullFn = () => { }
+let shootFn: (geometry?: string) => void = () => { }
+let pickFn: () => Promise<string | null | undefined> = async () => null
 export const screenshotRegion = () => regionFn()
-export const screenshotFull = () => fullFn()
+export const screenshotFull = () => shootFn()
+// grim's "x,y wxh" in global coordinates; none = every output
+export const screenshotGeometry = (geometry?: string) => shootFn(geometry)
+// the region picker on its own: a geometry, undefined for Enter (full screen), null for Esc
+export const pickRegion = () => pickFn()
 
 export function ShotPreview() {
     let win: Astal.Window
@@ -100,12 +105,26 @@ export default function Screenshot() {
     let active = false
     let busy = false
     let sx = 0, sy = 0, ex = 0, ey = 0
+    // set while pickRegion() waits: the picker hands its result back instead of capturing
+    let picked: ((g: string | null | undefined) => void) | null = null
 
     const rect = (): [number, number, number, number] => [
         Math.min(sx, ex), Math.min(sy, ey), Math.abs(ex - sx), Math.abs(ey - sy),
     ]
 
-    const capture = async (region?: [number, number, number, number]) => {
+    const global = ([x, y, w, h]: [number, number, number, number]) =>
+        `${Math.round(x + geo.x)},${Math.round(y + geo.y)} ${Math.round(w)}x${Math.round(h)}`
+
+    // hand a pick back to pickRegion(), or capture it
+    const done = (g: string | null | undefined) => {
+        win.visible = false
+        const resolve = picked
+        picked = null
+        if (resolve) resolve(g)
+        else if (g !== null) capture(g)
+    }
+
+    const capture = async (geometry?: string) => {
         if (busy) return
         busy = true
         try {
@@ -114,13 +133,7 @@ export default function Screenshot() {
             await execAsync(["mkdir", "-p", DIR])
             const file = `${DIR}/shot_${stamp()}.png`
             const args = ["grim"]
-            if (region) {
-                const [x, y, w, h] = region
-                args.push(
-                    "-g",
-                    `${Math.round(x + geo.x)},${Math.round(y + geo.y)} ${Math.round(w)}x${Math.round(h)}`,
-                )
-            }
+            if (geometry) args.push("-g", geometry)
             args.push(file)
             await execAsync(args)
             previewFn(file)
@@ -171,12 +184,19 @@ export default function Screenshot() {
 
     regionFn = () => {
         if (busy) return
-        if (win.visible) { win.visible = false; return }
+        if (win.visible) { done(null); return }
         active = false
         area.queue_draw()
         win.visible = true
     }
-    fullFn = () => { capture() }
+    shootFn = (geometry) => { capture(geometry) }
+    pickFn = () => new Promise((resolve) => {
+        picked?.(null)
+        picked = resolve
+        active = false
+        area.queue_draw()
+        win.visible = true
+    })
 
     return (
         <window
@@ -185,8 +205,8 @@ export default function Screenshot() {
                 const key = new Gtk.EventControllerKey()
                 key.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
                 key.connect("key-pressed", (_, keyval) => {
-                    if (keyval === Gdk.KEY_Escape) { win.visible = false; return true }
-                    if (keyval === Gdk.KEY_Return) { capture(); return true }
+                    if (keyval === Gdk.KEY_Escape) { done(null); return true }
+                    if (keyval === Gdk.KEY_Return) { done(undefined); return true }
                     return false
                 })
                 self.add_controller(key)
@@ -231,7 +251,7 @@ export default function Screenshot() {
                             area.queue_draw()
                             return
                         }
-                        capture(r)
+                        done(global(r))
                     })
                     self.add_controller(drag)
                 }}

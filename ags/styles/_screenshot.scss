@@ -14,3 +14,96 @@ window.Shot {
   margin-bottom: $spacing-2;
   border-radius: $radius-md;
 }
+
+// screenshot / record toolbar (screenshot/Toolbar.tsx): a glass pill, padding 6, gap 6
+.tb {
+  @include glass-panel(6px);
+  border-radius: $radius-lg;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
+
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+
+  button {
+    font-weight: normal;
+  }
+
+  .icon {
+    font-size: $font-size-4xl;
+  }
+}
+
+// segmented groups: 34px segments, radius 9, inside a card
+.tb-group {
+  padding: 3px;
+  border-radius: $radius-md;
+  background-color: $glass-card;
+}
+
+button.tb-seg {
+  @include interactive(9px);
+  min-height: 34px;
+  min-width: 34px;
+  // the glyph's side bearing adds ~2px: the mock's 14px inset
+  padding: 0 $spacing-3;
+  font-weight: 600;
+
+  .kind & {
+    padding: 0;
+  }
+
+  // mode: the active one is the on-state; photo / video: the selection colours
+  .mode &.on {
+    @include on-state;
+  }
+
+  .kind &.on {
+    background-color: $secondary-container;
+    color: $on-secondary-container;
+  }
+}
+
+.tb-sep {
+  min-width: 1px;
+  min-height: 22px;
+  margin: 0 $spacing-1;
+  background-color: $separator;
+}
+
+button.tb-btn {
+  @include interactive($radius-md);
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  color: $text-muted;
+
+  &.timer {
+    padding: 0 10px;
+    color: $text;
+
+    .icon {
+      color: $text-muted;
+    }
+  }
+
+  &.on {
+    color: $primary;
+  }
+
+  &:disabled {
+    color: $text-faint;
+  }
+}
+
+button.tb-capture {
+  @include on-state;
+  min-height: 40px;
+  padding: 0 $spacing-4;
+  border-radius: $radius-md;
+  font-size: $font-size-2xl;
+  font-weight: 700;
+}

@@ -1,11 +1,28 @@
-import { screenshotRegion } from "../../screenshot/Screenshot"
+import { Gtk } from "ags/gtk4"
 import Icon from "../../common/Icon"
+import { Motion, ENTER, onShow } from "../../common/motion"
+import Toolbar from "../../screenshot/Toolbar"
 
-// Opens the region picker; the screenshot toolbar (phase 5) will replace this action.
+// Opens the screenshot / record toolbar
 export default function ScreenshotBtn() {
+  let motion: Motion
+  let pop: Gtk.Popover
+
   return (
-    <button class="icon-btn" tooltipText="Screenshot" onClicked={() => screenshotRegion()}>
+    <menubutton class="shot-btn" tooltipText="Screenshot">
       <Icon name="screenshot_region" class="lg" />
-    </button>
+      <popover
+        class="qs-pop"
+        hasArrow={false}
+        $={(self: Gtk.Popover) => {
+          pop = self
+          onShow(self, motion, ENTER.popover)
+        }}
+      >
+        <Motion origin="top" $={(self) => (motion = self)}>
+          <Toolbar close={() => pop.popdown()} />
+        </Motion>
+      </popover>
+    </menubutton>
   )
 }

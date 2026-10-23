@@ -45,6 +45,7 @@ menubutton.cc-btn>button,
 menubutton.power>button,
 menubutton.battery>button,
 menubutton.sysmini>button,
+menubutton.shot-btn>button,
 .tray menubutton>button {
   @include interactive($radius-sm);
   padding: 0 $spacing-2;
@@ -65,6 +66,7 @@ menubutton.cc-btn.open>button {
 button.edge,
 button.icon-btn,
 menubutton.power>button,
+menubutton.shot-btn>button,
 .tray menubutton>button {
   padding: 0;
   min-width: $bar-item-h;
