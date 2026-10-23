@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..600,0..1,0&amp;display=block">
+<style>html{background:#0e0e12}body{margin:0;width:max-content;min-width:100%;background:#0e0e12;font-family:"SF Pro Text","Figtree",sans-serif;-webkit-font-smoothing:antialiased}a{color:#bcc2ff}a:hover{color:#dfe0ff}</style>
+</helmet>
+<div style="padding:56px 64px 24px;max-width:980px;color:#e4e1e9;display:flex;flex-direction:column;gap:10px">
+  <div style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.08em;color:#90909a;text-transform:uppercase">hypr-dotfiles / ags · 1920×1080</div>
+  <div style="font:700 32px/1.15 'Figtree',sans-serif">Frosted shell — bar and popovers</div>
+  <div style="font:400 14px/1.55 'Figtree',sans-serif;color:#c7c5d0;text-wrap:pretty">Original frosted-glass design, built on your existing tokens: matugen M3 colors from <span style="font-family:'JetBrains Mono',monospace;font-size:12px">colors.scss</span>, the 4px spacing grid, the 24px bar item, radii sm 8 / md 12 / lg 16, and the on-state rule (solid primary). Blur here stands in for Hyprland <span style="font-family:'JetBrains Mono',monospace;font-size:12px">layerrule blur</span>; tint = <span style="font-family:'JetBrains Mono',monospace;font-size:12px">$panel-bg</span> alpha. Use Tweaks to change the blur, tint and bar style.</div>
+</div>
+
+<sc-for list="{{ themes }}" as="th" hint-placeholder-count="2">
+<section id="{{ th.id }}" style="{{ th.vars }}">
+<div style="padding:40px 64px 64px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;align-items:baseline;gap:12px;color:#e4e1e9">
+  <span style="font:600 11px/1 'JetBrains Mono',monospace;padding:4px 8px;background:#e4e1e9;color:#131318;border-radius:4px">{{ th.badge }}</span>
+  <span style="font:600 15px/1 'Figtree',sans-serif;white-space:nowrap">{{ th.name }}</span>
+</div>
+
+<!-- DESKTOP -->
+<div style="position:relative;width:1920px;height:1080px;overflow:hidden;border-radius:10px;background:#02023a url('uploads/wallpaper-1792744337253-jmg1.jpg') center/cover;font-size:13px;color:var(--text)">
+
+  <!-- BAR -->
+  <div style="position:absolute;left:var(--barx);right:var(--barx);top:var(--bary);height:40px;box-sizing:border-box;padding:4px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;background:var(--bar);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:var(--barr);font-weight:600;font-variant-numeric:tabular-nums">
+    <div style="display:flex;align-items:center;gap:2px;min-width:0">
+      <div style="width:24px;height:24px;border-radius:8px;display:grid;place-items:center" style-hover="background:var(--hover)"><span style="font:400 17px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">apps</span></div>
+      <div style="width:1px;height:14px;background:var(--ov);margin:0 8px"></div>
+      <div style="display:flex;align-items:center;height:24px">
+        <sc-for list="{{ ws }}" as="w" hint-placeholder-count="6">
+          <div style="height:24px;padding:0 4px;display:flex;align-items:center"><div style="width:{{ w.w }};height:8px;border-radius:999px;background:{{ w.bg }};box-sizing:border-box;border:{{ w.border }}"></div></div>
+        </sc-for>
+      </div>
+      <div style="padding:0 8px 0 12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">kitty — ~/.config/ags</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <div style="height:24px;padding:0 8px;border-radius:8px;display:flex;align-items:center;background:var(--hover)">
+        <span style="font-weight:500;color:var(--muted)">Fri 23 Oct</span><span style="margin-left:8px">14:20</span>
+        <div style="width:1px;height:14px;background:var(--ov);margin:0 8px"></div>
+        <span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">notifications</span>
+        <span style="margin-left:6px;min-width:16px;height:16px;padding:0 5px;box-sizing:border-box;border-radius:999px;background:var(--primary);color:var(--onprimary);font-size:10px;font-weight:700;display:grid;place-items:center">3</span>
+      </div>
+      <div style="height:24px;padding:0 8px;border-radius:8px;display:flex;align-items:center;gap:8px" style-hover="background:var(--hover)">
+        <span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1;color:var(--primary)">graphic_eq</span>
+        <span>Says</span><span style="font-weight:500;color:var(--muted)">Nils Frahm</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:flex-end;gap:2px">
+      <div style="height:24px;padding:0 8px;border-radius:999px;display:flex;align-items:center;gap:6px;background:var(--errbg);color:var(--err)">
+        <div style="width:7px;height:7px;border-radius:999px;background:var(--err)"></div><span style="font-size:12px">00:42</span>
+      </div>
+      <div style="height:24px;padding:0 8px;border-radius:8px;display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px" style-hover="background:var(--hover)">
+        <span style="font:400 16px/1 'Material Symbols Rounded'">memory</span><span>12%</span>
+        <span style="font:400 16px/1 'Material Symbols Rounded';margin-left:4px">memory_alt</span><span>5.1G</span>
+      </div>
+      <div style="width:24px;height:24px;border-radius:8px;display:grid;place-items:center" style-hover="background:var(--hover)"><span style="font:400 17px/1 'Material Symbols Rounded'">screenshot_region</span></div>
+      <div style="height:24px;padding:0 8px;display:flex;align-items:center;gap:6px"><span style="font:400 17px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1;transform:rotate(90deg)">battery_5_bar</span><span>78%</span></div>
+      <div style="width:1px;height:14px;background:var(--ov);margin:0 8px"></div>
+      <div style="height:24px;padding:0 8px;border-radius:8px;display:flex;align-items:center;gap:6px;color:var(--primary)" style-hover="background:var(--hover)">
+        <div style="width:16px;height:16px;border-radius:999px;background:conic-gradient(var(--primary) 0 62%,var(--track) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px))"></div>
+        <span style="font-size:12px;color:var(--text)">09:24</span>
+      </div>
+      <div style="height:24px;padding:0 8px;border-radius:8px;display:flex;align-items:center;gap:6px;background:var(--hover)">
+        <span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1;color:var(--tertiary)">nightlight</span>
+        <span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">wifi</span>
+        <span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">bluetooth</span>
+        <span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">volume_up</span>
+      </div>
+      <div style="width:1px;height:14px;background:var(--ov);margin:0 8px"></div>
+      <div style="width:24px;height:24px;border-radius:8px;display:grid;place-items:center" style-hover="background:var(--hover)"><span style="font:400 17px/1 'Material Symbols Rounded'">power_settings_new</span></div>
+    </div>
+  </div>
+
+  <!-- CONTROL CENTER (open) -->
+  <div style="position:absolute;right:12px;top:56px;width:380px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:32px;height:32px;border-radius:999px;background:var(--primary);color:var(--onprimary);display:grid;place-items:center;font-weight:700">A</div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">aaraadhya</span><span style="font-size:11px;color:var(--muted)">up 3 h 12 min</span></div>
+      <div style="width:32px;height:32px;border-radius:999px;background:var(--card);display:grid;place-items:center" style-hover="background:var(--hover)"><span style="font:400 18px/1 'Material Symbols Rounded'">settings</span></div>
+      <div style="width:32px;height:32px;border-radius:999px;background:var(--card);display:grid;place-items:center"><span style="font:400 18px/1 'Material Symbols Rounded'">lock</span></div>
+      <div style="width:32px;height:32px;border-radius:999px;background:var(--card);display:grid;place-items:center"><span style="font:400 18px/1 'Material Symbols Rounded'">power_settings_new</span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div style="display:flex;align-items:center;border-radius:16px;background:var(--primary);color:var(--onprimary)">
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:10px 4px 10px 12px"><span style="font:400 20px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">wifi</span><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:600">Wi-Fi</span><span style="font-size:11px;opacity:.8">Home-5G</span></div></div>
+        <div style="padding:0 10px;align-self:stretch;display:grid;place-items:center;border-left:1px solid var(--onprimaryline)"><span style="font:400 18px/1 'Material Symbols Rounded'">chevron_right</span></div>
+      </div>
+      <div style="display:flex;align-items:center;border-radius:16px;background:var(--primary);color:var(--onprimary)">
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:10px 4px 10px 12px"><span style="font:400 20px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">bluetooth</span><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:600">Bluetooth</span><span style="font-size:11px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">WH-1000XM5</span></div></div>
+        <div style="padding:0 10px;align-self:stretch;display:grid;place-items:center;border-left:1px solid var(--onprimaryline)"><span style="font:400 18px/1 'Material Symbols Rounded'">chevron_right</span></div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="6">
+        <div style="padding:12px 10px;border-radius:16px;display:flex;flex-direction:column;align-items:flex-start;gap:10px;background:{{ t.bg }};color:{{ t.fg }}">
+          <span style="font:400 20px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">{{ t.icon }}</span>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600;font-size:12px">{{ t.label }}</span><span style="font-size:11px;opacity:.75">{{ t.sub }}</span></div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;padding:12px;border-radius:16px;background:var(--card)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">volume_up</span>
+        <div style="flex:1;height:8px;border-radius:999px;background:var(--track);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:64%;border-radius:999px;background:var(--primary)"></div><div style="position:absolute;left:calc(64% - 8px);top:-4px;width:16px;height:16px;border-radius:999px;background:var(--primary)"></div></div>
+        <span style="width:22px;text-align:right;font-size:12px;color:var(--muted)">64</span>
+        <span style="font:400 18px/1 'Material Symbols Rounded';color:var(--muted)">chevron_right</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">light_mode</span>
+        <div style="flex:1;height:8px;border-radius:999px;background:var(--track);position:relative"><div style="position:absolute;left:0;top:0;bottom:0;width:80%;border-radius:999px;background:var(--primary)"></div><div style="position:absolute;left:calc(80% - 8px);top:-4px;width:16px;height:16px;border-radius:999px;background:var(--primary)"></div></div>
+        <span style="width:22px;text-align:right;font-size:12px;color:var(--muted)">80</span>
+        <span style="width:18px"></span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:var(--card)">
+      <div style="width:44px;height:44px;flex:none;border-radius:10px;background:repeating-linear-gradient(135deg,var(--track) 0 6px,transparent 6px 12px);border:1px solid var(--hair)"></div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-weight:600">Says</span><span style="font-size:12px;color:var(--muted)">Nils Frahm · Spotify</span></div>
+      <span style="font:400 22px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1;color:var(--muted)">skip_previous</span>
+      <div style="width:34px;height:34px;border-radius:999px;background:var(--primary);color:var(--onprimary);display:grid;place-items:center"><span style="font:400 22px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">pause</span></div>
+      <span style="font:400 22px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1;color:var(--muted)">skip_next</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="3">
+        <div style="padding:10px 12px;border-radius:16px;background:var(--card);display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:11px;font-weight:600;color:var(--muted)">{{ s.name }}</span>
+          <span style="font-weight:600">{{ s.val }}</span>
+          <div style="height:18px;display:flex;align-items:flex-end;gap:2px">
+            <sc-for list="{{ s.bars }}" as="b" hint-placeholder-count="12"><div style="flex:1;height:{{ b }};border-radius:2px;background:var(--primary);opacity:.85"></div></sc-for>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+    <div style="display:flex;padding:4px;border-radius:16px;background:var(--card)">
+      <div style="flex:1;padding:8px 0;border-radius:12px;display:flex;justify-content:center;align-items:center;gap:8px;background:{{ th.segDarkBg }};color:{{ th.segDarkFg }}"><span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">dark_mode</span><span style="font-weight:600;font-size:12px">Dark</span></div>
+      <div style="flex:1;padding:8px 0;border-radius:12px;display:flex;justify-content:center;align-items:center;gap:8px;background:{{ th.segLightBg }};color:{{ th.segLightFg }}"><span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">light_mode</span><span style="font-weight:600;font-size:12px">Light</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;padding:2px 4px 0;font-size:12px;color:var(--muted)">
+      <span style="font:400 16px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1;transform:rotate(90deg)">battery_5_bar</span><span>78% · 3 h 12 min left</span><span style="flex:1"></span><span>Balanced</span>
+    </div>
+  </div>
+
+  <!-- OSD -->
+  <div style="position:absolute;left:835px;bottom:100px;width:250px;box-sizing:border-box;padding:10px 16px;display:flex;align-items:center;gap:12px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+    <span style="font:400 22px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">volume_up</span>
+    <div style="flex:1;height:6px;border-radius:999px;background:var(--track)"><div style="width:64%;height:6px;border-radius:999px;background:var(--primary)"></div></div>
+    <span style="font-weight:700;width:22px;text-align:right">64</span>
+  </div>
+</div>
+
+<!-- COMPONENT SHEET -->
+<div style="width:1920px;box-sizing:border-box;padding:48px;border-radius:10px;background:#02023a url('uploads/wallpaper-1792744337253-jmg1.jpg') center/cover;font-size:13px;color:var(--text);display:flex;flex-wrap:wrap;gap:40px 32px;align-items:flex-start">
+
+  <!-- Date menu -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Date menu · notifications + calendar</span>
+    <div style="display:flex;gap:16px;padding:16px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="width:330px;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+          <span style="font-size:15px;font-weight:700;flex:1">Notifications</span>
+          <div style="width:28px;height:28px;border-radius:999px;display:grid;place-items:center;color:var(--muted)" style-hover="background:var(--hover)"><span style="font:400 18px/1 'Material Symbols Rounded'">do_not_disturb_on</span></div>
+          <div style="padding:4px 12px;border-radius:8px;color:var(--primary);font-weight:600" style-hover="background:var(--hover)">Clear</div>
+        </div>
+        <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;padding:0 4px;gap:8px"><span style="font-size:12px;font-weight:600">{{ n.app }}</span><span style="font-size:11px;color:var(--faint);flex:1">{{ n.time }}</span><span style="font:400 16px/1 'Material Symbols Rounded';color:var(--muted)">close</span></div>
+            <div style="display:flex;gap:10px;padding:10px 12px;border-radius:12px;background:var(--card);box-shadow:{{ n.edge }}">
+              <div style="width:32px;height:32px;flex:none;border-radius:8px;background:var(--seccont);color:var(--onseccont);display:grid;place-items:center"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">{{ n.icon }}</span></div>
+              <div style="display:flex;flex-direction:column;gap:3px;min-width:0"><span style="font-weight:700">{{ n.summary }}</span><span style="color:var(--muted);line-height:1.4;text-wrap:pretty">{{ n.body }}</span></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="width:1px;background:var(--ov)"></div>
+      <div style="width:270px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:4px;padding:0 4px"><span style="font-size:12px;color:var(--muted);font-weight:500">Friday</span><span style="font-size:22px;font-weight:700">23 October 2026</span></div>
+        <div style="display:flex;align-items:center;padding:0 4px"><span style="font-weight:600;flex:1">October</span><span style="font:400 18px/1 'Material Symbols Rounded';color:var(--muted);padding:4px">chevron_left</span><span style="font:400 18px/1 'Material Symbols Rounded';color:var(--muted);padding:4px">chevron_right</span></div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px;text-align:center">
+          <sc-for list="{{ dow }}" as="d" hint-placeholder-count="7"><span style="font-size:11px;color:var(--muted);padding:4px 0">{{ d }}</span></sc-for>
+          <sc-for list="{{ days }}" as="d" hint-placeholder-count="35"><div style="display:grid;place-items:center;height:34px"><span style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:{{ d.fw }};color:{{ d.fg }};background:{{ d.bg }}">{{ d.n }}</span></div></sc-for>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--card)">
+          <div style="width:3px;align-self:stretch;border-radius:2px;background:var(--tertiary)"></div>
+          <div style="display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">Dotfiles review</span><span style="font-size:11px;color:var(--muted)">16:00 – 16:30</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pomodoro -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Pomodoro</span>
+    <div style="width:332px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center"><span style="font-weight:600;color:var(--muted);flex:1">Focus</span><span style="font-size:12px;color:var(--faint)">Session 3 of 4</span></div>
+      <div style="position:relative;width:150px;height:150px;align-self:center">
+        <div style="position:absolute;inset:0;border-radius:999px;background:conic-gradient(var(--primary) 0 62%,var(--track) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6.5px))"></div>
+        <div style="position:absolute;inset:0;display:grid;place-items:center;font-size:34px;font-weight:600;font-variant-numeric:tabular-nums">09:24</div>
+      </div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:10px">
+        <div style="width:38px;height:38px;border-radius:999px;background:var(--card);display:grid;place-items:center"><span style="font:400 20px/1 'Material Symbols Rounded'">replay</span></div>
+        <div style="width:52px;height:52px;border-radius:999px;background:var(--primary);color:var(--onprimary);display:grid;place-items:center"><span style="font:400 28px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">pause</span></div>
+        <div style="width:38px;height:38px;border-radius:999px;background:var(--card);display:grid;place-items:center"><span style="font:400 20px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">skip_next</span></div>
+      </div>
+      <div style="padding:8px 12px;border-radius:12px;background:var(--field)">Rewrite quick settings tiles</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;align-items:center;gap:6px"><span style="font-size:12px;color:var(--muted);flex:1">Today · 2 / 8 sessions</span><span style="font:400 15px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1;color:var(--primary)">local_fire_department</span><span style="font-weight:600">5</span><span style="font-size:12px;color:var(--muted)">days</span></div>
+        <div style="height:6px;border-radius:999px;background:var(--track)"><div style="width:25%;height:6px;border-radius:999px;background:var(--primary)"></div></div>
+        <div style="display:grid;grid-template-columns:repeat(18,1fr);grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;margin-top:8px">
+          <sc-for list="{{ heat }}" as="h" hint-placeholder-count="126"><div style="aspect-ratio:1;border-radius:2px;background:var(--primary);opacity:{{ h }}"></div></sc-for>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 12px">
+        <sc-for list="{{ steppers }}" as="s" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:4px"><span style="flex:1;font-size:12px;color:var(--muted)">{{ s.l }}</span><span style="width:22px;height:22px;border-radius:999px;background:var(--card);display:grid;place-items:center">−</span><span style="width:20px;text-align:center;font-size:12px;font-variant-numeric:tabular-nums">{{ s.v }}</span><span style="width:22px;height:22px;border-radius:999px;background:var(--card);display:grid;place-items:center">+</span></div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wi-Fi -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Wi-Fi</span>
+    <div style="width:340px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:4px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:15px;font-weight:700;flex:1">Wi-Fi</span><div style="width:40px;height:22px;border-radius:999px;background:var(--primary);position:relative"><div style="position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:999px;background:var(--onprimary)"></div></div></div>
+      <sc-for list="{{ wifi }}" as="r" hint-placeholder-count="5">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:{{ r.bg }};color:{{ r.fg }}" style-hover="background:var(--hover)">
+          <span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">{{ r.icon }}</span>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">{{ r.name }}</span><span style="font-size:11px;opacity:.75">{{ r.sub }}</span></div>
+          <span style="font:400 15px/1 'Material Symbols Rounded';opacity:.7">{{ r.lock }}</span>
+        </div>
+      </sc-for>
+      <div style="height:1px;background:var(--ov);margin:6px 4px"></div>
+      <div style="padding:8px 12px;border-radius:12px;color:var(--muted)" style-hover="background:var(--hover)">Network settings…</div>
+    </div>
+  </div>
+
+  <!-- Bluetooth -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Bluetooth</span>
+    <div style="width:340px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:4px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:15px;font-weight:700;flex:1">Bluetooth</span><div style="width:40px;height:22px;border-radius:999px;background:var(--primary);position:relative"><div style="position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:999px;background:var(--onprimary)"></div></div></div>
+      <sc-for list="{{ bt }}" as="r" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:{{ r.bg }};color:{{ r.fg }}">
+          <span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">{{ r.icon }}</span>
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:600">{{ r.name }}</span><span style="font-size:11px;opacity:.75">{{ r.sub }}</span></div>
+          <span style="font-size:12px;opacity:.8">{{ r.batt }}</span>
+        </div>
+      </sc-for>
+      <div style="height:1px;background:var(--ov);margin:6px 4px"></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;color:var(--muted)"><span style="font:400 16px/1 'Material Symbols Rounded'">bluetooth_searching</span>Scanning…</div>
+    </div>
+  </div>
+
+  <!-- Audio -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Audio · output, input, mixer</span>
+    <div style="width:340px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:4px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <span style="font-size:11px;font-weight:600;color:var(--muted);padding:0 4px 4px">Output</span>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--seccont);color:var(--onseccont)"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">headphones</span><span style="flex:1;font-weight:600">WH-1000XM5</span><span style="font:400 18px/1 'Material Symbols Rounded'">check</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">speaker</span><span style="flex:1;font-weight:600">Built-in Speakers</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">tv</span><span style="flex:1;font-weight:600">HDMI · LG UltraFine</span></div>
+      <span style="font-size:11px;font-weight:600;color:var(--muted);padding:10px 4px 4px">Input</span>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--seccont);color:var(--onseccont)"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">mic</span><span style="flex:1;font-weight:600">Built-in Microphone</span><span style="font:400 18px/1 'Material Symbols Rounded'">check</span></div>
+      <span style="font-size:11px;font-weight:600;color:var(--muted);padding:10px 4px 4px">Applications</span>
+      <sc-for list="{{ mixer }}" as="m" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:12px;padding:8px 12px">
+          <div style="width:24px;height:24px;border-radius:6px;background:var(--card);display:grid;place-items:center;font-size:11px;font-weight:700">{{ m.l }}</div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;font-weight:600">{{ m.name }}</span><div style="height:6px;border-radius:999px;background:var(--track)"><div style="width:{{ m.v }};height:6px;border-radius:999px;background:var(--primary)"></div></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Media -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Media player</span>
+    <div style="width:340px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="display:flex;gap:14px;align-items:center">
+        <div style="width:72px;height:72px;flex:none;border-radius:12px;background:repeating-linear-gradient(135deg,var(--track) 0 6px,transparent 6px 12px);border:1px solid var(--hair);display:grid;place-items:center;font:500 9px/1 'JetBrains Mono',monospace;color:var(--faint)">cover</div>
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:15px;font-weight:700">Says</span><span style="color:var(--muted)">Nils Frahm</span><span style="font-size:11px;color:var(--faint)">Spaces</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="height:4px;border-radius:999px;background:var(--track);position:relative"><div style="width:38%;height:4px;border-radius:999px;background:var(--primary)"></div><div style="position:absolute;left:calc(38% - 6px);top:-4px;width:12px;height:12px;border-radius:999px;background:var(--primary)"></div></div>
+        <div style="display:flex;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums"><span style="flex:1">3:21</span><span>8:49</span></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 6px">
+        <span style="font:400 20px/1 'Material Symbols Rounded';color:var(--muted)">shuffle</span>
+        <span style="font:400 28px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">skip_previous</span>
+        <div style="width:48px;height:48px;border-radius:999px;background:var(--primary);color:var(--onprimary);display:grid;place-items:center"><span style="font:400 28px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">pause</span></div>
+        <span style="font:400 28px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">skip_next</span>
+        <span style="font:400 20px/1 'Material Symbols Rounded';color:var(--primary)">repeat</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span style="padding:4px 12px;border-radius:999px;background:var(--primary);color:var(--onprimary);font-size:11px;font-weight:600">Spotify</span>
+        <span style="padding:4px 12px;border-radius:999px;background:var(--card);font-size:11px;font-weight:600">Firefox</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Battery -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Battery · power profile</span>
+    <div style="width:300px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:14px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:flex-end;gap:10px"><span style="font-size:32px;font-weight:700;line-height:1">78%</span><span style="color:var(--muted);padding-bottom:3px">3 h 12 min left</span></div>
+      <div style="height:8px;border-radius:999px;background:var(--track)"><div style="width:78%;height:8px;border-radius:999px;background:var(--primary)"></div></div>
+      <div style="display:flex;padding:4px;border-radius:14px;background:var(--card)">
+        <div style="flex:1;padding:8px 0;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">eco</span><span style="font-size:11px;font-weight:600">Saver</span></div>
+        <div style="flex:1;padding:8px 0;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--primary);color:var(--onprimary)"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">balance</span><span style="font-size:11px;font-weight:600">Balanced</span></div>
+        <div style="flex:1;padding:8px 0;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:4px"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">bolt</span><span style="font-size:11px;font-weight:600">Performance</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px"><span style="flex:1">Limit charge to 80%</span><div style="width:40px;height:22px;border-radius:999px;background:var(--track);position:relative"><div style="position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:999px;background:var(--faint)"></div></div></div>
+      <div style="display:flex;font-size:12px;color:var(--muted)"><span style="flex:1">Health 94% · 412 cycles</span><span>11.8 W</span></div>
+    </div>
+  </div>
+
+  <!-- System stats -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">System stats</span>
+    <div style="width:320px;box-sizing:border-box;padding:16px;display:flex;flex-direction:column;gap:10px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="padding:12px;border-radius:16px;background:var(--card);display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:baseline"><span style="font-size:11px;font-weight:600;color:var(--muted);flex:1">CPU · Ryzen 7 7840U</span><span style="font-weight:600">12%</span></div>
+        <div style="height:36px;display:flex;align-items:flex-end;gap:2px"><sc-for list="{{ cpuBars }}" as="b" hint-placeholder-count="32"><div style="flex:1;height:{{ b }};border-radius:2px;background:var(--primary)"></div></sc-for></div>
+      </div>
+      <sc-for list="{{ meters }}" as="m" hint-placeholder-count="3">
+        <div style="padding:10px 12px;border-radius:14px;background:var(--card);display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:baseline;gap:8px"><span style="font:400 16px/1 'Material Symbols Rounded';color:var(--muted)">{{ m.icon }}</span><span style="font-size:12px;font-weight:600;flex:1">{{ m.name }}</span><span style="font-size:12px;color:var(--muted)">{{ m.val }}</span></div>
+          <div style="height:6px;border-radius:999px;background:var(--track)"><div style="width:{{ m.pct }};height:6px;border-radius:999px;background:{{ m.color }}"></div></div>
+        </div>
+      </sc-for>
+      <div style="display:flex;flex-direction:column;gap:2px;padding:4px 4px 0;font-size:12px">
+        <sc-for list="{{ procs }}" as="p" hint-placeholder-count="3"><div style="display:flex;padding:3px 0"><span style="flex:1">{{ p.n }}</span><span style="color:var(--muted);width:48px;text-align:right">{{ p.c }}</span><span style="color:var(--muted);width:64px;text-align:right">{{ p.m }}</span></div></sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- Launcher -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">App launcher</span>
+    <div style="width:520px;box-sizing:border-box;padding:8px;display:flex;flex-direction:column;gap:8px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="height:46px;padding:0 14px;display:flex;align-items:center;gap:10px;border-radius:12px;background:var(--field)">
+        <span style="font:400 20px/1 'Material Symbols Rounded';color:var(--muted)">search</span>
+        <span style="font-size:15px;flex:1">fi<span style="display:inline-block;width:1.5px;height:17px;background:var(--primary);vertical-align:-3px;margin-left:1px"></span></span>
+        <span style="font:500 11px/1 'JetBrains Mono',monospace;color:var(--faint)">Super</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <sc-for list="{{ apps }}" as="a" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:12px;background:{{ a.bg }};color:{{ a.fg }}">
+            <div style="width:32px;height:32px;border-radius:9px;background:var(--card);border:1px solid var(--hair);display:grid;place-items:center"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">{{ a.icon }}</span></div>
+            <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-weight:700">{{ a.name }}</span><span style="font-size:12px;opacity:.75">{{ a.desc }}</span></div>
+            <span style="font:500 11px/1 'JetBrains Mono',monospace;opacity:.6">{{ a.key }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </div>
+
+  <!-- Power menu -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Power menu</span>
+    <div style="width:200px;box-sizing:border-box;padding:8px;display:flex;flex-direction:column;gap:2px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <sc-for list="{{ power }}" as="p" hint-placeholder-count="5">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:{{ p.bg }};color:{{ p.fg }}">
+          <span style="font:400 18px/1 'Material Symbols Rounded'">{{ p.icon }}</span><span style="flex:1">{{ p.label }}</span><span style="font:500 10px/1 'JetBrains Mono',monospace;opacity:.55">{{ p.key }}</span>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <!-- Screenshot toolbar -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">Screenshot / record</span>
+    <div style="display:flex;align-items:center;gap:6px;padding:6px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--card)">
+        <div style="height:34px;padding:0 12px;border-radius:9px;display:flex;align-items:center;gap:6px;background:var(--primary);color:var(--onprimary)"><span style="font:400 18px/1 'Material Symbols Rounded'">screenshot_region</span><span style="font-weight:600;font-size:12px">Region</span></div>
+        <div style="height:34px;padding:0 12px;border-radius:9px;display:flex;align-items:center;gap:6px"><span style="font:400 18px/1 'Material Symbols Rounded'">select_window</span><span style="font-weight:600;font-size:12px">Window</span></div>
+        <div style="height:34px;padding:0 12px;border-radius:9px;display:flex;align-items:center;gap:6px"><span style="font:400 18px/1 'Material Symbols Rounded'">desktop_windows</span><span style="font-weight:600;font-size:12px">Screen</span></div>
+      </div>
+      <div style="width:1px;height:20px;background:var(--ov);margin:0 4px"></div>
+      <div style="display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--card)">
+        <div style="width:36px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--seccont);color:var(--onseccont)"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">photo_camera</span></div>
+        <div style="width:36px;height:34px;border-radius:9px;display:grid;place-items:center"><span style="font:400 18px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">videocam</span></div>
+      </div>
+      <div style="width:36px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted)"><span style="font:400 18px/1 'Material Symbols Rounded'">mic_off</span></div>
+      <div style="height:34px;padding:0 10px;border-radius:9px;display:flex;align-items:center;gap:4px;color:var(--muted)"><span style="font:400 18px/1 'Material Symbols Rounded'">timer</span><span style="font-size:12px;font-weight:600">3s</span></div>
+      <div style="height:40px;padding:0 18px;border-radius:12px;display:flex;align-items:center;background:var(--primary);color:var(--onprimary);font-weight:700">Capture</div>
+    </div>
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase;margin-top:22px">Toast</span>
+    <div style="width:360px;box-sizing:border-box;padding:12px;display:flex;gap:12px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+      <div style="width:48px;height:48px;flex:none;border-radius:10px;background:repeating-linear-gradient(135deg,var(--track) 0 5px,transparent 5px 10px);border:1px solid var(--hair)"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:3px;min-width:0">
+        <div style="display:flex;gap:8px"><span style="font-size:11px;color:var(--muted);flex:1">Screenshot</span><span style="font-size:11px;color:var(--faint)">now</span></div>
+        <span style="font-weight:700">Saved to ~/Pictures/Screenshots</span>
+        <div style="display:flex;gap:6px;margin-top:6px"><span style="padding:4px 12px;border-radius:8px;background:var(--card);font-weight:600;font-size:12px">Edit</span><span style="padding:4px 12px;border-radius:8px;background:var(--card);font-weight:600;font-size:12px">Copy</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OSDs -->
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <span style="font:500 11px/1 'JetBrains Mono',monospace;letter-spacing:.06em;color:rgba(255,255,255,.85);text-transform:uppercase">OSD · volume, brightness, mute</span>
+    <sc-for list="{{ osds }}" as="o" hint-placeholder-count="3">
+      <div style="width:250px;box-sizing:border-box;padding:10px 16px;display:flex;align-items:center;gap:12px;background:var(--panel);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--hair);border-radius:16px;box-shadow:var(--shadow)">
+        <span style="font:400 22px/1 'Material Symbols Rounded';font-variation-settings:'FILL' 1">{{ o.icon }}</span>
+        <div style="flex:1;height:6px;border-radius:999px;background:var(--track)"><div style="width:{{ o.pct }};height:6px;border-radius:999px;background:{{ o.color }}"></div></div>
+        <span style="font-weight:700;width:22px;text-align:right">{{ o.v }}</span>
+      </div>
+    </sc-for>
+  </div>
+
+</div>
+</div>
+</section>
+</sc-for>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;blur&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:28,&quot;min&quot;:0,&quot;max&quot;:60,&quot;step&quot;:1,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Glass&quot;},&quot;tint&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:0.62,&quot;min&quot;:0.3,&quot;max&quot;:0.95,&quot;step&quot;:0.01,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Glass&quot;},&quot;barStyle&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;floating&quot;,&quot;full-width&quot;],&quot;default&quot;:&quot;floating&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Bar&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const blur = this.props.blur ?? 28;
+    const tint = this.props.tint ?? 0.62;
+    const full = (this.props.barStyle ?? 'floating') === 'full-width';
+    const rgba = (c, a) => `rgba(${c},${a})`;
+    const mk = (t) => ({
+      '--bar': rgba(t.surface, Math.max(0.15, tint - 0.12)),
+      '--panel': rgba(t.container, tint),
+      '--field': rgba(t.surface, 0.45),
+      '--card': t.card, '--track': t.track, '--hover': rgba(t.on, 0.08),
+      '--hair': t.hair, '--ov': t.ov, '--shadow': t.shadow,
+      '--text': t.text, '--muted': t.muted, '--faint': t.faint,
+      '--primary': t.primary, '--onprimary': t.onprimary, '--onprimaryline': t.onprimaryline,
+      '--seccont': t.seccont, '--onseccont': t.onseccont, '--tertiary': t.tertiary,
+      '--err': t.err, '--errbg': t.errbg,
+      '--blur': blur > 0 ? `blur(${blur}px) saturate(1.7)` : 'none',
+      '--barx': full ? '0px' : '12px', '--bary': full ? '0px' : '8px', '--barr': full ? '0px' : '12px',
+    });
+    const dark = {
+      surface: '19,19,24', container: '31,31,37', on: '228,225,233',
+      card: 'rgba(228,225,233,.075)', track: 'rgba(228,225,233,.14)',
+      hair: 'rgba(255,255,255,.10)', ov: 'rgba(199,197,208,.22)', shadow: '0 16px 48px rgba(0,0,10,.40)',
+      text: '#e4e1e9', muted: '#c7c5d0', faint: '#90909a',
+      primary: '#bcc2ff', onprimary: '#242b61', onprimaryline: 'rgba(36,43,97,.18)',
+      seccont: 'rgba(67,69,89,.85)', onseccont: '#e0e0f9', tertiary: '#e6bad6',
+      err: '#ffb4ab', errbg: 'rgba(255,180,171,.14)',
+    };
+    const light = {
+      surface: '251,248,255', container: '239,237,244', on: '27,27,33',
+      card: 'rgba(255,255,255,.55)', track: 'rgba(27,27,33,.10)',
+      hair: 'rgba(255,255,255,.65)', ov: 'rgba(70,70,79,.18)', shadow: '0 16px 48px rgba(0,0,30,.28)',
+      text: '#1b1b21', muted: '#46464f', faint: '#767680',
+      primary: '#535a92', onprimary: '#ffffff', onprimaryline: 'rgba(255,255,255,.22)',
+      seccont: 'rgba(224,224,249,.9)', onseccont: '#181a2c', tertiary: '#7d5470',
+      err: '#ba1a1a', errbg: 'rgba(186,26,26,.12)',
+    };
+    const themes = [
+      { id: 'dark', badge: 'A', name: 'Dark — Control Center open, volume OSD', vars: mk(dark), segDarkBg: 'var(--primary)', segDarkFg: 'var(--onprimary)', segLightBg: 'transparent', segLightFg: 'var(--text)' },
+      { id: 'light', badge: 'B', name: 'Light — same surfaces, matugen light scheme', vars: mk(light), segDarkBg: 'transparent', segDarkFg: 'var(--text)', segLightBg: 'var(--primary)', segLightFg: 'var(--onprimary)' },
+    ];
+    const ws = [
+      { s: 'occ' }, { s: 'active' }, { s: 'occ' }, { s: 'empty' }, { s: 'urgent' }, { s: 'empty' }, { s: 'special' },
+    ].map(({ s }) => ({
+      w: s === 'active' ? '26px' : s === 'special' ? '8px' : '8px',
+      bg: s === 'active' ? 'var(--primary)' : s === 'occ' ? 'var(--muted)' : s === 'urgent' ? 'var(--err)' : s === 'special' ? 'transparent' : 'var(--ov)',
+      border: s === 'special' ? '1.5px solid var(--primary)' : 'none',
+    }));
+    const on = (x) => x ? { bg: 'var(--primary)', fg: 'var(--onprimary)' } : { bg: 'var(--card)', fg: 'var(--text)' };
+    const tiles = [
+      ['nightlight', 'Night Light', '4000 K', true], ['do_not_disturb_on', 'Do Not Disturb', 'Off', false],
+      ['flight', 'Airplane', 'Off', false], ['mic_off', 'Mic Mute', 'Off', false],
+      ['screenshot_region', 'Screenshot', 'Region', false], ['radio_button_checked', 'Record', '00:42', true],
+    ].map(([icon, label, sub, o]) => ({ icon, label, sub, ...on(o) }));
+    const rnd = (n, seed, lo, hi) => Array.from({ length: n }, (_, i) => {
+      const v = (Math.sin(i * 1.7 + seed) * 0.5 + 0.5) * (Math.sin(i * 0.43 + seed * 2) * 0.35 + 0.65);
+      return Math.round(lo + v * (hi - lo)) + '%';
+    });
+    const stats = [
+      { name: 'CPU', val: '12%', bars: rnd(12, 1, 15, 70) },
+      { name: 'RAM', val: '5.1 G', bars: rnd(12, 3, 40, 60) },
+      { name: 'Temp', val: '54°', bars: rnd(12, 5, 35, 75) },
+    ];
+    const notifs = [
+      { app: 'Spotify', time: '2 min', icon: 'music_note', summary: 'Now playing', body: 'Says — Nils Frahm', edge: 'none' },
+      { app: 'Discord', time: '14 min', icon: 'forum', summary: 'kai in #ricing', body: 'that blur on the bar is so clean, what radius are you using?', edge: 'none' },
+      { app: 'pacman', time: '1 h', icon: 'warning', summary: 'Disk almost full', body: '/ has 4.2 GB free. Run paccache -r to clear the package cache.', edge: 'inset 2px 0 var(--err)' },
+    ];
+    const dow = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    const days = [];
+    [28, 29, 30].forEach((n) => days.push({ n, o: true }));
+    for (let n = 1; n <= 31; n++) days.push({ n });
+    days.push({ n: 1, o: true });
+    const daysV = days.map((d) => {
+      const today = !d.o && d.n === 23;
+      return { n: d.n, bg: today ? 'var(--primary)' : 'transparent', fg: today ? 'var(--onprimary)' : d.o ? 'var(--faint)' : 'var(--text)', fw: today ? 700 : 500 };
+    });
+    const sel = { bg: 'var(--seccont)', fg: 'var(--onseccont)' }, no = { bg: 'transparent', fg: 'var(--text)' };
+    const wifi = [
+      ['wifi', 'Home-5G', 'Connected · WPA3', 'lock', sel], ['wifi', 'Home-2.4G', 'Saved', 'lock', no],
+      ['network_wifi_3_bar', 'Café Lumen', 'Open', '', no], ['network_wifi_2_bar', 'DIRECT-HP-Printer', 'Secured', 'lock', no],
+      ['network_wifi_1_bar', 'Neighbour_Ext', 'Secured', 'lock', no],
+    ].map(([icon, name, sub, lock, s]) => ({ icon, name, sub, lock, ...s }));
+    const bt = [
+      ['headphones', 'WH-1000XM5', 'Connected', '82%', sel], ['keyboard', 'Keychron K3', 'Connected', '60%', sel],
+      ['mouse', 'MX Anywhere 3', 'Paired', '', no], ['phone_android', 'Pixel 8', 'Paired', '', no],
+    ].map(([icon, name, sub, batt, s]) => ({ icon, name, sub, batt, ...s }));
+    const mixer = [{ l: 'S', name: 'Spotify', v: '72%' }, { l: 'F', name: 'Firefox', v: '45%' }];
+    const meters = [
+      { icon: 'memory_alt', name: 'Memory', val: '5.1 / 16 GB', pct: '32%', color: 'var(--primary)' },
+      { icon: 'device_thermostat', name: 'Temperature', val: '54 °C', pct: '54%', color: 'var(--tertiary)' },
+      { icon: 'hard_drive', name: 'Disk /', val: '471 / 512 GB', pct: '92%', color: 'var(--err)' },
+    ];
+    const procs = [{ n: 'firefox', c: '6.2%', m: '1.8 G' }, { n: 'kitty', c: '1.1%', m: '210 M' }, { n: 'gjs (ags)', c: '0.8%', m: '164 M' }];
+    const apps = [
+      ['public', 'Firefox', 'Web browser', '↵', sel], ['folder', 'Files', 'Nautilus · file manager', '', no],
+      ['terminal', 'Fish shell', 'kitty — fish', '', no], ['tune', 'Firewall', 'firewall-config', '', no],
+      ['calculate', 'Find in calculator', '= fi', '', no],
+    ].map(([icon, name, desc, key, s]) => ({ icon, name, desc, key, ...s }));
+    const power = [
+      ['lock', 'Lock', 'L', no], ['bedtime', 'Suspend', 'S', no], ['logout', 'Log out', 'E', no],
+      ['restart_alt', 'Restart', 'R', { bg: 'var(--errbg)', fg: 'var(--err)' }], ['power_settings_new', 'Shut down', 'P', no],
+    ].map(([icon, label, key, s]) => ({ icon, label, key, ...s }));
+    const osds = [
+      { icon: 'volume_up', pct: '64%', v: '64', color: 'var(--primary)' },
+      { icon: 'light_mode', pct: '80%', v: '80', color: 'var(--primary)' },
+      { icon: 'volume_off', pct: '64%', v: '—', color: 'var(--faint)' },
+    ];
+    const heat = Array.from({ length: 126 }, (_, i) => {
+      if (i > 117) return 0.06;
+      const v = Math.sin(i * 2.3) * Math.sin(i * 0.7 + 1);
+      return v < -0.2 ? 0.1 : (0.25 + Math.abs(v) * 0.75).toFixed(2);
+    });
+    const steppers = [{ l: 'Focus', v: 25 }, { l: 'Short', v: 5 }, { l: 'Long', v: 15 }, { l: 'Goal', v: 8 }];
+    return { heat, steppers, themes, ws, tiles, stats, notifs, dow, days: daysV, wifi, bt, mixer, meters, procs, apps, power, osds, cpuBars: rnd(32, 2, 8, 90) };
+  }
+}
+</script>
+</body>
+</html>
