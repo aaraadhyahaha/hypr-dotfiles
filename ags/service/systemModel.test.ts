@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { cpuSample, cpuUsage, memUsage, tempFraction } from "./systemModel.ts"
+import { cpuSample, cpuUsage, memUsage, memUsedGb, tempFraction } from "./systemModel.ts"
 
 test("cpuSample sums the first eight counters and counts iowait as idle", () => {
   assert.deepEqual(cpuSample("cpu  100 0 50 800 50 0 0 0 9 9\ncpu0 1 2 3"), { total: 1000, idle: 850 })
@@ -20,6 +20,12 @@ test("memUsage matches free's used/total (total minus available)", () => {
   const meminfo = "MemTotal:       16000000 kB\nMemFree:         2000000 kB\nMemAvailable:    4000000 kB\n"
   assert.equal(memUsage(meminfo), 0.75)
   assert.equal(memUsage(""), 0)
+})
+
+test("memUsedGb is total minus available in GiB, one decimal", () => {
+  const meminfo = "MemTotal:       16777216 kB\nMemAvailable:   11534336 kB\n"
+  assert.equal(memUsedGb(meminfo), "5.0G")
+  assert.equal(memUsedGb(""), "0.0G")
 })
 
 test("tempFraction takes the hottest zone, with 100°C as 1", () => {

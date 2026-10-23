@@ -1,7 +1,7 @@
 import GLib from "gi://GLib"
 import Gio from "gi://Gio"
 import { createPoll } from "ags/time"
-import { cpuSample, cpuUsage, memUsage, tempFraction } from "./systemModel"
+import { cpuSample, cpuUsage, memUsage, memUsedGb, tempFraction } from "./systemModel"
 
 // Shared 0..1 readings for Quick Settings and the desktop System widget. Polls only run while
 // something subscribes, and read /proc and /sys in-process instead of spawning a command.
@@ -24,6 +24,7 @@ export const cpu = createPoll(0, 1000, () => {
 })
 
 export const ram = createPoll(0, 2000, () => memUsage(read("/proc/meminfo")))
+export const ramGb = createPoll("0.0G", 2000, () => memUsedGb(read("/proc/meminfo")))
 
 // used / (used + available), like df's Use%
 export const disk = createPoll(0, 30000, () => {

@@ -21,6 +21,12 @@ export function memUsage(meminfo: string) {
   return total ? (total - kb("MemAvailable")) / total : 0
 }
 
+// "5.1G": used memory in GiB for the bar's mini readout
+export function memUsedGb(meminfo: string) {
+  const kb = (key: string) => Number(meminfo.match(new RegExp(`^${key}:\\s+(\\d+)`, "m"))?.[1] ?? 0)
+  return `${((kb("MemTotal") - kb("MemAvailable")) / 1048576).toFixed(1)}G`
+}
+
 // millidegrees from each thermal zone; 1 = 100°C
 export function tempFraction(zones: string[]) {
   const t = zones.map((z) => Number(z.trim())).filter(Number.isFinite)

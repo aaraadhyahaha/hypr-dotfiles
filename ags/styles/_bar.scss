@@ -20,8 +20,9 @@ window.Bar.editing {
 .body {
   margin: $spacing-2 $spacing-3 0 $spacing-3;
   padding: $spacing-1;
-  min-height: 32px;
+  min-height: 30px; // 32 content inside the 1px hairline
   background: $bar-bg;
+  border: 1px solid $glass-hairline;
   border-radius: $radius-md;
 
   image {
@@ -116,16 +117,46 @@ button.ws-btn {
   }
 }
 
-// clock
+// clock: date then time
 .date {
-  margin-left: $spacing-2;
+  margin-right: $spacing-2;
   font-weight: 500;
   color: $text-muted;
 }
 
 // battery (icon → text gap)
 .battery label {
-  margin-left: $spacing-2;
+  margin-left: 6px;
+}
+
+// cpu / ram readout
+.sysmini {
+  padding: 0 $spacing-2;
+  font-size: $font-size-base;
+  color: $text-muted;
+
+  .glyph {
+    font-size: $font-size-base;
+  }
+}
+
+// recording indicator
+button.recording {
+  @include flat-button;
+  min-height: $bar-item-h;
+  padding: 0 $spacing-2;
+  border-radius: $radius-full;
+  background-color: rgba($error, 0.14);
+  color: $error;
+  font-size: $font-size-base;
+
+  .rec-dot {
+    min-width: 7px;
+    min-height: 7px;
+    border-radius: $radius-full;
+    background-color: $error;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
 }
 
 .battery.low {

@@ -11,6 +11,9 @@ import Tray from "./modules/Tray"
 import Battery from "./modules/Battery"
 import Caffeine from "./modules/Caffeine"
 import Power from "./modules/Power"
+import Recording from "./modules/Recording"
+import SysMini from "./modules/SysMini"
+import ScreenshotBtn from "./modules/ScreenshotBtn"
 import QuickSettings from "./quicksettings/QuickSettings"
 import { editing } from "../desktop/state"
 
@@ -37,17 +40,20 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
           <Workspaces />
           <WindowTitle />
         </box>
-        <box $type="center">
+        <box $type="center" spacing={4}>
           <DateMenu />
           <Media />
         </box>
-        <box $type="end" class="end">
-          <Tray />
+        <box $type="end" class="end" spacing={2}>
+          <Recording />
+          <SysMini />
+          <ScreenshotBtn />
           <Battery />
           <Sep />
           <PomodoroPill />
           <QuickSettings />
           <Sep />
+          <Tray />
           <Caffeine />
           <Power />
         </box>
