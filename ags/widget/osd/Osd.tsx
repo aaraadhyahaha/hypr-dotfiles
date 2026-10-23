@@ -8,9 +8,10 @@ import GLib from "gi://GLib"
 import AstalWp from "gi://AstalWp"
 import { ledEvents, type Leds } from "./model"
 
+// Material Symbols names (filled), see widget/common/Icon.tsx
 const G = {
-  mute: "\uf6a9", low: "\uf027", high: "\uf028", sun: "\uf185",
-  mic: "\uf130", micOff: "\uf131", lock: "\uf023", unlock: "\uf09c", kbd: "\uf11c",
+  mute: "volume_off", low: "volume_down", high: "volume_up", sun: "light_mode",
+  mic: "mic", micOff: "mic_off", lock: "lock", unlock: "lock_open", kbd: "keyboard",
 }
 
 // first /sys/class/leds/<name> whose name ends with `suffix`, or null on machines without one
@@ -66,7 +67,8 @@ export default function Osd() {
   const show = (glyph: string, value: number, dim = false) => {
     value = Math.max(0, Math.min(1, value))
     icon.label = glyph
-    pct.label = `${Math.round(value * 100)}%`
+    // muted: the level stays visible but greyed, the value reads as a dash
+    pct.label = dim ? "—" : `${Math.round(value * 100)}`
     dim ? card.add_css_class("dim") : card.remove_css_class("dim")
     bar.visible = true
     pct.xalign = 1
@@ -171,9 +173,9 @@ export default function Osd() {
     >
       <Motion $={(self) => (motion = self)}>
         <box $={(self) => (card = self)} class="osd-card">
-          <label $={(self) => (icon = self)} class="osd-icon" />
+          <label $={(self) => (icon = self)} class="icon fill osd-icon" />
           <Gtk.ProgressBar $={(self) => (bar = self)} class="osd-bar" hexpand valign={Gtk.Align.CENTER} />
-          <label $={(self) => (pct = self)} class="osd-pct" widthChars={4} xalign={1} />
+          <label $={(self) => (pct = self)} class="osd-pct" widthChars={3} xalign={1} />
         </box>
       </Motion>
     </window>

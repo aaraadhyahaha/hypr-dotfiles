@@ -6,36 +6,48 @@ window.Osd {
   background: transparent;
 }
 
+// OSD (osd/Osd.tsx): 250px, padding 10px 16px · 22px icon · 6px track · value 700
 .osd-card {
-  @include panel(0);
-  padding: $spacing-2 $spacing-4;
+  @include glass-panel(0);
+  padding: 10px $spacing-4;
   margin-bottom: 100px;
-  min-width: 250px;
+  min-width: 250px - 2 * $spacing-4 - 2px;
+  font-size: $font-size-lg;
+  // no shadow room around the glass: it would blur into a halo
+  box-shadow: none;
+
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
 }
 
 .osd-icon {
-  font-family: $font-icon;
-  font-size: $font-size-5xl;
-  min-width: 24px;
-  margin-right: $spacing-3;
+  font-size: 22px;
+  min-width: 22px;
+  // the symbol font's line box is ~27px at 22px (line-height doesn't shrink it):
+  // trim it so the card holds the mock's 42px
+  margin: -3px $spacing-3 -3px 0;
 }
 
 .osd-pct {
-  font-size: $font-size-lg;
+  font-size: $font-size-2xl;
   font-weight: 700;
-  margin-left: $spacing-3;
+  font-feature-settings: "tnum";
+  margin-left: $spacing-2;
 }
 
-// text mode: a message where the bar and percentage would be
+// text mode: a message where the bar and value would be
 .osd-card.text .osd-pct {
   margin-left: 0;
+  font-size: $font-size-lg;
   font-weight: 600;
 }
 
 .osd-bar {
-  @include track(6px);
+  @include glass-track(6px);
 }
 
+// muted: the fill turns to outline and the value to a dash
 .osd-card.dim .osd-bar progress {
   background-color: $outline;
 }
