@@ -1,3 +1,4 @@
+@use "sass:color";
 @use "../colors" as *;
 @use "tokens" as *;
 @use "mixins" as *;
@@ -76,5 +77,164 @@ button.switch {
     .knob {
       background-color: $on-primary;
     }
+  }
+}
+
+// Wi-Fi / Bluetooth / Audio panels (quicksettings/Panel.tsx): 340px, rows 8px 12px
+.pnl {
+  @include glass-panel($spacing-4);
+  min-width: 340px - 2 * $spacing-4 - 2px;
+  // the mock's 13px body, not the 11pt system font
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // SF Pro's line box is taller than the mock's (Figtree at line-height normal ≈ 1.2):
+  // pin it so rows land at the mock's height
+  label:not(.icon) {
+    line-height: 1.2em;
+  }
+
+  // same reason as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
+
+  button {
+    font-weight: normal;
+  }
+}
+
+.pnl-head {
+  margin-bottom: $spacing-2;
+}
+
+.pnl-title {
+  font-size: $font-size-2xl;
+  font-weight: 700;
+}
+
+.pnl-section {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-muted;
+  padding: 10px $spacing-1 $spacing-1;
+
+  &.first {
+    padding-top: 0;
+  }
+}
+
+button.pnl-row {
+  @include interactive($radius-md);
+  padding: $spacing-2 $spacing-3;
+
+  .pnl-row-icon {
+    font-size: $font-size-4xl;
+  }
+
+  .pnl-row-title {
+    font-weight: 600;
+  }
+
+  .pnl-row-sub {
+    font-size: $font-size-sm;
+    opacity: 0.75;
+  }
+
+  .pnl-row-end {
+    font-size: $font-size-base;
+    opacity: 0.8;
+  }
+
+  .pnl-row-end-icon {
+    font-size: 15px;
+    opacity: 0.7;
+  }
+
+  .pnl-row-check {
+    font-size: $font-size-4xl;
+  }
+
+  &.selected {
+    background-color: $secondary-container;
+    color: $on-secondary-container;
+
+    &:hover {
+      background-color: color.mix($on-secondary-container, $secondary-container, $state-hover * 100%);
+    }
+
+    &:active {
+      background-color: color.mix($on-secondary-container, $secondary-container, $state-pressed * 100%);
+    }
+  }
+}
+
+// muted trailing action: "Network settings…", "Scanning…"
+button.pnl-link {
+  color: $text-muted;
+
+  .pnl-link-icon {
+    font-size: $font-size-3xl;
+  }
+}
+
+.pnl-sep {
+  min-height: 1px;
+  margin: 6px $spacing-1;
+  background-color: $separator;
+}
+
+.pnl-empty {
+  padding: $spacing-2 $spacing-3;
+  color: $text-muted;
+}
+
+entry.pnl-field {
+  @include glass-field;
+  min-height: 32px;
+  margin: 0 $spacing-1 $spacing-1;
+  padding: 0 $spacing-3;
+}
+
+// audio mixer: 24px app tile · name / 6px volume track
+.pnl-app {
+  padding: $spacing-2 $spacing-3;
+}
+
+.pnl-app-tile {
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 6px;
+  background-color: $glass-card;
+  font-size: $font-size-sm;
+  font-weight: 700;
+}
+
+.pnl-app-name {
+  font-size: $font-size-base;
+  font-weight: 600;
+}
+
+scale.pnl-app-vol {
+  padding: 0;
+  margin: 0;
+
+  trough {
+    min-height: 6px;
+    border-radius: $radius-full;
+    background-color: $glass-track;
+  }
+
+  highlight {
+    border-radius: $radius-full;
+    background-color: $primary;
+  }
+
+  // the mock draws no knob: the whole track is the handle
+  slider {
+    min-width: 0;
+    min-height: 6px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
   }
 }

@@ -5,8 +5,9 @@ import AstalNetwork from "gi://AstalNetwork?version=0.1"
 import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
 import Icon from "../../common/Icon"
 import { wifiIcon, btIcon } from "../../common/icons"
+import { setPage } from "./cc"
 
-// one split button: the main part toggles, the chevron opens the panel (phase 4)
+// one split button: the main part toggles, the chevron opens its panel
 function Half({ icon, title, sub, on, onToggle, onChevron }: {
   icon: Accessor<string>
   title: string
@@ -59,6 +60,7 @@ function Wifi() {
       sub={sub}
       on={enabled}
       onToggle={() => (wifi.enabled = !wifi.enabled)}
+      onChevron={() => setPage("wifi")}
     />
   )
 }
@@ -82,6 +84,7 @@ function Bluetooth() {
       sub={sub}
       on={powered}
       onToggle={() => bt.toggle()}
+      onChevron={() => setPage("bt")}
     />
   )
 }

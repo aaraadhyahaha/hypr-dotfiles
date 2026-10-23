@@ -12,6 +12,11 @@ export const setPopover = (p: Gtk.Popover) => (pop = p)
 export const closeCC = () => pop?.popdown()
 export const toggleCC = () => (pop?.visible ? pop.popdown() : pop?.popup())
 
+// the popover shows the Control Center or one of its panels (a chevron swaps them);
+// closing always returns to the Control Center
+export type Page = "cc" | "wifi" | "bt" | "audio"
+export const [page, setPage] = createState<Page>("cc")
+
 // shell out, resolving "" on failure: a missing tool shouldn't throw into the UI
 // (execAsync throws synchronously when the binary doesn't exist)
 export async function run(cmd: string | string[]) {

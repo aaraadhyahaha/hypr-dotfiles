@@ -1,11 +1,11 @@
 import { Gtk } from "ags/gtk4"
 import { Accessor, createBinding, createState, onCleanup } from "ags"
 import AstalWp from "gi://AstalWp?version=0.1"
-import { open, run } from "./cc"
+import { open, run, setPage } from "./cc"
 import Icon from "../../common/Icon"
 import { volumeIcon } from "../../common/icons"
 
-// icon · 0..1 scale · value 0..100 · optional chevron (opens a panel in phase 4)
+// icon · 0..1 scale · value 0..100 · optional chevron (opens a panel)
 function SliderRow({ icon, value, onChange, onChevron }: {
   icon: string | Accessor<string>
   value: Accessor<number>
@@ -55,7 +55,7 @@ function Volume() {
         speaker.volume = v
         if (speaker.mute && v > 0) speaker.mute = false
       }}
-      onChevron={() => {}}
+      onChevron={() => setPage("audio")}
     />
   )
 }
