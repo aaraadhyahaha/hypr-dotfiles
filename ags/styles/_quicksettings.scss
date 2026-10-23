@@ -2,101 +2,91 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
-.qs {
-  @include panel($spacing-4);
-  min-width: 360px;
+// Control Center (widget/bar/quicksettings). 380px panel, 12px between sections.
+
+// bar pill: night light shows only while on
+.cc-pill-night {
+  color: $tertiary;
 }
 
-.qs-title {
+.cc {
+  @include glass-panel($spacing-4);
+  min-width: 346px; // 380 − padding − hairline
+  font-weight: normal;
+  // no shadow: Hyprland blurs a popup's whole surface (ignore_alpha doesn't reach popups),
+  // so any room made for a shadow shows up as a blurred halo around the panel
+  box-shadow: none;
+}
+
+.cc-name {
   font-weight: 600;
-  font-size: $font-size-2xl;
-  margin-bottom: $spacing-2;
 }
 
-.qs-name {
-  font-weight: 600;
-}
-
-.qs-sub {
+.cc-sub {
   font-size: $font-size-sm;
   color: $text-muted;
 }
 
-// sliders (match the OSD bar)
-.qs-slider {
-  margin-bottom: $spacing-3;
-
-  image {
-    margin-right: $spacing-3;
-  }
-
-  scale {
-    min-height: $spacing-5;
-  }
-
-  trough {
-    min-height: $spacing-2;
-    border-radius: $radius-full;
-    background: $track-bg;
-  }
-
-  highlight {
-    border-radius: $radius-full;
-    background: $primary;
-  }
-
-  slider {
-    min-width: $spacing-4;
-    min-height: $spacing-4;
-    margin: -$spacing-1 0;
-    border-radius: $radius-full;
-    border: none;
-    box-shadow: none;
-    background: $primary;
-  }
+.cc-icon {
+  -gtk-icon-size: $font-size-5xl;
 }
 
-// toggle tiles
-.qs-tiles {
-  margin: $spacing-2 0 $spacing-3 0;
-}
-
-button.qs-tile {
-  @include tile($radius-lg);
-  padding: $spacing-3;
-  margin: $spacing-1;
-
-  image {
-    margin-right: $spacing-2;
-  }
-
-  &.on {
-    @include on-state;
-  }
-}
-
-// wifi/bt and audio pairs
-.qs-pair {
-  margin-bottom: $spacing-1;
-}
-
-.qs-half {
-  margin: $spacing-1;
+// translucent card inside the panel
+.cc-card {
   border-radius: $radius-lg;
-  background: $card-bg;
+  background-color: $glass-card;
+}
+
+// header: avatar · name / uptime · settings, lock, power
+.cc-avatar {
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: $radius-full;
+  background-color: $primary;
+  color: $on-primary;
+  font-weight: 700;
+}
+
+button.cc-round {
+  @include glass-tile($radius-full);
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+
+  image {
+    -gtk-icon-size: $font-size-4xl;
+  }
+}
+
+// wi-fi / bluetooth split buttons
+.cc-half {
+  border-radius: $radius-lg;
+  background-color: $glass-card;
   transition: $transition;
 
   button {
     @include interactive($radius-lg);
-    padding: $spacing-2 $spacing-3;
   }
 
-  image {
-    margin-right: $spacing-2;
+  button.cc-half-main {
+    padding: 10px $spacing-1 10px $spacing-3;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  button.cc-half-chev {
+    padding: 0 10px;
+    border-left: 1px solid $separator;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+
+    image {
+      -gtk-icon-size: $font-size-4xl;
+    }
   }
 
   &.on {
-    background: $on-bg;
+    background-color: $on-bg;
     color: $on-fg;
 
     label,
@@ -104,8 +94,12 @@ button.qs-tile {
       color: $on-fg;
     }
 
-    .qs-sub {
+    .cc-sub {
       color: rgba($on-fg, 0.8);
+    }
+
+    button.cc-half-chev {
+      border-left-color: rgba($on-fg, 0.18);
     }
 
     button:hover {
@@ -118,51 +112,19 @@ button.qs-tile {
   }
 }
 
-.qs-half-chev {
-  padding: 0 $spacing-2;
+// 3×2 toggle tiles
+button.cc-tile {
+  @include glass-tile($radius-lg);
+  padding: $spacing-3 10px;
 
-  image {
-    margin-right: 0;
-  }
-}
-
-.qs-half button.qs-half-chev {
-  padding: $spacing-2;
-}
-
-// expandable lists (wifi networks, bt devices, audio endpoints)
-.qs-list {
-  margin: $spacing-2 $spacing-1 $spacing-1 $spacing-1;
-}
-
-button.qs-item {
-  @include interactive($radius-md);
-  padding: $spacing-2 $spacing-3;
-
-  image {
-    margin-right: $spacing-2;
+  .cc-tile-label {
+    font-size: $font-size-base;
+    font-weight: 600;
   }
 
-  &.active {
-    background-color: $secondary-container;
-    color: $on-secondary-container;
-  }
-}
-
-// dark / light segmented control
-.qs-mode {
-  margin: $spacing-2 $spacing-1 $spacing-3 $spacing-1;
-  padding: $spacing-1;
-  border-radius: $radius-lg;
-  background: $card-bg;
-}
-
-button.qs-seg {
-  @include interactive($radius-md);
-  padding: $spacing-2 0;
-
-  .glyph {
-    margin-right: $spacing-2;
+  .cc-sub {
+    color: inherit;
+    opacity: 0.75;
   }
 
   &.on {
@@ -170,54 +132,150 @@ button.qs-seg {
   }
 }
 
-// accent swatches
-.qs-accents {
-  margin: $spacing-2 $spacing-1 $spacing-3 $spacing-1;
+// volume / brightness
+.cc-sliders {
+  padding: $spacing-3;
 }
 
-button.qs-sw {
+.cc-slider {
+  .cc-slider-icon {
+    -gtk-icon-size: $font-size-4xl;
+  }
+
+  scale {
+    padding: 0;
+    min-height: $spacing-4;
+  }
+
+  trough {
+    min-height: $spacing-2;
+    border-radius: $radius-full;
+    background-color: $glass-track;
+  }
+
+  highlight {
+    border-radius: $radius-full;
+    background-color: $primary;
+  }
+
+  slider {
+    min-width: $spacing-4;
+    min-height: $spacing-4;
+    margin: -$spacing-1 0;
+    border: none;
+    border-radius: $radius-full;
+    box-shadow: none;
+    background-color: $primary;
+  }
+
+  .cc-slider-val {
+    min-width: 22px;
+    font-size: $font-size-base;
+    color: $text-muted;
+  }
+
+  .cc-slider-chev {
+    min-width: $font-size-4xl;
+  }
+
+  button.cc-slider-chev {
+    @include interactive($radius-full);
+    padding: 0;
+    color: $text-muted;
+
+    image {
+      -gtk-icon-size: $font-size-4xl;
+    }
+  }
+}
+
+// media mini: cover · title / artist · player · prev, play, next
+.cc-media {
+  padding: 10px;
+}
+
+.cc-cover {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: $radius-md - 2px;
+  background-color: $glass-track;
+}
+
+.cc-cover-fallback {
+  -gtk-icon-size: $font-size-5xl;
+  color: $text-muted;
+}
+
+.cc-media-artist {
+  font-size: $font-size-base;
+  color: $text-muted;
+}
+
+button.cc-media-btn {
+  @include interactive($radius-full);
+  padding: $spacing-1;
+  color: $text-muted;
+
+  image {
+    -gtk-icon-size: 22px;
+  }
+}
+
+button.cc-media-play {
   @include flat-button;
-  min-width: 22px;
-  min-height: 22px;
+  @include on-state;
+  min-width: 34px;
+  min-height: 34px;
   padding: 0;
-  margin-left: $spacing-3;
   border-radius: $radius-full;
-  border: 2px solid transparent;
   transition: $transition;
 
-  &:hover {
-    border-color: $outline;
-  }
-
-  &.on {
-    border-color: $on-surface;
-    box-shadow: 0 0 0 2px $primary;
+  image {
+    -gtk-icon-size: 22px;
   }
 }
 
-// resource stats
-.qs-stats {
-  margin-top: $spacing-1;
+// cpu / ram / temp with a 12-bar sparkline
+.cc-stat {
+  padding: 10px $spacing-3;
 }
 
-.qs-stat {
-  margin: $spacing-1;
-  padding: $spacing-3;
-  border-radius: $radius-lg;
-  background: $card-bg;
-}
-
-.qs-stat-name {
+.cc-stat-name {
   font-size: $font-size-sm;
   font-weight: 600;
   color: $text-muted;
 }
 
-.qs-stat-val {
+.cc-stat-val {
   font-weight: 600;
 }
 
-.qs-graph {
-  margin-top: $spacing-2;
-  color: $primary;
+.cc-spark-bar {
+  min-height: 2px;
+  border-radius: 2px;
+  background-color: $primary;
+  opacity: 0.85;
+}
+
+// dark / light segmented control
+.cc-mode {
+  padding: $spacing-1;
+}
+
+button.cc-seg {
+  @include interactive($radius-md);
+  padding: $spacing-2 0;
+  font-size: $font-size-base;
+  font-weight: 600;
+
+  &.on {
+    @include on-state;
+  }
+}
+
+// battery · time left · power profile
+.cc-footer {
+  padding: 2px $spacing-1 0;
+  font-size: $font-size-base;
+  color: $text-muted;
 }

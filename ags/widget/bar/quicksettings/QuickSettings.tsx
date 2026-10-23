@@ -1,28 +1,30 @@
 import { Gtk } from "ags/gtk4"
-import { createBinding, createState } from "ags"
-import { Motion, ENTER, onShow } from "../../common/motion"
+import { createBinding } from "ags"
 import AstalNetwork from "gi://AstalNetwork?version=0.1"
 import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
 import AstalWp from "gi://AstalWp?version=0.1"
-import VolumeSlider from "./VolumeSlider"
-import BrightnessSlider from "./BrightnessSlider"
+import { Motion, ENTER, onShow } from "../../common/motion"
+import { setOpen, setPopover, nightOn, NIGHT_ICON } from "./cc"
+import Header from "./Header"
+import Pair from "./Pair"
 import Tiles from "./Tiles"
-import NetPair from "./NetPair"
-import AudioPair from "./AudioPair"
+import Sliders from "./Sliders"
+import MediaMini from "./MediaMini"
+import Stats from "./Stats"
 import ThemeMode from "./ThemeMode"
-import Accents from "./Accents"
-import Resources from "./Resources"
+import Footer from "./Footer"
 
+// bar pill (night light · wifi · bluetooth · volume; scroll = volume, middle-click = mute)
+// and the Control Center popover
 export default function QuickSettings() {
   const wifi = AstalNetwork.get_default().wifi
   const bt = AstalBluetooth.get_default()
   const speaker = AstalWp.get_default()!.audio.defaultSpeaker
-  const [open, setOpen] = createState(false)
   let motion: Motion
 
   return (
-    <menubutton class="qs-btn">
-      <box class="qs-pill" spacing={4}>
+    <menubutton class="cc-btn">
+      <box class="cc-pill" spacing={6}>
         <Gtk.EventControllerScroll
           flags={Gtk.EventControllerScrollFlags.VERTICAL}
           onScroll={(_, _dx, dy) => {
@@ -30,6 +32,7 @@ export default function QuickSettings() {
           }}
         />
         <Gtk.GestureClick button={2} onPressed={() => (speaker.mute = !speaker.mute)} />
+        <image class="cc-pill-night" iconName={NIGHT_ICON} visible={nightOn} />
         {wifi && <image iconName={createBinding(wifi, "iconName")} />}
         <image
           iconName={createBinding(bt, "isPowered").as((p) =>
@@ -42,21 +45,21 @@ export default function QuickSettings() {
         class="qs-pop"
         hasArrow={false}
         $={(self) => {
+          setPopover(self)
           self.connect("notify::visible", () => setOpen(self.visible))
           onShow(self, motion, ENTER.popover)
         }}
       >
         <Motion origin="top" $={(self) => (motion = self)}>
-          <box class="qs" orientation={Gtk.Orientation.VERTICAL}>
-            <label class="qs-title" xalign={0} label="Quick settings" />
-            <VolumeSlider />
-            <BrightnessSlider />
+          <box class="cc" orientation={Gtk.Orientation.VERTICAL} spacing={12}>
+            <Header />
+            <Pair />
             <Tiles />
-            <NetPair />
-            <AudioPair />
+            <Sliders />
+            <MediaMini />
+            <Stats />
             <ThemeMode />
-            <Accents active={open} />
-            <Resources active={open} />
+            <Footer />
           </box>
         </Motion>
       </popover>

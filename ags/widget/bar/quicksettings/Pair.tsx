@@ -1,90 +1,94 @@
 import { Gtk } from "ags/gtk4"
-import { Accessor, createState } from "ags"
-import { Motion, ENTER } from "../../common/motion"
-import Pango from "gi://Pango?version=1.0"
+import { Accessor, createBinding, createComputed, createState } from "ags"
+import Pango from "gi://Pango"
+import AstalNetwork from "gi://AstalNetwork?version=0.1"
+import AstalBluetooth from "gi://AstalBluetooth?version=0.1"
 
-export interface Half {
-  icon: string | Accessor<string>
+// one split button: the main part toggles, the chevron opens the panel (phase 4)
+function Half({ icon, title, sub, on, onToggle, onChevron }: {
+  icon: Accessor<string>
   title: string
-  subtitle: Accessor<string>
-  active?: Accessor<boolean>
-  onToggle?: () => void
-  onExpand?: () => void
-  list: any
-}
-
-function PairTile({ h, expanded, onChev }: {
-  h: Half
-  expanded: Accessor<boolean>
-  onChev: () => void
+  sub: Accessor<string>
+  on: Accessor<boolean>
+  onToggle: () => void
+  onChevron?: () => void
 }) {
   return (
-    <box
-      class={h.active ? h.active.as((a) => (a ? "qs-half on" : "qs-half")) : "qs-half"}
-      hexpand
-    >
-      <button
-        class="qs-half-main"
-        hexpand
-        onClicked={() => (h.onToggle ? h.onToggle() : onChev())}
-      >
-        <box>
-          <image iconName={h.icon} />
-          <box orientation={Gtk.Orientation.VERTICAL} valign={Gtk.Align.CENTER} hexpand>
-            <label class="qs-name" xalign={0} label={h.title} />
+    <box class={on.as((o) => (o ? "cc-half on" : "cc-half"))} hexpand>
+      <button class="cc-half-main" hexpand onClicked={onToggle}>
+        <box spacing={10}>
+          <image class="cc-icon" iconName={icon} />
+          <box orientation={Gtk.Orientation.VERTICAL} valign={Gtk.Align.CENTER} spacing={2}>
+            <label class="cc-name" xalign={0} label={title} />
             <label
-              class="qs-sub"
+              class="cc-sub"
               xalign={0}
-              maxWidthChars={10}
+              maxWidthChars={12}
               ellipsize={Pango.EllipsizeMode.END}
-              label={h.subtitle}
+              label={sub}
             />
           </box>
         </box>
       </button>
-      <button class="qs-half-chev" onClicked={onChev}>
-        <image
-          iconName={expanded.as((e) => (e ? "pan-up-symbolic" : "pan-down-symbolic"))}
-        />
+      <button class="cc-half-chev" onClicked={() => onChevron?.()}>
+        <image iconName="pan-end-symbolic" />
       </button>
     </box>
   )
 }
 
-// The list takes its space at once and its content settles in. Animating the height
-// instead would resize the popover's surface every frame, which is what jitters.
-function Expand({ show, children }: { show: Accessor<boolean>; children?: any }) {
+function Wifi() {
+  const wifi = AstalNetwork.get_default().wifi
+  if (!wifi) {
+    const [off] = createState(false)
+    const [icon] = createState("network-wireless-disabled-symbolic")
+    const [sub] = createState("Unavailable")
+    return <Half icon={icon} title="Wi-Fi" sub={sub} on={off} onToggle={() => {}} />
+  }
+
+  const enabled = createBinding(wifi, "enabled")
+  const ssid = createBinding(wifi, "ssid")
+  const sub = createComputed(() => (!enabled() ? "Off" : ssid() || "Not connected"))
+
   return (
-    <Motion
-      visible={show}
-      $={(self) =>
-        self.connect("notify::visible", () => {
-          if (self.visible) self.animate(ENTER.content)
-        })
-      }
-    >
-      {children}
-    </Motion>
+    <Half
+      icon={createBinding(wifi, "iconName")}
+      title="Wi-Fi"
+      sub={sub}
+      on={enabled}
+      onToggle={() => (wifi.enabled = !wifi.enabled)}
+    />
   )
 }
 
-export default function Pair({ a, b }: { a: Half; b: Half }) {
-  const [open, setOpen] = createState("")
-
-  const flip = (k: string, h: Half) => {
-    const next = open.get() === k ? "" : k
-    setOpen(next)
-    if (next) h.onExpand?.()
-  }
+function Bluetooth() {
+  const bt = AstalBluetooth.get_default()
+  const powered = createBinding(bt, "isPowered")
+  const connected = createBinding(bt, "isConnected")
+  const devices = createBinding(bt, "devices")
+  const sub = createComputed(() => {
+    if (!powered()) return "Off"
+    if (!connected()) return "Not connected"
+    const d = devices().find((d) => d.connected)
+    return d?.alias || d?.name || "Connected"
+  })
 
   return (
-    <box class="qs-pair" orientation={Gtk.Orientation.VERTICAL}>
-      <box homogeneous>
-        <PairTile h={a} expanded={open.as((o) => o === "a")} onChev={() => flip("a", a)} />
-        <PairTile h={b} expanded={open.as((o) => o === "b")} onChev={() => flip("b", b)} />
-      </box>
-      <Expand show={open.as((o) => o === "a")}>{a.list}</Expand>
-      <Expand show={open.as((o) => o === "b")}>{b.list}</Expand>
+    <Half
+      icon={powered.as((p) => (p ? "bluetooth-active-symbolic" : "bluetooth-disabled-symbolic"))}
+      title="Bluetooth"
+      sub={sub}
+      on={powered}
+      onToggle={() => bt.toggle()}
+    />
+  )
+}
+
+export default function Pair() {
+  return (
+    <box class="cc-pair" homogeneous spacing={8}>
+      <Wifi />
+      <Bluetooth />
     </box>
   )
 }

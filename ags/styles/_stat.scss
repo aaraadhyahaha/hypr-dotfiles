@@ -1,0 +1,27 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+// resource stat card + sparkline (quicksettings/Stat.tsx), used by the desktop System widget
+
+.qs-stat {
+  margin: $spacing-1;
+  padding: $spacing-3;
+  border-radius: $radius-lg;
+  background: $card-bg;
+}
+
+.qs-stat-name {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $text-muted;
+}
+
+.qs-stat-val {
+  font-weight: 600;
+}
+
+.qs-graph {
+  margin-top: $spacing-2;
+  color: $primary;
+}

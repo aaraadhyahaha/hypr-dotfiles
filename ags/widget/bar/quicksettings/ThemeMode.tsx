@@ -2,35 +2,29 @@ import { Gtk } from "ags/gtk4"
 import { execAsync } from "ags/process"
 import { themeMode, setThemeMode } from "./theme"
 
-export default function ThemeMode() {
-  const choose = (m: string) => {
-    setThemeMode(m)
-    execAsync([
-      "sh", "-c",
-      `echo ${m} > ~/.cache/theme_mode && ~/.config/hypr/scripts/theme-apply.sh`,
-    ])
-  }
+function choose(m: string) {
+  setThemeMode(m)
+  execAsync(["sh", "-c", `echo ${m} > ~/.cache/theme_mode && ~/.config/hypr/scripts/theme-apply.sh`])
+}
 
+function Segment({ mode, icon, label }: { mode: string; icon: string; label: string }) {
+  // anything but "light" counts as dark, as theme-apply.sh does
+  const on = themeMode.as((m) => (m === "light") === (mode === "light"))
   return (
-    <box class="qs-mode" homogeneous>
-      <button
-        class={themeMode.as((m) => (m === "light" ? "qs-seg" : "qs-seg on"))}
-        onClicked={() => choose("dark")}
-      >
-        <box halign={Gtk.Align.CENTER}>
-          <label class="glyph" label={"\uf186"} />
-          <label label="Dark" />
-        </box>
-      </button>
-      <button
-        class={themeMode.as((m) => (m === "light" ? "qs-seg on" : "qs-seg"))}
-        onClicked={() => choose("light")}
-      >
-        <box halign={Gtk.Align.CENTER}>
-          <label class="glyph" label={"\uf185"} />
-          <label label="Light" />
-        </box>
-      </button>
+    <button class={on.as((o) => (o ? "cc-seg on" : "cc-seg"))} onClicked={() => choose(mode)}>
+      <box halign={Gtk.Align.CENTER} spacing={8}>
+        <image iconName={icon} />
+        <label label={label} />
+      </box>
+    </button>
+  )
+}
+
+export default function ThemeMode() {
+  return (
+    <box class="cc-card cc-mode" homogeneous>
+      <Segment mode="dark" icon="weather-clear-night-symbolic" label="Dark" />
+      <Segment mode="light" icon="weather-clear-symbolic" label="Light" />
     </box>
   )
 }
