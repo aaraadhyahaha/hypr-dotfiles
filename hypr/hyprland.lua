@@ -71,6 +71,9 @@ hl.env("XCURSOR_SIZE", "20")
 hl.env("XCURSOR_SIZE", "20")
 hl.env("HYPRCURSOR_SIZE", "20")
 
+-- GTK 4.24 sends an empty ext-background-effect blur region, which makes Hyprland skip window blur.
+-- Hyprland also exports this to systemd/D-Bus, so D-Bus-activated apps (Nautilus, Papers) get it too.
+hl.env("GDK_WAYLAND_DISABLE", "ext_background_effect_manager_v1")
 
 -----------------------
 ----- PERMISSIONS -----
