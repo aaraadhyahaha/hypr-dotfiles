@@ -19,7 +19,9 @@
   color: $text-muted;
 }
 
+// sized in Clipboard.tsx (TW×TH); the picture inside is an overlay, so it can't grow this
 .clip-thumb {
   border-radius: $radius-sm;
   border: 1px solid $glass-hairline;
+  background-color: $glass-card;
 }
