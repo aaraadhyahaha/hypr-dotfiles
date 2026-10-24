@@ -75,7 +75,7 @@ export default function Clipboard() {
                     .then(() => pic.set_filename(path)).catch(console.error)
                 row.append(pic)
             } else {
-                const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, hexpand: false })
+                const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, hexpand: false, homogeneous: true })
                 tile.add_css_class("lnch-tile")
                 const g = new Gtk.Label({ label: "\uf0ea", halign: Gtk.Align.CENTER, valign: Gtk.Align.CENTER })
                 g.add_css_class("icon")

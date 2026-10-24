@@ -55,7 +55,7 @@ export default function Files() {
 
             const row = new Gtk.Box({ spacing: 10 })
             row.add_css_class("row")
-            const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, hexpand: false })
+            const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, hexpand: false, homogeneous: true })
             tile.add_css_class("lnch-tile")
             const icon = new Gtk.Image({ gicon, pixelSize: 18, halign: Gtk.Align.CENTER, valign: Gtk.Align.CENTER })
             icon.add_css_class("icon")
