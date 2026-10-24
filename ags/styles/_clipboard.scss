@@ -2,22 +2,24 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
-window.Clip {
-  background: transparent;
+// card, field (.ffsearch) and rows: _launcher.scss
+
+.clip-header {
+  padding: $spacing-1 $spacing-1 $spacing-2;
 }
 
-.window-clip-header {
-  padding: $spacing-2 $spacing-4;
-  border-bottom: 1px solid $outline-variant;
-}
-
-.window-clip-title {
-  font-size: $font-size-3xl;
-  font-weight: 600;
+.clip-title {
+  font-size: $font-size-2xl;
+  font-weight: 700;
   color: $text;
 }
 
+.clip-count {
+  font-size: $font-size-sm;
+  color: $text-muted;
+}
+
 .clip-thumb {
-  margin-right: $spacing-3;
-  border-radius: $radius-md;
+  border-radius: $radius-sm;
+  border: 1px solid $glass-hairline;
 }

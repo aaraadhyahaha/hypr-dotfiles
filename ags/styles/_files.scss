@@ -2,14 +2,4 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
-window.Files {
-  background: transparent;
-}
-
-entry.ffsearch {
-  @include field;
-  min-height: $spacing-8;
-  padding: 0 $spacing-3;
-  margin-bottom: $spacing-2;
-  font-size: $font-size-2xl;
-}
+// card, field (.ffsearch) and rows: _launcher.scss

@@ -32,6 +32,7 @@ export default function Clipboard() {
     let list: Gtk.Box
     let entry: Gtk.Entry
     let status: Gtk.Label
+    let count: Gtk.Label
     let all: Item[] = []
     let results: Item[] = []
     let rows: Gtk.Box[] = []
@@ -55,7 +56,7 @@ export default function Clipboard() {
         while ((c = list.get_first_child())) list.remove(c)
         rows = []
         results.forEach((it, i) => {
-            const row = new Gtk.Box()
+            const row = new Gtk.Box({ spacing: 10 })
             row.add_css_class("row")
             row.set_vexpand(false)
 
@@ -74,19 +75,22 @@ export default function Clipboard() {
                     .then(() => pic.set_filename(path)).catch(console.error)
                 row.append(pic)
             } else {
-                const g = new Gtk.Label({ label: "\uf0ea" })
+                const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, hexpand: false })
+                tile.add_css_class("lnch-tile")
+                const g = new Gtk.Label({ label: "\uf0ea", halign: Gtk.Align.CENTER, valign: Gtk.Align.CENTER })
                 g.add_css_class("icon")
                 g.add_css_class("glyph")
-                g.set_vexpand(false)
-                row.append(g)
+                tile.append(g)
+                row.append(tile)
             }
 
             const name = new Gtk.Label({
                 label: it.image
                     ? "Image · " + it.text.replace(/^\[\[ binary data |\s*\]\]$/g, "")
                     : it.text,
-                xalign: 0, valign: Gtk.Align.CENTER,
-                maxWidthChars: 56, ellipsize: Pango.EllipsizeMode.END,
+                xalign: 0, valign: Gtk.Align.CENTER, hexpand: true,
+                // tiny natural width: hexpand fills the row, the card stays 520px
+                singleLineMode: true, widthChars: 1, maxWidthChars: 1, ellipsize: Pango.EllipsizeMode.END,
             })
             name.add_css_class("name")
             name.set_vexpand(false)
@@ -108,13 +112,14 @@ export default function Clipboard() {
     const filter = (text: string) => {
         const q = text.trim().toLowerCase()
         results = all
-            .filter((it) => !q || (it.image ? "image " : "") + it.text.toLowerCase() !== "" &&
-                ((it.image ? "image " : "") + it.text).toLowerCase().includes(q))
+            .filter((it) => !q || ((it.image ? "image " : "") + it.text).toLowerCase().includes(q))
             .slice(0, MAX)
         render()
         status.label = results.length ? "" : "Nothing copied yet"
         status.visible = !results.length
     }
+
+    const setCount = () => (count.label = `${all.length} ${all.length === 1 ? "item" : "items"}`)
 
     const close = () => (win.visible = false) // instant; Hyprland fades the last frame
 
@@ -124,8 +129,8 @@ export default function Clipboard() {
         win.visible = true
         entry.grab_focus()
         execAsync(["cliphist", "list"])
-            .then((out) => { all = parse(out); filter(entry.text) })
-            .catch(() => { all = []; filter("") })
+            .then((out) => { all = parse(out); setCount(); filter(entry.text) })
+            .catch(() => { all = []; setCount(); filter("") })
     }
 
     toggleFn = () => (win.visible ? close() : open())
@@ -157,24 +162,21 @@ export default function Clipboard() {
         >
             <Motion $={(self) => (motion = self)}>
                 <box class="card" orientation={Gtk.Orientation.VERTICAL}>
-                    <box class="window-clip-header">
-                        <label class="window-clip-title" label="Clipboard History" />
+                    <box class="clip-header">
+                        <label class="clip-title" label="Clipboard" hexpand xalign={0} />
+                        <label $={(self) => (count = self)} class="clip-count" />
                     </box>
-                    <entry
-                        $={(self) => (entry = self)}
-                        class="ffsearch"
-                        placeholderText="Search clipboard..."
-                        onNotifyText={(self) => filter(self.text)}
-                        onActivate={() => pick(results[sel])}
-                    />
-                    <scrolledwindow
-                        propagateNaturalHeight
-                        propagateNaturalWidth
-                        maxContentHeight={600}
-                        hscrollbarPolicy={Gtk.PolicyType.NEVER}
-                    >
-                        <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
-                    </scrolledwindow>
+                    <box class="ffsearch" spacing={10}>
+                        <label class="ffsearch-icon glyph" label={"\uf002"} />
+                        <entry
+                            $={(self) => (entry = self)}
+                            hexpand
+                            placeholderText="Search clipboard…"
+                            onNotifyText={(self) => filter(self.text)}
+                            onActivate={() => pick(results[sel])}
+                        />
+                    </box>
+                    <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
                     <label $={(self) => (status = self)} class="empty" />
                 </box>
             </Motion>

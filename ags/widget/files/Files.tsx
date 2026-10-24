@@ -21,6 +21,7 @@ export default function Files() {
     let list: Gtk.Box
     let entry: Gtk.Entry
     let status: Gtk.Label
+    let hint: Gtk.Label
     let results: string[] = []
     let rows: Gtk.Box[] = []
     let sel = 0
@@ -52,24 +53,27 @@ export default function Files() {
             const [ct] = Gio.content_type_guess(path, null)
             const gicon = Gio.content_type_get_icon(isDir ? "inode/directory" : ct)
 
-            const row = new Gtk.Box()
+            const row = new Gtk.Box({ spacing: 10 })
             row.add_css_class("row")
-            const icon = new Gtk.Image({ gicon, pixelSize: 28 })
+            const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, hexpand: false })
+            tile.add_css_class("lnch-tile")
+            const icon = new Gtk.Image({ gicon, pixelSize: 18, halign: Gtk.Align.CENTER, valign: Gtk.Align.CENTER })
             icon.add_css_class("icon")
-            const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER })
+            tile.append(icon)
+            const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER, hexpand: true })
             const name = new Gtk.Label({
                 label: GLib.path_get_basename(path), xalign: 0,
-                maxWidthChars: 52, ellipsize: Pango.EllipsizeMode.END,
+                widthChars: 1, maxWidthChars: 1, ellipsize: Pango.EllipsizeMode.END,
             })
             name.add_css_class("name")
             const desc = new Gtk.Label({
                 label: GLib.path_get_dirname(path).replace(HOME, "~"), xalign: 0,
-                maxWidthChars: 56, ellipsize: Pango.EllipsizeMode.MIDDLE,
+                widthChars: 1, maxWidthChars: 1, ellipsize: Pango.EllipsizeMode.MIDDLE,
             })
             desc.add_css_class("desc")
             text.append(name)
             text.append(desc)
-            row.append(icon)
+            row.append(tile)
             row.append(text)
 
             const click = new Gtk.GestureClick()
@@ -89,6 +93,7 @@ export default function Files() {
         const q = entry.text.trim()
         status.label = results.length ? "" : !q ? "Type to search files" : indexing ? "Indexing..." : "No matches"
         status.visible = !results.length
+        hint.visible = indexing
     }
 
     const search = (text: string) => {
@@ -120,6 +125,7 @@ export default function Files() {
     const reindex = () => {
         if (indexing) return
         indexing = true
+        hint.visible = true
         execAsync([
             "sh", "-c",
             'fd --type f --type d -E node_modules . "$HOME" > "$1.tmp" && mv "$1.tmp" "$1"',
@@ -128,6 +134,7 @@ export default function Files() {
             .catch(console.error)
             .finally(() => {
                 indexing = false
+                hint.visible = false
                 if (win.visible) search(entry.text)
             })
     }
@@ -174,13 +181,17 @@ export default function Files() {
         >
             <Motion $={(self) => (motion = self)}>
                 <box class="card" orientation={Gtk.Orientation.VERTICAL}>
-                    <entry
-                        $={(self) => (entry = self)}
-                        class="ffsearch"
-                        placeholderText="Search files..."
-                        onNotifyText={(self) => search(self.text)}
-                        onActivate={() => openPath(results[sel])}
-                    />
+                    <box class="ffsearch" spacing={10}>
+                        <label class="ffsearch-icon glyph" label={"\uf002"} />
+                        <entry
+                            $={(self) => (entry = self)}
+                            hexpand
+                            placeholderText="Search files…"
+                            onNotifyText={(self) => search(self.text)}
+                            onActivate={() => openPath(results[sel])}
+                        />
+                        <label $={(self) => (hint = self)} class="lnch-hint" label="Indexing…" visible={false} />
+                    </box>
                     <box $={(self) => (list = self)} class="list" orientation={Gtk.Orientation.VERTICAL} />
                     <label $={(self) => (status = self)} class="empty" />
                 </box>
