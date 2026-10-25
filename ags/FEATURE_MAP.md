@@ -3,7 +3,7 @@
 A lookup table from **feature → the exact files (and line ranges) that implement it**.
 Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files need to be opened.
 
-- Line ranges are anchors as of 2026-10-24; they drift as code changes, so treat them as "start reading here".
+- Line ranges are anchors as of 2026-10-25; they drift as code changes, so treat them as "start reading here".
 - Every feature that has pure logic keeps it in a `*Model.ts` / `model.ts` / `*.ts` next to it, with a `*.test.ts` (`npm test`, Node's test runner). Change the model → run its test.
 - Visual rules (tokens, motion, on-state, gotchas) live in `DESIGN.md`. This file only says *where* things are.
 
@@ -22,7 +22,9 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `svc.system` | CPU/RAM/disk/temp polls | `service/system.ts` |
 | `svc.recorder` | wf-recorder screen recording | `service/recorder.ts` |
 | `svc.pomodoro` | Pomodoro timer engine + history | `service/pomodoro.ts` |
-| `svc.fx` | fx focus-tracker data | `service/fx.ts` |
+| `svc.fx` | fx focus-tracker data + CLI verbs | `service/fx.ts` |
+| `svc.timer` | Countdown timers (launcher `timer 10m`) | `service/timer.ts` |
+| `svc.hypr` | Lua-first `hyprctl dispatch` helper | `service/hypr.ts` |
 | `bar.shell` | Bar window & item order | `widget/bar/Bar.tsx` |
 | `bar.workspaces` | Workspace pips, scratchpad, urgency | `bar/modules/Workspaces.tsx` |
 | `bar.wintitle` | Focused window title | `bar/modules/WindowTitle.tsx` |
@@ -40,7 +42,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `notif.row` | One notification row (shared) | `widget/notifications/NotifRow.tsx` |
 | `toasts` | Notification popups | `widget/toasts/Toasts.tsx` |
 | `osd` | Volume/brightness/mic/caps/kbd OSD | `widget/osd/Osd.tsx` |
-| `launcher` | App launcher, calc/emoji/shell/web modes | `widget/launcher/Launcher.tsx`, `model.ts` |
+| `launcher` | App launcher, quick actions, calc/emoji/shell/web/fx/files modes | `widget/launcher/Launcher.tsx`, `model.ts` |
 | `files` | Fuzzy file search | `widget/files/Files.tsx` |
 | `clipboard` | Clipboard history | `widget/clipboard/Clipboard.tsx` |
 | `wallpapers` | Wallpaper picker | `widget/wallpapers/Wallpapers.tsx` |
@@ -54,16 +56,16 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 ## 1. Core
 
 ### `core.app` — startup & IPC
-- **Code:** `app.ts` (57 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` creates every window once (Desktop, one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview).
+- **Code:** `app.ts` (62 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` calls `restoreTimers()` (`svc.timer`) and creates every window once (Desktop, one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview).
 - **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`.
 - **Pattern for a new IPC command:** export `toggleX` from the widget (module-level `let toggleFn`), add one `if` in `app.ts`, bind it in `ext.hypr`.
 - **Also:** `style.scss` (only `@use` lines — add new partials here), `env.d.ts` (module typings), `tsconfig.json`, `package.json` (`npm test`).
 
 ### `core.motion` — animation system
 - **Code:** `widget/common/motion.ts`
-  - `MOTION` durations L14 · `bezier`/`EASE` L18–52 · `Pose`/`Anim` types L54–66
-  - `Motion` GObject class (paint-time transform) L83–175
-  - `ENTER` presets L177–195 · `settle`/`LIFT` L197–200 · `LEAVE` L202–207 · `onShow()` L209–214
+  - `MOTION` durations L14 · `LAYER_GONE` (wait out a layer window's fade before capturing) L18 · `bezier`/`EASE` L20–58 · `Pose`/`Anim` types L60–72
+  - `Motion` GObject class (paint-time transform) L90–179
+  - `ENTER` presets L182–202 · `settle`/`LIFT` L204–206 · `LEAVE` L208–214 · `onShow()` L216
 - **Mirror:** SCSS `$dur*`/`$ease*` in `styles/_tokens.scss`. Rules: `DESIGN.md › Motion`.
 - **Touches:** every popover and layer window.
 
@@ -97,15 +99,25 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Code:** `service/pomodoro.ts` — singleton `pomodoro`.
   - Types L3–41 · persistence `load`/`save` L52–76 (`~/.local/share/pomodoro/data.json`)
   - getters `settings`/`days`/`today`/`streak`/`fraction` L116–145
-  - controls `toggle`/`start`/`pause`/`reset`/`skip`/`setTask`/`setSettings` L148–195
-  - `persist`/`restore` (survives restarts via wall-clock end) L197–234
-  - `tick` L251–265 · `advance` (phase change, day stats, notify-send + paplay) L267–298
-- **Used by:** `bar.pomodoro`.
+  - controls `toggle`/`start`/`pause`/`reset`/`skip`/`setTask` L148–188 · `startFocus(mins?, task?)` (one-off focus length, used by the launcher) L189 · `setSettings` L200
+  - `persist`/`restore` (survives restarts via wall-clock end) L209–246
+  - `tick` L263–277 · `advance` (phase change, day stats, notify-send + paplay) L279–310
+- **Used by:** `bar.pomodoro`, `launcher` (`pomo`/`focus` actions, fx Alt+Enter).
 
-### `svc.fx` — fx focus tracker (read-only)
-- **Code:** `service/fx.ts` — `fxStatus`, `fxProblem` state; `useFx()` starts a 60s refresh + `Gio.FileMonitor` on `~/.local/share/fx/fx.db*`. Runs `~/.local/bin/fx status --json` (or `fx` on PATH).
+### `svc.fx` — fx focus tracker (fx owns every DB write)
+- **Code:** `service/fx.ts` — `fxStatus`, `fxProblem` state; `refreshFx()` L29 runs `~/.local/bin/fx status --json` (or `fx` on PATH); `useFx()` L61 starts a 60s refresh + `Gio.FileMonitor` on `~/.local/share/fx/fx.db*`; `fxRun(...args)` L91 runs an fx verb (failure → notification, resolves null); `openFx()` L108 focuses fx's kitty window via `svc.hypr`, else starts `kitty --class fx fx`.
+- **fx CLI verbs** (`~/Projects/fx/src/fx/cli.py` `main()` L103): `status`, `add TITLE [-s 1-5] [-e MIN]`, `focus [ID]` (TUI space toggle; no id stops/starts untasked), `stop`, `done ID` (toggles; ends the session if that task is in focus, then Notion push). All take `--json`. Never write fx.db from ags.
 - **Model:** `service/fxModel.ts` — `parseStatus`, `hm`, `padTimes`, `sinceMinutes`. **Test:** `fxModel.test.ts`.
-- **Used by:** `desktop.w.fxtoday`, `desktop.w.fxtasks`.
+- **Used by:** `desktop.w.fxtoday`, `desktop.w.fxtasks`, `launcher` fx mode.
+
+### `svc.timer` — countdown timers
+- **Code:** `service/timer.ts` — `timers` state L14; wall-clock ends persisted to `~/.local/share/ags/timers.json` (`save`/`load` L18–36), so they survive restarts and suspend; `ring` (notify-send + paplay `complete.oga`, "late" if it ended while ags was down) L46; `addTimer(secs, label)` L70; `cancelTimer(id)` L78; `restoreTimers()` L83 (called in `app.ts`).
+- **Model:** `service/timerModel.ts` — `Timer` type, `fmtSpan`, `fmtLeft`, `fmtClock`, `splitDue`, `sanitize`, `timerTitle`. **Test:** `timerModel.test.ts`.
+- **Used by:** `launcher` (`timer 10m tea` starts one; bare `timer` lists running ones, Enter cancels).
+
+### `svc.hypr` — dispatch helper
+- **Code:** `service/hypr.ts` — `hyprDispatch(lua, legacy)`: Lua `hl.dsp.*` first, legacy `hyprctl dispatch` fallback (AstalHyprland's own dispatch is broken on Hyprland ≥ 0.55).
+- **Used by:** `overview.hypr`, `svc.fx` `openFx`.
 
 ---
 
@@ -174,10 +186,10 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Code:** `bar/modules/Tray.tsx` — AstalTray items, hides nm-applet/network/blueman (`HIDDEN` L6), left-click activate, right-click menu. **Style:** `_bar.scss` (`.tray`), menus `_popovers.scss` L26–36.
 
 ### `bar.caffeine`
-- **Code:** `bar/modules/Caffeine.tsx` — polls `pgrep hypridle`; click kills/starts hypridle. **Style:** `_bar.scss` L222–226.
+- **Code:** `bar/modules/Caffeine.tsx` — `caffeineOn()` L6 (`pgrep hypridle`) and `setCaffeine(awake)` L11 (kill/start hypridle) are exported for the launcher; the button polls and toggles with them. **Style:** `_bar.scss` L222–226.
 
 ### `bar.power` — power menu
-- **Code:** `bar/modules/Power.tsx` — items Lock/Suspend/Log out/Restart/Shut down L15–21, live key shortcuts L53–61, `openPowerMenu` export (used by CC header). **Style:** `_popovers.scss` L37–75.
+- **Code:** `bar/modules/Power.tsx` — `POWER` (Lock/Suspend/Log out/Restart/Shut down: icon, text, menu key, cmd, danger) L12–18 and `runPower(op)` L20, shared with the launcher; `openPowerMenu` export (used by CC header) L9; live key shortcuts in the menu below. **Style:** `_popovers.scss` L37–75.
 
 ---
 
@@ -185,7 +197,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `cc.shell` — pill, popover, page stack
 - **Code:** `QuickSettings.tsx` — bar pill (night-light, wifi, bt, volume icons; scroll = volume, middle-click = mute) L31–46; popover with `Gtk.Stack` pages `cc` / `wifi` / `bt` / `audio` L47–89; CC section order L68–77.
-- **Shared state:** `cc.ts` — `open`, popover handle, `closeCC`, `toggleCC`, `page`/`setPage`, `run()` (safe shell), night light (`hyprsunset`, `NIGHT_K`=4000) L31–46.
+- **Shared state:** `cc.ts` — `open`, popover handle, `closeCC`, `toggleCC`, `page`/`setPage`, `run()` (safe shell) L22, night light (`hyprsunset`, `NIGHT_K`=4000, `setNight`/`toggleNight`) L32–45, airplane (`rfkill`, `planeOn`/`checkPlane`/`setPlane`) L50–60. `setNight`/`setPlane` are also called by launcher actions.
 - **Style:** `styles/_quicksettings.scss` L1–44 (panel + cards); pill `_bar.scss` L220–221 & L76–80.
 
 ### `cc.header`
@@ -195,10 +207,10 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Code:** `Pair.tsx` — `Half` (toggle + chevron → panel) L10–41, `Wifi` L43–67, `Bluetooth` L68–91. **Style:** `_quicksettings.scss` L66–118.
 
 ### `cc.tiles` — 3×2 toggle tiles
-- **Code:** `Tiles.tsx` — Night Light, Do Not Disturb, Airplane (`rfkill`), Mic Mute, Screenshot, Record. `afterClose()` L34–38 hides the CC before capturing. **Style:** `_quicksettings.scss` L119–138.
+- **Code:** `Tiles.tsx` — Night Light, Do Not Disturb, Airplane (`rfkill`), Mic Mute, Screenshot, Record. `afterClose()` L36–39 hides the CC and waits `LAYER_GONE` before capturing. Night/airplane logic lives in `cc.ts`. **Style:** `_quicksettings.scss` L119–138.
 
 ### `cc.sliders` — volume / brightness
-- **Code:** `Sliders.tsx` — `SliderRow` L8–46, `Volume` (+ chevron → audio panel) L48–62, `Brightness` (`brightnessctl`, hidden without backlight) L63–89. **Style:** `_quicksettings.scss` L139–195.
+- **Code:** `Sliders.tsx` — `SliderRow` L8–46, `Volume` (+ chevron → audio panel) L48–62, `Brightness` (`brightnessctl`, hidden without backlight) below; exported `readBrightness()` L64 (null without backlight) / `setBrightness(pct)` L71 (clamped 1–100; callers pop the OSD themselves via `showBrightness`) are shared with the launcher. **Style:** `_quicksettings.scss` L139–195.
 
 ### `cc.media` — mini player
 - **Code:** `MediaMini.tsx` — playing player (else first), prev/play/next. **Style:** `_quicksettings.scss` L196–241.
@@ -208,7 +220,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Note:** `quicksettings/Stat.tsx` + `styles/_stat.scss` is a *different* component, used only by `desktop.w.system`.
 
 ### `cc.theme` — Dark / Light segment
-- **Code:** `ThemeMode.tsx` — writes `~/.cache/theme_mode`, runs `~/.config/hypr/scripts/theme-apply.sh`. State/paths in `theme.ts` (`MODE_FILE`, `IDX_FILE`, `WALL_FILE`, `readFileOr`). **Style:** `_quicksettings.scss` L264–279.
+- **Code:** `ThemeMode.tsx` — the segment. `theme.ts` holds state/paths (`MODE_FILE`, `IDX_FILE`, `WALL_FILE`, `readFileOr`, `themeMode`) and `setTheme(mode)` L22 (writes `~/.cache/theme_mode`, runs `~/.config/hypr/scripts/theme-apply.sh`), shared with the launcher `dark`/`light` actions. **Style:** `_quicksettings.scss` L264–279.
 
 ### `cc.footer`
 - **Code:** `Footer.tsx` — battery % · time left · current power profile. **Style:** `_quicksettings.scss` L280–end.
@@ -254,14 +266,23 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 All three share the card/field/row look in `styles/_launcher.scss` and use `surfaceTop()`.
 
 ### `launcher`
-- **Code:** `widget/launcher/Launcher.tsx` — frecency load/save L16–27; `Item` type L29; copy/web/calc/emoji/shell item builders L42–88; extra entries (Wallpapers, Search Files) L90–102; `toggleLauncher(prefill?)` L105–106; `setSel` L128; `launch` (frecency bump, Shift+Enter `alt`) L140; `render` L152 (re-measures the layer window at the end so the card hugs the list); mode pill `MODE_LABEL` L203; `calc` (debounce + `seq` guard, `qalc`) L203; `search` dispatch on mode L217; `open(prefill)` L276; keys (Shift+Enter) & window (`namespace="launcher"`) L290–351.
-- **Modes:** `=` calc · `:` emoji · `>` shell (Shift+Enter runs in kitty) · `?` web · otherwise apps (auto calc row via `looksLikeMath`, Google fallback row). `Super+.` opens with `:` prefilled (`ags request toggle-launcher :`).
-- **Logic:** `widget/launcher/model.ts` (pure: `parseQuery`, `looksLikeMath`, `qalcExpr`, `cleanCalc`, emoji parse/search, frecency `bump`/`rank`, `webUrl`) with `model.test.ts`.
+- **Code:** `widget/launcher/Launcher.tsx` — frecency load/save L23–34; copy/web/calc/emoji/shell item builders L36–82; extra entries (Wallpapers, Search Files) L84–97; `fileItem` + files empty/loading rows L98–111; `MAX`, `LIST_H` (list max height = pane height), `RECENT_MAX`, `idOf` L113–119; `toggleLauncher(prefill?)` L120–121; preview pane `swapPane` (crossfade `ENTER.swap`) / `showPreview` (`Gio.Cancellable` per selection) / `setPane` (`.wide`) L148–188; `setSel` L191; `launch(item, "launch"|"alt"|"extra")` (frecency bump, `stay` rows keep it open) L204; `render(keep?)` L217 (keeps the selected row by `idOf`, re-measures the layer window so the card hugs the list); `MODE_LABEL` L294; `calc` (debounce + `seq` guard, `qalc`) L297; `search` dispatch on mode L311–390 (apps branch: quick actions first unless `riskyPrefix`, then extras, apps, web fallback); `recentItem` L393; `filesSearch` (recent first, fd index merges in after 100ms, `seq` guard) L403–433; `fxChanged` (re-render on fx data) L436–441; `open(prefill)` (resets per-open caches, `refreshActions()`) L443; keys L466–485 (Shift+Enter `alt`, Alt+Enter `extra`, Ctrl+C copies a file row's path); window (`namespace="launcher"`) L497–end.
+- **Modes:** `=` calc · `:` emoji · `>` shell (Shift+Enter runs in kitty) · `?` web · `!` or `fx ` fx · `/` files · otherwise apps (quick-action rows, auto calc row via `looksLikeMath`, "Recent Files" row, Google fallback row). `Super+.` opens with `:` prefilled (`ags request toggle-launcher :`).
+- **Quick actions (apps mode):** grammar in `actionsModel.ts` `parseAction` L92 (commands resolve by 3+ char prefix, `bt`/`dnd` exact only; table `COMMANDS` L55):
+  - `timer 10m [label]` / `timer 1h30 tea` / `timer 5 min tea` (`parseDuration` L12: `10m` `1h30` `90s` `1.5h` `1:30` bare = min) · `timer` alone lists running timers → `svc.timer`
+  - `vol 30` / `vol +10` · `brightness 50` / `-10` · `mute` / `unmute` / `mic [mute|unmute]`
+  - `wifi|bt|dnd|night|airplane|caffeine [on|off]` · `dark` / `light` / `theme dark`
+  - `lock` `suspend`/`sleep` `logout` `reboot` `shutdown`/`poweroff` (prefix-matched session-enders rank below apps: `riskyPrefix` L176)
+  - `play` `pause` `next` `prev` · `screenshot` · `record` · `pomo` (toggle) / `pomo pause|stop` / `focus` / `focus 25 [task]`
+  - Rows: `actions.ts` `actionItems(intent)` L254 → per-kind builders (`toggleItems` L63, `volumeItems` L100, `brightnessItems` L118, `muteItems` L139, `themeItems` L155, `powerItems` L175, `mediaItems` L187, `timerItems` L201, `pomoItems` L218). Each shows the outcome before Enter (`level` meter, "ends 14:32"); missing tool/device → no row. `refreshActions()` L38 caches brightness + caffeine state on open. Calls the shared helpers in `cc.theme`, `bar.caffeine`, `bar.power`, `cc.sliders`, `cc.shell`, `svc.recorder`, `svc.pomodoro`, `svc.timer`.
+- **fx mode (`!`, `fx `):** `actionsModel.ts` `parseFxQuery` L190 (`add TITLE /SEV 45m`, `stop`, `open`, else a list filter), `fxAddArgs` L216, `matchTasks` L225. Rows in `fxItems.ts` `fxItems(q)` L102: header (score · focus/target · streak · active) L27, tasks L42 (↵ focus/stop, ⇧↵ done, Alt+↵ focus + pomodoro L37), stop L62, add L73 (⇧↵ add + focus; a filter with no match offers it), loading/missing/error row L94. Writes go through `svc.fx` `fxRun`.
+- **Files mode (`/`):** `preview.ts` — `listRecent` (Gtk.RecentManager, existing local files, newest first) L42, `addRecent` L57, `fileIcon` L63, `loadPreview(path, scale, cancel)` L229 (image `FitPicture` decoded at display size L108–135, text first 40 lines L188, folder listing L208, else icon + details), `emptyPreview` L178, `PREVIEW_W` = 288 L26. Search/open helpers come from `files` (`searchIndex`, `indexFiles`, `isIndexing`, `openPath`, `showInFolder`). Keys: ↵ open, ⇧↵ show in folder, Ctrl+C copy path.
+- **Logic:** `widget/launcher/model.ts` (pure: `Item` type L5–31 with `level`/`hint`/`alt`/`extra`/`preview`/`stay`, `Mode` + `parseQuery` L33–43, `looksLikeMath`, `qalcExpr`, `cleanCalc`, emoji parse/search, frecency `bump`/`rank`, `webUrl`) · `actionsModel.ts` (above) · `filesModel.ts` (`matchTier`, `matchRecent`, `mergePaths`, `previewKind`, `looksBinary`, `firstLines`, `formatSize`, `relTime`, `itemCount`, `tildePath`, `fitSize`). **Tests:** `model.test.ts`, `actionsModel.test.ts`, `filesModel.test.ts`.
 - **Data:** `widget/launcher/emojiData.ts` is generated by `gen-emoji.ts` (one-off Node script; commit the output). Frecency cache: `~/.cache/ags-launcher.json`.
-- **Style:** `_launcher.scss` L73–end (`.lnch-key.mode` pill L119, `.lnch-tile .glyph`).
+- **Style:** `_launcher.scss` L73–end: `.lnch` L74, `.lnch.wide` + `.lnch-preview*` (pane, visual, code, details) L87–158, `.lnch-key.mode` pill L193, rows L206, `.lnch-level` meter L252, `.lnch-tile` L269.
 
 ### `files` — fuzzy file search
-- **Code:** `widget/files/Files.tsx` — open (`nautilus` for dirs, `xdg-open` for files) L40–46; search (`fzf --filter` over the index, top 8) L105–122; `reindex()` (`fd` over `$HOME` → `~/.cache/ags-files.txt`) L124–140; window L170–200.
+- **Code:** `widget/files/Files.tsx` — exported helpers shared with launcher files mode: `openPath` (`nautilus` for dirs, `xdg-open` for files) L19, `showInFolder` L24, `searchIndex(q, max)` (`fzf --filter` over the index) L28, `isIndexing` L39, `indexFiles()` (one `fd` run over `$HOME` → `~/.cache/ags-files.txt`, shared by concurrent callers) L40. Widget: `search` L128, `reindex` L149, `open` L160, window L174–end.
 - **Style:** `_launcher.scss` L9–72 (`window.Files`, `.ffsearch*`), `_files.scss`.
 
 ### `clipboard` — clipboard history
@@ -299,7 +320,7 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 - `Overview.tsx` L16–30 — `WORKSPACES` list (edit to taste), preview max size, `/tmp/ags-overview`, capture delay.
 
 ### `overview.hypr` — dispatch helpers
-- `Overview.tsx` L32–62 — Lua-first `hyprctl dispatch` with legacy fallback; `focusWorkspace`, `focusWindow`, `closeWindow`.
+- `Overview.tsx` L35–48 — `focusWorkspace`, `focusWindow`, `closeWindow` on top of `svc.hypr` `hyprDispatch` (Lua-first with legacy fallback). Since that move, the code for the other `Overview.tsx` anchors below starts 3–15 lines earlier.
 
 ### `overview.capture` — window screenshot cache
 - `Overview.tsx` L83–87 (state), L126–171 (`captureWorkspace`, queue, `switchGen`), L319–330 (`scheduleCapture` after workspace switches), L331–340 (cache reset on startup).
@@ -391,6 +412,8 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 |---|---|
 | `~/.local/state/ags/desktop.json` (+ `.bak`) | `desktop.store` |
 | `~/.local/share/pomodoro/data.json` | `svc.pomodoro` |
+| `~/.local/share/ags/timers.json` | `svc.timer` |
+| `~/.local/share/recently-used.xbel` (via `Gtk.RecentManager`; opening a file adds it) | `launcher` files mode |
 | `~/.cache/theme_mode`, `theme_idx`, `last_wall` | `cc.theme` (read by `desktop.gallery` for the Goal sample) |
 | `~/.cache/ags-files.txt` | `files` |
 | `~/.cache/ags-clip/` | `clipboard` |
