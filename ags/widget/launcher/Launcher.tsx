@@ -222,7 +222,7 @@ export default function Launcher() {
         debounce?.cancel()
         seq++
         const label = MODE_LABEL[mode]
-        modeLabel.label = label ?? "Super"
+        modeLabel.label = label ?? "Esc"
         if (label) modeLabel.add_css_class("mode")
         else modeLabel.remove_css_class("mode")
 
@@ -338,7 +338,7 @@ export default function Launcher() {
                             onNotifyText={(self) => search(self.text)}
                             onActivate={() => launch(results[sel])}
                         />
-                        <label $={(self) => (modeLabel = self)} class="lnch-key" valign={Gtk.Align.CENTER} label="Super" />
+                        <label $={(self) => (modeLabel = self)} class="lnch-key" valign={Gtk.Align.CENTER} label="Esc" />
                     </box>
                     <scrolledwindow
                         $={(self) => (scroller = self)}
