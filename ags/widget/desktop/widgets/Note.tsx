@@ -1,4 +1,4 @@
-import { Gtk } from "ags/gtk4"
+import { Gtk, Gdk } from "ags/gtk4"
 import { onCleanup } from "ags"
 import GLib from "gi://GLib"
 import { label } from "./common"
@@ -24,6 +24,48 @@ export default function Note(p: WidgetProps) {
   view.add_css_class("dw-note-text")
   if (p.preview) view.set_can_target(false)
 
+  // Unfocusable until clicked: otherwise GTK hands the note focus (and a blinking cursor, and
+  // every keystroke) the moment the desktop surface maps or regains the keyboard.
+  view.focusable = false
+  if (!p.preview) {
+    const click = new Gtk.GestureClick()
+    click.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+    click.connect("pressed", () => {
+      view.focusable = true
+      view.grab_focus()
+    })
+    view.add_controller(click)
+    const release = () => {
+      view.focusable = false
+      const win = view.get_root() as Gtk.Window | null
+      if (win?.focus_widget && (win.focus_widget === view || win.focus_widget.is_ancestor(view))) win.set_focus(null)
+    }
+    const focus = new Gtk.EventControllerFocus()
+    focus.connect("leave", () => (view.focusable = false))
+    view.add_controller(focus)
+    const esc = new Gtk.EventControllerKey()
+    esc.connect("key-pressed", (_c, keyval) => {
+      if (keyval !== Gdk.KEY_Escape) return false
+      release()
+      return true
+    })
+    view.add_controller(esc)
+    // GTK keeps its focus widget when you click empty space or switch workspace, so drop it by hand
+    view.connect("notify::root", () => {
+      const win = view.get_root() as Gtk.Window | null
+      if (!win) return
+      win.connect("notify::is-active", () => !win.is_active && release())
+      const away = new Gtk.GestureClick()
+      away.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+      away.connect("pressed", (_g, _n, x, y) => {
+        if (!view.has_focus) return
+        const hit = win.pick(x, y, Gtk.PickFlags.DEFAULT)
+        if (!hit || (hit !== view && !hit.is_ancestor(view))) release()
+      })
+      win.add_controller(away)
+    })
+  }
+
   const scroll = new Gtk.ScrolledWindow({
     child: view,
     hscrollbarPolicy: Gtk.PolicyType.NEVER,
@@ -31,6 +73,7 @@ export default function Note(p: WidgetProps) {
     hexpand: true,
     vexpand: true,
   })
+  scroll.focusable = false
   scroll.add_css_class("dw-note-scroll")
 
   const hint = label(p.preview ? "Jot something down." : "Write something…", "dw-note-hint", { valign: Gtk.Align.START })
