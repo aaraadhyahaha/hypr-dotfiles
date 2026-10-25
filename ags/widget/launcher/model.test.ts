@@ -68,6 +68,12 @@ test("parseEmojiData skips comments and blanks", () => {
   assert.equal(list[3].keywords, "explosive")
 })
 
+test("parseEmojiData keeps the keycap # glyph", () => {
+  assert.deepEqual(parseEmojiData("# note\n#️⃣\tkeycap: #\tkeycap"), [
+    { glyph: "#️⃣", name: "keycap: #", keywords: "keycap" },
+  ])
+})
+
 test("searchEmoji ranks exact, name prefix, word prefix, keyword", () => {
   const list = parseEmojiData(tsv)
   assert.deepEqual(

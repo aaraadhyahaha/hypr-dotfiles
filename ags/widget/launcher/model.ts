@@ -38,11 +38,12 @@ export function cleanCalc(input: string, output: string): string | null {
 
 export type Emoji = { glyph: string; name: string; keywords: string }
 
-// One entry per line: glyph<TAB>name<TAB>keywords. Blank and # lines are skipped.
+// One entry per line: glyph<TAB>name<TAB>keywords. Blank and "# " lines are
+// skipped (a bare # is the keycap emoji's glyph).
 export function parseEmojiData(tsv: string): Emoji[] {
   const out: Emoji[] = []
   for (const line of tsv.split("\n")) {
-    if (!line.trim() || line.startsWith("#")) continue
+    if (!line.trim() || line.startsWith("# ")) continue
     const [glyph, name, keywords = ""] = line.split("\t")
     if (glyph && name) out.push({ glyph, name, keywords })
   }

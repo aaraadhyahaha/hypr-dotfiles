@@ -1,0 +1,129 @@
+// One-off generator for emojiData.ts. Run: node widget/launcher/gen-emoji.ts
+// Downloads Unicode's emoji-test.txt (fully-qualified, no skin tones), appends
+// a hand-picked symbol set and writes the result as a TSV string module.
+import { writeFileSync } from "node:fs"
+
+const SRC = "https://unicode.org/Public/emoji/latest/emoji-test.txt"
+const OUT = new URL("./emojiData.ts", import.meta.url)
+
+// glyph, name, keywords
+const SYMBOLS: [string, string, string][] = [
+  ...[
+    ["→", "rightwards arrow", "arrow right"],
+    ["←", "leftwards arrow", "arrow left"],
+    ["↑", "upwards arrow", "arrow up"],
+    ["↓", "downwards arrow", "arrow down"],
+    ["↔", "left right arrow", "arrow horizontal"],
+    ["↕", "up down arrow", "arrow vertical"],
+    ["⇒", "rightwards double arrow", "arrow implies"],
+    ["⇐", "leftwards double arrow", "arrow"],
+    ["⇔", "left right double arrow", "arrow iff"],
+    ["↵", "return arrow", "arrow enter"],
+    ["±", "plus minus", "math"],
+    ["×", "multiplication sign", "math times"],
+    ["÷", "division sign", "math divide"],
+    ["≈", "approximately equal", "math"],
+    ["≠", "not equal", "math"],
+    ["≤", "less than or equal", "math"],
+    ["≥", "greater than or equal", "math"],
+    ["∞", "infinity", "math"],
+    ["√", "square root", "math"],
+    ["∑", "summation", "math sum"],
+    ["∏", "product", "math"],
+    ["∂", "partial differential", "math"],
+    ["∫", "integral", "math"],
+    ["∈", "element of", "math set"],
+    ["∅", "empty set", "math"],
+    ["∀", "for all", "math"],
+    ["∃", "there exists", "math"],
+    ["¬", "not sign", "logic"],
+    ["∧", "logical and", "logic"],
+    ["∨", "logical or", "logic"],
+    ["α", "greek alpha", "greek letter"],
+    ["β", "greek beta", "greek letter"],
+    ["γ", "greek gamma", "greek letter"],
+    ["δ", "greek delta", "greek letter"],
+    ["ε", "greek epsilon", "greek letter"],
+    ["θ", "greek theta", "greek letter"],
+    ["λ", "greek lambda", "greek letter"],
+    ["μ", "greek mu", "greek letter micro"],
+    ["π", "greek pi", "greek letter"],
+    ["σ", "greek sigma", "greek letter"],
+    ["τ", "greek tau", "greek letter"],
+    ["φ", "greek phi", "greek letter"],
+    ["ω", "greek omega", "greek letter"],
+    ["Δ", "greek capital delta", "greek letter"],
+    ["Σ", "greek capital sigma", "greek letter"],
+    ["Ω", "greek capital omega", "greek letter ohm"],
+    ["₹", "indian rupee", "currency inr"],
+    ["€", "euro", "currency eur"],
+    ["£", "pound", "currency gbp"],
+    ["¥", "yen", "currency jpy"],
+    ["¢", "cent", "currency"],
+    ["₿", "bitcoin", "currency crypto"],
+    ["⌘", "command key", "key mac"],
+    ["⌥", "option key", "key alt mac"],
+    ["⇧", "shift key", "key"],
+    ["⌃", "control key", "key ctrl"],
+    ["⏎", "return key", "key enter"],
+    ["⌫", "backspace key", "key delete"],
+    ["⌦", "delete key", "key"],
+    ["⇥", "tab key", "key"],
+    ["⎋", "escape key", "key esc"],
+    ["—", "em dash", "typography"],
+    ["–", "en dash", "typography"],
+    ["…", "ellipsis", "typography dots"],
+    ["•", "bullet", "typography dot"],
+    ["·", "middle dot", "typography"],
+    ["°", "degree", "typography temperature"],
+    ["™", "trademark", "typography"],
+    ["©", "copyright", "typography"],
+    ["®", "registered", "typography"],
+    ["§", "section sign", "typography"],
+    ["¶", "pilcrow", "typography paragraph"],
+    ["†", "dagger", "typography"],
+    ["“", "left double quote", "typography"],
+    ["”", "right double quote", "typography"],
+    ["‘", "left single quote", "typography"],
+    ["’", "right single quote", "typography apostrophe"],
+    ["─", "box horizontal", "box drawing line"],
+    ["│", "box vertical", "box drawing line"],
+    ["┌", "box top left", "box drawing corner"],
+    ["┐", "box top right", "box drawing corner"],
+    ["└", "box bottom left", "box drawing corner"],
+    ["┘", "box bottom right", "box drawing corner"],
+    ["├", "box vertical right", "box drawing"],
+    ["┤", "box vertical left", "box drawing"],
+    ["┬", "box horizontal down", "box drawing"],
+    ["┴", "box horizontal up", "box drawing"],
+    ["┼", "box cross", "box drawing"],
+    ["█", "full block", "box drawing"],
+    ["░", "light shade", "box drawing"],
+  ],
+] as [string, string, string][]
+
+const text = await (await fetch(SRC)).text()
+
+const rows: string[] = []
+let subgroup = ""
+for (const line of text.split("\n")) {
+  const sg = line.match(/^# subgroup: (.+)$/)
+  if (sg) {
+    subgroup = sg[1].replace(/-/g, " ")
+    continue
+  }
+  if (!line || line.startsWith("#")) continue
+  // 1F600 ; fully-qualified # 😀 E1.0 grinning face
+  const m = line.match(/;\s*fully-qualified\s*#\s*(\S+)\s+E[\d.]+\s+(.+)$/)
+  if (!m) continue
+  const [, glyph, name] = m
+  if (/skin tone/i.test(name)) continue
+  rows.push(`${glyph}\t${name}\t${subgroup}`)
+}
+if (rows.length < 1500) throw new Error(`only parsed ${rows.length} emoji; format changed?`)
+
+for (const [g, n, k] of SYMBOLS) rows.push(`${g}\t${n}\t${k}`)
+
+const header = "// GENERATED by gen-emoji.ts: do not edit. glyph<TAB>name<TAB>keywords per line.\n"
+writeFileSync(OUT, header + "export default " + JSON.stringify(rows.join("\n")) + "\n")
+console.log(`wrote ${rows.length} entries (${rows.length - SYMBOLS.length} emoji, ${SYMBOLS.length} symbols)`)
