@@ -47,6 +47,28 @@ const emojiItem = (e: Emoji): Item => ({
     launch: () => copy(e.glyph),
 })
 
+// setsid -f detaches the command so it outlives the launcher and execAsync returns at once
+const runDetached = (cmd: string) =>
+    execAsync(["setsid", "-f", "sh", "-c", cmd]).catch(console.error)
+const runInTerminal = (cmd: string) =>
+    execAsync(["setsid", "-f", "kitty", "--hold", "sh", "-c", cmd]).catch(console.error)
+
+const shellItems = (cmd: string): Item[] => [
+    {
+        name: `Run ${cmd}`,
+        description: "Shift+Enter: run in terminal",
+        iconName: "utilities-terminal",
+        launch: () => runDetached(cmd),
+        alt: () => runInTerminal(cmd),
+    },
+    {
+        name: "Run in terminal",
+        description: cmd,
+        iconName: "utilities-terminal",
+        launch: () => runInTerminal(cmd),
+    },
+]
+
 const WALLPAPER_ITEM: Item = {
     name: "Wallpapers",
     description: "Pick a wallpaper",
@@ -153,7 +175,7 @@ export default function Launcher() {
         setSel(0)
     }
 
-    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", web: "Web" }
+    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web" }
 
     // qalc runs after a short pause; `seq` drops answers for stale input
     const calc = (q: string, done: (it: Item | null) => void) => {
@@ -187,6 +209,11 @@ export default function Launcher() {
         }
         if (mode === "emoji") {
             results = searchEmoji(EMOJI, q, MAX).map(emojiItem)
+            render()
+            return
+        }
+        if (mode === "shell") {
+            results = q ? shellItems(q) : []
             render()
             return
         }
