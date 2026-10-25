@@ -87,6 +87,12 @@ export default function Tray() {
               $={(self) => {
                 self.insert_action_group("dbusmenu", item.actionGroup)
 
+                // the menu model builds a fresh PopoverMenu each time it changes; drop its
+                // arrow like the bar's other popovers
+                const unarrow = () => self.get_popover()?.set_has_arrow(false)
+                self.connect("notify::popover", unarrow)
+                unarrow()
+
                 // left click = activate the app, right click = its menu
                 const left = new Gtk.GestureClick({ button: 1 })
                 left.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)

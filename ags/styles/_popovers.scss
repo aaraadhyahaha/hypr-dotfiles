@@ -23,19 +23,57 @@ popover.dw-menu-pop>contents {
   padding: 0;
 }
 
-// tray / dbus menus
-popover modelbutton {
-  color: $text;
-  padding: $spacing-1 $spacing-3;
-  border-radius: $radius-sm;
+// tray / dbus menus (GtkPopoverMenu, which tags its popover `.menu`): the power menu's
+// frosted panel and rows, built from the model's nodes
+popover.menu>contents {
+  @include glass-panel($spacing-2);
+  min-width: 200px - 2 * $spacing-2 - 2px;
+  font-size: $font-size-lg;
+  font-weight: normal;
+  // same as .cc: a popup's shadow room would blur into a halo
+  box-shadow: none;
 
-  &:hover {
-    background-color: rgba($on-surface, $state-hover);
+  label {
+    line-height: 1.2em;
+  }
+
+  separator {
+    min-height: 1px;
+    margin: 6px $spacing-1;
+    background-color: $separator;
+  }
+}
+
+popover.menu modelbutton {
+  @include interactive($radius-sm);
+  color: $text;
+  padding: $spacing-2 $spacing-3;
+
+  &:disabled {
+    color: $text-faint;
+  }
+
+  accelerator {
+    margin-left: $spacing-3;
+    font-family: $font-mono;
+    font-size: $font-size-sm;
+    color: $text-faint;
+  }
+
+  check,
+  radio {
+    margin-right: $spacing-2;
+  }
+
+  // submenu header: "‹ Title"
+  &.title {
+    font-weight: 600;
   }
 }
 
 // power menu (bar/modules/Power.tsx): 200px, padding 8, mono key hints
-.menu {
+// (box only: GtkPopoverMenu also carries .menu)
+box.menu {
   @include glass-panel($spacing-2);
   min-width: 200px - 2 * $spacing-2 - 2px;
   font-size: $font-size-lg;
