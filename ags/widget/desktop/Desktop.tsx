@@ -3,6 +3,7 @@ import { Astal, Gdk, Gtk } from "ags/gtk4"
 import { createRoot } from "ags"
 import GObject from "gi://GObject"
 import GLib from "gi://GLib"
+import AstalHyprland from "gi://AstalHyprland"
 import Graphene from "gi://Graphene"
 import { Motion, ENTER, LIFT, MOTION, EASE, onShow } from "../common/motion"
 import { toggleWallpapers } from "../wallpapers/Wallpapers"
@@ -276,6 +277,18 @@ export default function Desktop() {
         }
         editing.subscribe(apply)
         apply()
+        // A clicked note leaves the desktop holding the keyboard, so a window that opens afterwards
+        // never gets focus. Bouncing the keymode makes the compositor drop the layer's grab.
+        const hypr = AstalHyprland.get_default()
+        hypr.connect("client-added", () => {
+          if (editing.get()) return
+          self.keymode = Astal.Keymode.NONE
+          self.set_focus(null)
+          GLib.timeout_add(GLib.PRIORITY_DEFAULT, 80, () => {
+            if (!editing.get()) self.keymode = Astal.Keymode.ON_DEMAND
+            return GLib.SOURCE_REMOVE
+          })
+        })
       }}
       name="desktop"
       namespace="desktop"
