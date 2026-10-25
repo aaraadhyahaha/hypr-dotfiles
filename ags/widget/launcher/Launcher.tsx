@@ -8,10 +8,27 @@ import { toggleWallpapers } from "../wallpapers/Wallpapers"
 import { toggleFiles } from "../files/Files"
 import { timeout } from "ags/time"
 import { execAsync } from "ags/process"
-import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, type Emoji } from "./model"
+import GLib from "gi://GLib"
+import { readFile, writeFile } from "ags/file"
+import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency } from "./model"
 import emojiTsv from "./emojiData"
 
+const FRECENCY_FILE = `${GLib.get_home_dir()}/.cache/ags-launcher.json`
+// fuzzy order wins past this many apps; frecency only reorders the top few
+const APP_WINDOW = 8
+
+// loaded once at startup, then kept in memory
+let frecency: Frecency = (() => {
+    try { return JSON.parse(readFile(FRECENCY_FILE)) } catch { return {} }
+})()
+
+const saveFrecency = () => {
+    try { writeFile(FRECENCY_FILE, JSON.stringify(frecency)) } catch (e) { console.error(e) }
+}
+
 type Item = {
+    // frecency id, e.g. app:firefox.desktop or emoji:🔥
+    key?: string
     name: string
     description?: string | null
     iconName?: string | null
@@ -42,6 +59,7 @@ const calcItem = (q: string, result: string): Item => ({
 const EMOJI = parseEmojiData(emojiTsv)
 
 const emojiItem = (e: Emoji): Item => ({
+    key: `emoji:${e.glyph}`,
     name: e.name,
     glyph: e.glyph,
     launch: () => copy(e.glyph),
@@ -123,6 +141,10 @@ export default function Launcher() {
         if (!a) return
         const fn = alt ? a.alt : a.launch
         if (!fn) return
+        if (a.key) {
+            frecency = bump(frecency, a.key, Date.now())
+            saveFrecency()
+        }
         close()
         fn()
     }
@@ -208,7 +230,9 @@ export default function Launcher() {
             return
         }
         if (mode === "emoji") {
-            results = searchEmoji(EMOJI, q, MAX).map(emojiItem)
+            // with no query, show the most used first; otherwise keep match tiers
+            const hits = searchEmoji(EMOJI, q, MAX).map(emojiItem)
+            results = rank(hits, frecency, Date.now(), (i) => i.key!, q ? 0 : hits.length)
             render()
             return
         }
@@ -225,7 +249,14 @@ export default function Launcher() {
 
         const t = text.trim()
         const lq = t.toLowerCase()
-        const found: Item[] = (t ? apps.fuzzy_query(t) : apps.list).slice(0, MAX)
+        const matches: Item[] = (t ? apps.fuzzy_query(t) : apps.list).slice(0, MAX).map((a): Item => ({
+            key: `app:${a.entry}`,
+            name: a.name,
+            description: a.description,
+            iconName: a.iconName,
+            launch: () => a.launch(),
+        }))
+        const found = rank(matches, frecency, Date.now(), (i) => i.key!, t ? APP_WINDOW : matches.length)
         const extras: Item[] = []
         if (lq.length >= 2 && "wallpapers".startsWith(lq)) extras.push(WALLPAPER_ITEM)
         if (lq.length >= 2 && ("search files".startsWith(lq) || "find files".startsWith(lq))) extras.push(FILES_ITEM)
