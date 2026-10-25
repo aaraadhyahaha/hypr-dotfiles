@@ -1,12 +1,13 @@
 import GLib from "gi://GLib"
 import { Gtk } from "ags/gtk4"
-import { Accessor, createBinding, createComputed, createState, onCleanup } from "ags"
+import { Accessor, createBinding, createComputed, onCleanup } from "ags"
 import { timeout } from "ags/time"
 import AstalWp from "gi://AstalWp?version=0.1"
 import AstalNotifd from "gi://AstalNotifd?version=0.1"
-import { open, closeCC, run, NIGHT_K, nightOn, checkNight, toggleNight } from "./cc"
+import { open, closeCC, NIGHT_K, nightOn, checkNight, toggleNight, planeOn, checkPlane, setPlane } from "./cc"
 import { recording, elapsed, toggleRecording, fmtElapsed } from "../../../service/recorder"
 import { screenshotRegion } from "../../screenshot/Screenshot"
+import { LAYER_GONE } from "../../common/motion"
 import Icon from "../../common/Icon"
 
 const onOff = (o: boolean) => (o ? "On" : "Off")
@@ -34,7 +35,7 @@ function Tile({ icon, label, sub, on, onClick }: {
 // hide the Control Center, then act once its surface is gone (it would show in the capture)
 const afterClose = (fn: () => void) => {
   closeCC()
-  timeout(250, fn)
+  timeout(LAYER_GONE, fn)
 }
 
 export default function Tiles() {
@@ -44,13 +45,7 @@ export default function Tiles() {
   const mic = AstalWp.get_default()!.audio.defaultMicrophone
   const micMuted = createBinding(mic, "mute")
 
-  // airplane = every radio soft-blocked; re-checked on open
-  const [plane, setPlane] = createState(false)
-  const checkPlane = () =>
-    run(["sh", "-c", "rfkill list | grep -q 'Soft blocked: no' && echo 0 || echo 1"]).then((o) =>
-      setPlane(o.trim() === "1"),
-    )
-  checkPlane()
+  // airplane state is re-checked on open
   onCleanup(
     open.subscribe(() => {
       if (!open.get()) return
@@ -81,13 +76,9 @@ export default function Tiles() {
         <Tile
           icon="flight"
           label="Airplane"
-          sub={plane.as(onOff)}
-          on={plane}
-          onClick={() => {
-            const next = !plane.get()
-            setPlane(next)
-            run(["rfkill", next ? "block" : "unblock", "all"]).then(checkPlane)
-          }}
+          sub={planeOn.as(onOff)}
+          on={planeOn}
+          onClick={() => setPlane(!planeOn.get())}
         />
       </box>
       <box homogeneous spacing={8}>

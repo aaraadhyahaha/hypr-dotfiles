@@ -1,7 +1,28 @@
 // Query parsing, calc detection, emoji search and frecency for the launcher.
 // Pure (no GTK) so it can be unit tested.
 
-export type Mode = "apps" | "calc" | "emoji" | "shell" | "web" | "fx"
+// One result row. Built by Launcher.tsx and actions.ts.
+export type Item = {
+  // frecency id, e.g. app:firefox.desktop or emoji:🔥
+  key?: string
+  name: string
+  description?: string | null
+  iconName?: string | null
+  // text shown in the tile instead of an icon
+  glyph?: string
+  // Material Symbols name shown in the tile instead of an icon
+  symbol?: string
+  // 0..1: a small level meter previewing the result (volume, brightness)
+  level?: number
+  // what Enter does, shown on the selected row ("Start", "Cancel"); bare ↵ when unset
+  hint?: string
+  // none = an informational row: Enter and click do nothing
+  launch?: () => unknown
+  // Shift+Enter
+  alt?: () => unknown
+}
+
+export type Mode ="apps" | "calc" | "emoji" | "shell" | "web" | "fx"
 
 const PREFIXES: Record<string, Mode> = { "=": "calc", ":": "emoji", ">": "shell", "?": "web", "!": "fx" }
 

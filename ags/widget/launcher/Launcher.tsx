@@ -10,7 +10,9 @@ import { timeout } from "ags/time"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import { readFile, writeFile } from "ags/file"
-import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency } from "./model"
+import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency, type Item } from "./model"
+import { parseAction, riskyPrefix } from "./actionsModel"
+import { actionItems, refreshActions } from "./actions"
 import emojiTsv from "./emojiData"
 
 const FRECENCY_FILE = `${GLib.get_home_dir()}/.cache/ags-launcher.json`
@@ -24,19 +26,6 @@ let frecency: Frecency = (() => {
 
 const saveFrecency = () => {
     try { writeFile(FRECENCY_FILE, JSON.stringify(frecency)) } catch (e) { console.error(e) }
-}
-
-type Item = {
-    // frecency id, e.g. app:firefox.desktop or emoji:🔥
-    key?: string
-    name: string
-    description?: string | null
-    iconName?: string | null
-    // text shown in the tile instead of an icon
-    glyph?: string
-    launch: () => unknown
-    // Shift+Enter
-    alt?: () => unknown
 }
 
 const copy = (text: string) => execAsync(["wl-copy", text]).catch(console.error)
@@ -165,6 +154,12 @@ export default function Launcher() {
                 const g = new Gtk.Label({ label: a.glyph })
                 g.add_css_class("glyph")
                 tile.append(g)
+            } else if (a.symbol) {
+                const s = new Gtk.Label({ label: a.symbol })
+                s.add_css_class("icon")
+                s.add_css_class("fill")
+                s.add_css_class("symbol")
+                tile.append(s)
             } else {
                 tile.append(new Gtk.Image({ iconName: a.iconName ?? "application-x-executable", pixelSize: 20 }))
             }
@@ -180,11 +175,20 @@ export default function Launcher() {
                 d.add_css_class("desc")
                 text.append(d)
             }
-            const hint = new Gtk.Label({ label: "↵", valign: Gtk.Align.CENTER })
-            hint.add_css_class("lnch-hint")
             row.append(tile)
             row.append(text)
-            row.append(hint)
+            if (a.level !== undefined) {
+                const meter = new Gtk.ProgressBar({ fraction: a.level, valign: Gtk.Align.CENTER })
+                meter.add_css_class("lnch-level")
+                row.append(meter)
+            }
+            if (a.launch) {
+                const hint = new Gtk.Label({ label: a.hint ? `↵ ${a.hint}` : "↵", valign: Gtk.Align.CENTER })
+                hint.add_css_class("lnch-hint")
+                row.append(hint)
+            } else {
+                row.add_css_class("info")
+            }
             const click = new Gtk.GestureClick()
             click.connect("pressed", () => launch(a))
             row.add_controller(click)
@@ -200,7 +204,7 @@ export default function Launcher() {
         win.queue_resize()
     }
 
-    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web" }
+    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web", fx: "fx" }
 
     // qalc runs after a short pause; `seq` drops answers for stale input
     const calc = (q: string, done: (it: Item | null) => void) => {
@@ -249,6 +253,12 @@ export default function Launcher() {
             render()
             return
         }
+        if (mode === "fx") {
+            // fx rows land in the next step; until then the mode only shows its pill
+            results = []
+            render()
+            return
+        }
 
         const t = text.trim()
         const lq = t.toLowerCase()
@@ -263,8 +273,13 @@ export default function Launcher() {
         const extras: Item[] = []
         if (lq.length >= 2 && "wallpapers".startsWith(lq)) extras.push(WALLPAPER_ITEM)
         if (lq.length >= 2 && ("search files".startsWith(lq) || "find files".startsWith(lq))) extras.push(FILES_ITEM)
-        const base = [...extras, ...found].slice(0, MAX)
-        const tail = t ? [webItem(t)] : []
+        // a typed quick action ranks first, except a session-ender reached by prefix ("reb"),
+        // which waits below the apps so a quick Enter can't fire it
+        const intent = parseAction(t)
+        const acts = intent ? actionItems(intent) : []
+        const risky = intent ? riskyPrefix(t, intent) : false
+        const base = [...(risky ? [] : acts), ...extras, ...found].slice(0, MAX)
+        const tail = [...(risky ? acts : []), ...(t ? [webItem(t)] : [])]
         results = [...base, ...tail]
         render()
         if (looksLikeMath(t)) {
@@ -279,6 +294,7 @@ export default function Launcher() {
     const open = (prefill = "") => {
         armed = false; lastX = null; lastY = null
         apps.reload()
+        refreshActions()
         entry.set_text(prefill)
         entry.set_position(-1)
         search(prefill)

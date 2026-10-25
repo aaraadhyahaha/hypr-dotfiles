@@ -13,6 +13,10 @@ import { Gtk } from "ags/gtk4"
 // durations in ms, mirrored by the SCSS tokens in styles/_tokens.scss
 export const MOTION = { fast: 110, base: 200, enter: 380, exit: 180, slide: 460 }
 
+// how long Hyprland's fade-out keeps a hidden layer on screen: wait this long before a
+// capture so the panel that started it isn't in the shot
+export const LAYER_GONE = 250
+
 export type Ease = (t: number) => number
 
 // CSS cubic-bezier(x1, y1, x2, y2) as a function of linear progress

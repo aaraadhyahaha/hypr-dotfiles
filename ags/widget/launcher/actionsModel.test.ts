@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { parseAction, parseDuration, parseFxQuery } from "./actionsModel.ts"
+import { parseAction, parseDuration, parseFxQuery, riskyPrefix } from "./actionsModel.ts"
 
 test("parseDuration reads units, h-m shorthand and clock forms", () => {
   assert.equal(parseDuration("10m"), 600)
@@ -24,6 +24,30 @@ test("parseAction timers", () => {
   assert.deepEqual(parseAction("timer 1h30 green tea"), { kind: "timer", secs: 5400, label: "green tea" })
   assert.deepEqual(parseAction("timer"), { kind: "timers" })
   assert.equal(parseAction("timer tea"), null)
+})
+
+test("parseAction timer durations may span two words", () => {
+  assert.deepEqual(parseAction("timer 5 min tea"), { kind: "timer", secs: 300, label: "tea" })
+  assert.deepEqual(parseAction("timer 1h 30m"), { kind: "timer", secs: 5400, label: "" })
+  assert.deepEqual(parseAction("timer 1h 30 laundry"), { kind: "timer", secs: 5400, label: "laundry" })
+  assert.deepEqual(parseAction("timer 10 tea"), { kind: "timer", secs: 600, label: "tea" })
+  // two bare numbers are a duration and a label, never one glued number
+  assert.deepEqual(parseAction("timer 10 15"), { kind: "timer", secs: 600, label: "15" })
+  assert.deepEqual(parseAction("timer 10m 5 eggs"), { kind: "timer", secs: 600, label: "5 eggs" })
+})
+
+test("riskyPrefix flags session-ending actions reached by prefix", () => {
+  const risky = (q: string) => riskyPrefix(q, parseAction(q)!)
+  assert.equal(risky("reb"), true)
+  assert.equal(risky("shut"), true)
+  assert.equal(risky("logo"), true)
+  assert.equal(risky("reboot"), false)
+  assert.equal(risky("Shutdown"), false)
+  assert.equal(risky("poweroff"), false)
+  assert.equal(risky("logout"), false)
+  assert.equal(risky("loc"), false)
+  assert.equal(risky("sus"), false)
+  assert.equal(risky("vol 30"), false)
 })
 
 test("parseAction volume and brightness", () => {

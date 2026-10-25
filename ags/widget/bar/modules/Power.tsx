@@ -8,22 +8,27 @@ let menu: Gtk.MenuButton | null = null
 // the Control Center's power button opens this menu
 export const openPowerMenu = () => menu?.popup()
 
+// shared with the launcher's `lock` / `suspend` / ... actions
+export const POWER = {
+  lock: { icon: "lock", text: "Lock", key: "L", cmd: ["loginctl", "lock-session"], danger: false },
+  suspend: { icon: "bedtime", text: "Suspend", key: "S", cmd: ["systemctl", "suspend"], danger: false },
+  logout: { icon: "logout", text: "Log out", key: "E", cmd: ["hyprctl", "dispatch", "hl.dsp.exit()"], danger: false },
+  reboot: { icon: "restart_alt", text: "Restart", key: "R", cmd: ["systemctl", "reboot"], danger: true },
+  shutdown: { icon: "power_settings_new", text: "Shut down", key: "P", cmd: ["systemctl", "poweroff"], danger: true },
+}
+
+export const runPower = (op: keyof typeof POWER) => execAsync(POWER[op].cmd).catch(console.error)
+
+const ITEMS = Object.values(POWER)
+
 export default function Power() {
   const [open, setOpen] = createState(false)
   let motion: Motion
 
-  const ITEMS = [
-    { icon: "lock", text: "Lock", key: "L", cmd: ["loginctl", "lock-session"] },
-    { icon: "bedtime", text: "Suspend", key: "S", cmd: ["systemctl", "suspend"] },
-    { icon: "logout", text: "Log out", key: "E", cmd: ["hyprctl", "dispatch", "hl.dsp.exit()"] },
-    { icon: "restart_alt", text: "Restart", key: "R", cmd: ["systemctl", "reboot"], danger: true },
-    { icon: "power_settings_new", text: "Shut down", key: "P", cmd: ["systemctl", "poweroff"], danger: true },
-  ]
-
   const run = (cmd: string[]) => {
     menu?.popdown()
     setOpen(false)
-    execAsync(cmd)
+    execAsync(cmd).catch(console.error)
   }
 
   const item = ({ icon, text, key, cmd, danger }: (typeof ITEMS)[number]) => (

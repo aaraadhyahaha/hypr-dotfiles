@@ -60,15 +60,25 @@ function Volume() {
   )
 }
 
+// backlight level 0..100, or null without a backlight (or brightnessctl)
+export const readBrightness = () =>
+  run(["sh", "-c", "brightnessctl -m -c backlight | cut -d, -f4 | tr -d %"]).then((o) => {
+    const n = Number(o.trim())
+    return o.trim() !== "" && Number.isFinite(n) ? n : null
+  })
+
+// never 0: a black screen can't be turned back up by eye
+export const setBrightness = (pct: number) =>
+  run(["brightnessctl", "-c", "backlight", "set", `${Math.max(1, Math.min(100, Math.round(pct)))}%`])
+
 // brightnessctl has no change events: read on open; hidden when there's no backlight
 function Brightness() {
   const [level, setLevel] = createState(0)
   const [present, setPresent] = createState(false)
   const read = () =>
-    run(["sh", "-c", "brightnessctl -m -c backlight | cut -d, -f4 | tr -d %"]).then((o) => {
-      const n = Number(o.trim())
-      setPresent(o.trim() !== "" && Number.isFinite(n))
-      if (Number.isFinite(n)) setLevel(n / 100)
+    readBrightness().then((n) => {
+      setPresent(n !== null)
+      if (n !== null) setLevel(n / 100)
     })
   read()
   onCleanup(open.subscribe(() => open.get() && read()))
@@ -80,7 +90,7 @@ function Brightness() {
         value={level}
         onChange={(v) => {
           setLevel(v)
-          run(["brightnessctl", "-c", "backlight", "set", `${Math.max(1, Math.round(v * 100))}%`])
+          setBrightness(v * 100)
         }}
       />
     </box>

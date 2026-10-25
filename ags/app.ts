@@ -13,6 +13,7 @@ import Overview, { toggleOverview } from "./widget/overview/Overview"
 import { toggleDateMenu } from "./widget/bar/modules/DateMenu"
 import { toggleCC } from "./widget/bar/quicksettings/cc"
 import Desktop, { toggleEditWidgets } from "./widget/desktop/Desktop"
+import { restoreTimers } from "./service/timer"
 
 app.start({
   css: style,
@@ -44,6 +45,7 @@ app.start({
     response("unknown request")
   },
   main() {
+    restoreTimers()
     Desktop()
     app.get_monitors().map(Bar)
     Toasts()

@@ -159,6 +159,38 @@ window.Files {
       opacity: 1;
       color: $on-secondary-container;
     }
+
+    .lnch-level progress {
+      background-color: $on-secondary-container;
+    }
+
+    .lnch-level trough {
+      background-color: rgba($on-secondary-container, $state-selected);
+    }
+  }
+
+  // informational row (no action): selection reads as focus, not a button
+  &.info.sel {
+    background-color: rgba($on-surface, $state-hover);
+    color: inherit;
+  }
+}
+
+// quick-action preview (volume, brightness): the level the row will set
+.lnch-level {
+  margin-right: $spacing-2;
+
+  trough {
+    min-width: 72px;
+    min-height: 4px;
+    border-radius: $radius-full;
+    background-color: rgba($on-surface, $state-selected);
+  }
+
+  progress {
+    min-height: 4px;
+    border-radius: $radius-full;
+    background-color: $primary;
   }
 }
 
@@ -172,4 +204,14 @@ window.Files {
   .glyph {
     font-size: $font-size-2xl;
   }
+
+  // quick actions: a Material Symbol at app-icon size (20px)
+  .symbol {
+    font-size: $font-size-5xl;
+    color: $primary;
+  }
+}
+
+.lnch-row.sel .lnch-tile .symbol {
+  color: $on-secondary-container;
 }

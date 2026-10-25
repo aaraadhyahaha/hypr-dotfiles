@@ -100,6 +100,10 @@ export function parseAction(q: string): Intent | null {
   switch (cmd) {
     case "timer": {
       if (!rest.length) return { kind: "timers" }
+      // "5 min tea" / "1h 30m": the duration may span two words
+      const glued = /[a-z]$/i.test(rest[0]) && /^\d/.test(rest[1] ?? "") ? parseDuration(rest[0] + rest[1]) : null
+      const two = rest.length > 1 ? parseDuration(`${rest[0]} ${rest[1]}`) ?? glued : null
+      if (two) return { kind: "timer", secs: two, label: rest.slice(2).join(" ") }
       const secs = parseDuration(rest[0])
       return secs ? { kind: "timer", secs, label: rest.slice(1).join(" ") } : null
     }
@@ -163,6 +167,15 @@ export function parseAction(q: string): Intent | null {
     case "prev":
       return rest.length ? null : { kind: "media", op: cmd }
   }
+}
+
+const DANGER_WORDS = new Set(["logout", "reboot", "shutdown", "poweroff"])
+
+// "reb" resolves to reboot; ranked first, a quick Enter meant for an app would fire it.
+// True when a session-ending action was reached by prefix rather than its full word.
+export function riskyPrefix(q: string, intent: Intent): boolean {
+  if (intent.kind !== "power" || intent.op === "lock" || intent.op === "suspend") return false
+  return !DANGER_WORDS.has(q.trim().split(/\s+/)[0].toLowerCase())
 }
 
 export type FxQuery =

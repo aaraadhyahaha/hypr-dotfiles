@@ -37,10 +37,26 @@ export const checkNight = () =>
     setNightOn(o.trim() === "1"),
   )
 
-export function toggleNight() {
-  const on = !nightOn.get()
+export function setNight(on: boolean) {
   setNightOn(on)
   run(["sh", "-c", on ? `setsid hyprsunset -t ${NIGHT_K} >/dev/null 2>&1 &` : "pkill -x hyprsunset"])
 }
 
+export const toggleNight = () => setNight(!nightOn.get())
+
 checkNight()
+
+// airplane = every radio soft-blocked
+export const [planeOn, setPlaneOn] = createState(false)
+
+export const checkPlane = () =>
+  run(["sh", "-c", "rfkill list | grep -q 'Soft blocked: no' && echo 0 || echo 1"]).then((o) =>
+    setPlaneOn(o.trim() === "1"),
+  )
+
+export function setPlane(on: boolean) {
+  setPlaneOn(on)
+  run(["rfkill", on ? "block" : "unblock", "all"]).then(checkPlane)
+}
+
+checkPlane()

@@ -185,6 +185,18 @@ class Pomodoro {
         this.emit()
     }
 
+    // a fresh focus session of `mins` (default: the setting) without changing the setting
+    startFocus(mins?: number, task?: string): void {
+        this.stopTimer()
+        this.applyPhase("focus")
+        if (mins) {
+            this.state.total = mins * 60
+            this.state.remaining = mins * 60
+        }
+        if (task !== undefined) this.state.task = task
+        this.start()
+    }
+
     setSettings(patch: Partial<Settings>): void {
         this.data.settings = { ...this.data.settings, ...patch }
         if (!this.state.running && this.state.remaining === this.state.total) {
