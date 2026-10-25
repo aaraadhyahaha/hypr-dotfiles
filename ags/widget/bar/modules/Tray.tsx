@@ -78,32 +78,36 @@ export default function Tray() {
 
   return (
     <box class="tray" spacing={4} visible={items.as((l) => l.length > 0)}>
-      <For each={items}>
-        {(item) => (
-          <menubutton
-            $={(self) => {
-              self.insert_action_group("dbusmenu", item.actionGroup)
+      {/* For appends its children to the end of its parent, so it gets a box of its own
+          to keep the separator after the icons */}
+      <box spacing={4}>
+        <For each={items}>
+          {(item) => (
+            <menubutton
+              $={(self) => {
+                self.insert_action_group("dbusmenu", item.actionGroup)
 
-              // left click = activate the app, right click = its menu
-              const left = new Gtk.GestureClick({ button: 1 })
-              left.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-              left.connect("pressed", () => {
-                left.set_state(Gtk.EventSequenceState.CLAIMED)
-                item.activate(0, 0)
-              })
-              self.add_controller(left)
+                // left click = activate the app, right click = its menu
+                const left = new Gtk.GestureClick({ button: 1 })
+                left.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
+                left.connect("pressed", () => {
+                  left.set_state(Gtk.EventSequenceState.CLAIMED)
+                  item.activate(0, 0)
+                })
+                self.add_controller(left)
 
-              const right = new Gtk.GestureClick({ button: 3 })
-              right.connect("pressed", () => self.popup())
-              self.add_controller(right)
-            }}
-            tooltipMarkup={createBinding(item, "tooltipMarkup")}
-            menuModel={createBinding(item, "menuModel")}
-          >
-            <TrayIcon item={item} />
-          </menubutton>
-        )}
-      </For>
+                const right = new Gtk.GestureClick({ button: 3 })
+                right.connect("pressed", () => self.popup())
+                self.add_controller(right)
+              }}
+              tooltipMarkup={createBinding(item, "tooltipMarkup")}
+              menuModel={createBinding(item, "menuModel")}
+            >
+              <TrayIcon item={item} />
+            </menubutton>
+          )}
+        </For>
+      </box>
       <Sep />
     </box>
   )
