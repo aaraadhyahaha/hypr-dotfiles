@@ -88,11 +88,12 @@ window.Files {
 .ffsearch {
   @include glass-field;
   min-height: 46px;
-  padding: 0 14px;
-  border-radius: $radius-md;
+  padding: 0 $spacing-3;
+  border-radius: $radius-sm;
 
   .lnch-search-icon,
   .ffsearch-icon {
+    min-width: 32px;
     font-size: $font-size-5xl;
     color: $text-muted;
   }
@@ -111,16 +112,18 @@ window.Files {
 
 .lnch-key,
 .lnch-hint {
-  font-family: $font-mono;
   font-size: $font-size-sm;
   color: $text-faint;
 }
 
 // active mode pill (Calc, Emoji, Run, Web)
 .lnch-key.mode {
-  @include on-state;
+  background-color: rgba($primary, $state-selected);
+  color: $primary;
+  font-size: $font-size-xs;
+  font-weight: 600;
   padding: 2px $spacing-2;
-  border-radius: $radius-sm;
+  border-radius: $radius-full;
 }
 
 .lnch-list {
@@ -130,7 +133,7 @@ window.Files {
 .lnch-row {
   padding: $spacing-2 $spacing-3;
   margin-bottom: $spacing-1;
-  border-radius: $radius-md;
+  border-radius: $radius-sm;
   transition: $transition;
 
   .name {
@@ -161,7 +164,7 @@ window.Files {
 .lnch-tile {
   min-width: 32px;
   min-height: 32px;
-  border-radius: 9px;
+  border-radius: $radius-xs;
   border: 1px solid $glass-hairline;
   background-color: $glass-card;
 

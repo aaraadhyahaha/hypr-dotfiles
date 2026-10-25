@@ -335,7 +335,7 @@ export default function Launcher() {
                             onNotifyText={(self) => search(self.text)}
                             onActivate={() => launch(results[sel])}
                         />
-                        <label $={(self) => (modeLabel = self)} class="lnch-key" label="Super" />
+                        <label $={(self) => (modeLabel = self)} class="lnch-key" valign={Gtk.Align.CENTER} label="Super" />
                     </box>
                     <scrolledwindow
                         $={(self) => (scroller = self)}
