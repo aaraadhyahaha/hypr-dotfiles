@@ -7,6 +7,7 @@ import {
   looksLikeMath,
   parseEmojiData,
   parseQuery,
+  qalcExpr,
   rank,
   searchEmoji,
   webUrl,
@@ -131,4 +132,12 @@ test("rank prefers recent use over stale use", () => {
 test("webUrl encodes the query", () => {
   assert.equal(webUrl("hyprland lua"), "https://www.google.com/search?q=hyprland%20lua")
   assert.equal(webUrl("a&b=c"), "https://www.google.com/search?q=a%26b%3Dc")
+})
+
+test("qalcExpr disables mixed units for conversions only", () => {
+  assert.equal(qalcExpr("5 km to mi"), "5 km to -mi")
+  assert.equal(qalcExpr("5 km in mi"), "5 km to -mi")
+  assert.equal(qalcExpr("100 usd in inr"), "100 usd to -inr")
+  assert.equal(qalcExpr("  12*7 "), "12*7")
+  assert.equal(qalcExpr("sqrt(2)"), "sqrt(2)")
 })

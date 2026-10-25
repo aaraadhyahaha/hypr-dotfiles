@@ -6,13 +6,35 @@ import Pango from "gi://Pango"
 import Apps from "gi://AstalApps"
 import { toggleWallpapers } from "../wallpapers/Wallpapers"
 import { toggleFiles } from "../files/Files"
+import { timeout } from "ags/time"
+import { execAsync } from "ags/process"
+import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl } from "./model"
 
 type Item = {
     name: string
     description?: string | null
     iconName?: string | null
     launch: () => unknown
+    // Shift+Enter
+    alt?: () => unknown
 }
+
+const copy = (text: string) => execAsync(["wl-copy", text]).catch(console.error)
+const openUrl = (url: string) => execAsync(["xdg-open", url]).catch(console.error)
+
+const webItem = (q: string): Item => ({
+    name: `Search Google for "${q}"`,
+    iconName: "web-browser",
+    launch: () => openUrl(webUrl(q)),
+})
+
+const calcItem = (q: string, result: string): Item => ({
+    name: result,
+    description: q,
+    iconName: "accessories-calculator",
+    launch: () => copy(result),
+    alt: () => copy(`${q} = ${result}`),
+})
 
 const WALLPAPER_ITEM: Item = {
     name: "Wallpapers",
@@ -45,6 +67,9 @@ export default function Launcher() {
     let lastY: number | null = null
     let rows: Gtk.Box[] = []
     let sel = 0
+    let modeLabel: Gtk.Label
+    let debounce: { cancel: () => void } | null = null
+    let seq = 0
 
     // hiding is instant; Hyprland fades the last frame out
     const close = () => (win.visible = false)
@@ -61,10 +86,12 @@ export default function Launcher() {
             adj.value = a.y + a.height - adj.page_size
     }
 
-    const launch = (a?: Item) => {
+    const launch = (a?: Item, alt = false) => {
         if (!a) return
+        const fn = alt ? a.alt : a.launch
+        if (!fn) return
         close()
-        a.launch()
+        fn()
     }
 
     const render = () => {
@@ -109,14 +136,61 @@ export default function Launcher() {
         setSel(0)
     }
 
+    const MODE_LABEL: Record<string, string> = { calc: "Calc", web: "Web" }
+
+    // qalc runs after a short pause; `seq` drops answers for stale input
+    const calc = (q: string, done: (it: Item | null) => void) => {
+        debounce?.cancel()
+        const my = ++seq
+        debounce = timeout(100, () => {
+            execAsync(["qalc", "-t", qalcExpr(q)])
+                .then((out) => {
+                    if (my !== seq) return
+                    const r = cleanCalc(q, out)
+                    done(r ? calcItem(q, r) : null)
+                })
+                .catch(() => { if (my === seq) done(null) })
+        })
+    }
+
     const search = (text: string) => {
-        const q = text.trim().toLowerCase()
-        const found: Item[] = (text ? apps.fuzzy_query(text) : apps.list).slice(0, MAX)
+        const { mode, q } = parseQuery(text)
+        debounce?.cancel()
+        seq++
+        const label = MODE_LABEL[mode]
+        modeLabel.label = label ?? "Super"
+        if (label) modeLabel.add_css_class("mode")
+        else modeLabel.remove_css_class("mode")
+
+        if (mode === "calc") {
+            results = []
+            render()
+            if (q) calc(q, (it) => { if (it) { results = [it]; render() } })
+            return
+        }
+        if (mode === "web") {
+            results = q ? [webItem(q)] : []
+            render()
+            return
+        }
+
+        const t = text.trim()
+        const lq = t.toLowerCase()
+        const found: Item[] = (t ? apps.fuzzy_query(t) : apps.list).slice(0, MAX)
         const extras: Item[] = []
-        if (q.length >= 2 && "wallpapers".startsWith(q)) extras.push(WALLPAPER_ITEM)
-        if (q.length >= 2 && ("search files".startsWith(q) || "find files".startsWith(q))) extras.push(FILES_ITEM)
-        results = [...extras, ...found].slice(0, MAX)
+        if (lq.length >= 2 && "wallpapers".startsWith(lq)) extras.push(WALLPAPER_ITEM)
+        if (lq.length >= 2 && ("search files".startsWith(lq) || "find files".startsWith(lq))) extras.push(FILES_ITEM)
+        const base = [...extras, ...found].slice(0, MAX)
+        const tail = t ? [webItem(t)] : []
+        results = [...base, ...tail]
         render()
+        if (looksLikeMath(t)) {
+            calc(t, (it) => {
+                if (!it) return
+                results = [it, ...base, ...tail]
+                render()
+            })
+        }
     }
 
     const open = () => {
@@ -137,10 +211,14 @@ export default function Launcher() {
                 win = self
                 const key = new Gtk.EventControllerKey()
                 key.set_propagation_phase(Gtk.PropagationPhase.CAPTURE)
-                key.connect("key-pressed", (_, keyval) => {
+                key.connect("key-pressed", (_, keyval, _code, state) => {
                     if (keyval === Gdk.KEY_Escape) { close(); return true }
                     if (keyval === Gdk.KEY_Down) { setSel(sel + 1); return true }
                     if (keyval === Gdk.KEY_Up) { setSel(sel - 1); return true }
+                    if ((keyval === Gdk.KEY_Return || keyval === Gdk.KEY_KP_Enter) && state & Gdk.ModifierType.SHIFT_MASK) {
+                        launch(results[sel], true)
+                        return true
+                    }
                     return false
                 })
                 self.add_controller(key)
@@ -176,7 +254,7 @@ export default function Launcher() {
                             onNotifyText={(self) => search(self.text)}
                             onActivate={() => launch(results[sel])}
                         />
-                        <label class="lnch-key" label="Super" />
+                        <label $={(self) => (modeLabel = self)} class="lnch-key" label="Super" />
                     </box>
                     <scrolledwindow
                         $={(self) => (scroller = self)}

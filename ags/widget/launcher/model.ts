@@ -27,6 +27,14 @@ export function looksLikeMath(q: string): boolean {
   return MATH_FUNC.test(t) || /[\d)]\s*[+\-*/^%]\s*[\d(.\-]/.test(rest)
 }
 
+// qalc splits `5 km to mi` into `3 mi + 188 yd + ...`; a `-` before the target
+// unit turns that off. "in" means inches to qalc, so it is rewritten to "to".
+export function qalcExpr(q: string): string {
+  const t = q.trim()
+  const m = t.match(/^(\d[\d.,]*\s*[a-z°%$€£₹][a-z°%/²³]*)\s+(?:to|in)\s+([a-z°%$€£₹][a-z°%/²³]*)$/i)
+  return m ? `${m[1]} to -${m[2]}` : t
+}
+
 // null = nothing worth showing (empty, an error, or just the input echoed back)
 export function cleanCalc(input: string, output: string): string | null {
   const out = output.trim()
