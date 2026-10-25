@@ -2,7 +2,8 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
-window.Shot {
+window.Shot,
+window.ShotMenu {
   background: transparent;
 }
 

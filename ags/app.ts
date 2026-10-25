@@ -7,6 +7,7 @@ import Osd, { showBrightness } from "./widget/osd/Osd"
 import Wallpapers, { toggleWallpapers } from "./widget/wallpapers/Wallpapers"
 import Files, { toggleFiles } from "./widget/files/Files"
 import Screenshot, { ShotPreview, screenshotRegion, screenshotFull } from "./widget/screenshot/Screenshot"
+import ShotMenu, { toggleShotMenu } from "./widget/screenshot/ShotMenu"
 import Clipboard, { toggleClipboard } from "./widget/clipboard/Clipboard"
 import Overview, { toggleOverview } from "./widget/overview/Overview"
 import { toggleDateMenu } from "./widget/bar/modules/DateMenu"
@@ -34,6 +35,7 @@ app.start({
     }
     if (argv[0] === "screenshot") { screenshotRegion(); return response("ok") }
     if (argv[0] === "screenshot-full") { screenshotFull(); return response("ok") }
+    if (argv[0] === "toggle-shotmenu") { toggleShotMenu(); return response("ok") }
     if (argv[0] === "toggle-clipboard") { toggleClipboard(); return response("ok") }
     if (argv[0] === "toggle-overview") { toggleOverview(); return response("ok") }
     if (argv[0] === "toggle-datemenu") { toggleDateMenu(); return response("ok") }
@@ -51,6 +53,7 @@ app.start({
     Files()
     Screenshot()
     ShotPreview()
+    ShotMenu()
     Clipboard()
     Overview()
   },

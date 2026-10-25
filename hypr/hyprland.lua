@@ -341,7 +341,7 @@ hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = tr
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
 
 -- Screenshots
-hl.bind("Print", hl.dsp.exec_cmd("ags request screenshot"))
+hl.bind("Print", hl.dsp.exec_cmd("ags request toggle-shotmenu"))
 hl.bind("SHIFT + Print", hl.dsp.exec_cmd("ags request screenshot-full"))
 
 --------------------------------
@@ -396,7 +396,7 @@ hl.layer_rule({
 
 -- "shot" is the region selector: it must stay unblurred.
 hl.layer_rule({
-  match = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview)$" },
+  match = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu)$" },
   name = "ags-blur",
   blur = true,
   ignore_alpha = 0.1,
