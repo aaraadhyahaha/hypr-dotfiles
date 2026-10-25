@@ -102,8 +102,8 @@ const FILES_ITEM: Item = {
 }
 
 const MAX = 40
-let toggleFn = () => { }
-export const toggleLauncher = () => toggleFn()
+let toggleFn = (_prefill?: string) => { }
+export const toggleLauncher = (prefill?: string) => toggleFn(prefill)
 
 export default function Launcher() {
     const apps = new Apps.Apps()
@@ -273,17 +273,18 @@ export default function Launcher() {
         }
     }
 
-    const open = () => {
+    const open = (prefill = "") => {
         armed = false; lastX = null; lastY = null
         apps.reload()
-        entry.set_text("")
-        search("")
+        entry.set_text(prefill)
+        entry.set_position(-1)
+        search(prefill)
         motion.animate(ENTER.card)
         win.visible = true
         entry.grab_focus()
     }
 
-    toggleFn = () => (win.visible ? close() : open())
+    toggleFn = (prefill) => (win.visible ? close() : open(prefill))
 
     return (
         <window
@@ -330,7 +331,7 @@ export default function Launcher() {
                         <entry
                             $={(self) => (entry = self)}
                             hexpand
-                            placeholderText="Search apps"
+                            placeholderText="Search apps   = calc  : emoji  > run  ? web"
                             onNotifyText={(self) => search(self.text)}
                             onActivate={() => launch(results[sel])}
                         />

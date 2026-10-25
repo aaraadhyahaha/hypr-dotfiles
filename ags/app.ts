@@ -18,7 +18,7 @@ app.start({
   css: style,
   requestHandler(argv, response) {
     if (argv[0] === "toggle-launcher") {
-      toggleLauncher()
+      toggleLauncher(argv[1])
       return response("ok")
     }
     if (argv[0] === "osd-brightness") {

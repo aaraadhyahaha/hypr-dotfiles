@@ -116,6 +116,13 @@ window.Files {
   color: $text-faint;
 }
 
+// active mode pill (Calc, Emoji, Run, Web)
+.lnch-key.mode {
+  @include on-state;
+  padding: 2px $spacing-2;
+  border-radius: $radius-sm;
+}
+
 .lnch-list {
   margin-top: $spacing-2;
 }

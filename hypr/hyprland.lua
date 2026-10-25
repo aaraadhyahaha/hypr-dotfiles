@@ -267,6 +267,7 @@ local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 
 -- Launcher
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd("ags request toggle-launcher"))
+hl.bind(mainMod .. " + period", hl.dsp.exec_cmd("ags request toggle-launcher :"))
 
 -- Fuzzy finding files
 hl.bind(mainMod .. " + SHIFT + F", hl.dsp.exec_cmd("ags request toggle-files"))
