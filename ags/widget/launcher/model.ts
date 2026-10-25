@@ -24,11 +24,15 @@ export type Item = {
   // Alt+Enter, and its label
   extra?: () => unknown
   extraHint?: string
+  // a file or folder path: the row shows its icon and the preview pane shows it
+  preview?: string
+  // Enter keeps the launcher open (a row that switches mode)
+  stay?: boolean
 }
 
-export type Mode ="apps" | "calc" | "emoji" | "shell" | "web" | "fx"
+export type Mode = "apps" | "calc" | "emoji" | "shell" | "web" | "fx" | "files"
 
-const PREFIXES: Record<string, Mode> = { "=": "calc", ":": "emoji", ">": "shell", "?": "web", "!": "fx" }
+const PREFIXES: Record<string, Mode> = { "=": "calc", ":": "emoji", ">": "shell", "?": "web", "!": "fx", "/": "files" }
 
 export function parseQuery(text: string): { mode: Mode; q: string } {
   const t = text.trim()

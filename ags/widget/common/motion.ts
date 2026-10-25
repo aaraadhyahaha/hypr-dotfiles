@@ -192,6 +192,8 @@ export const ENTER = {
   edge: { from: { fx: 1 }, duration: MOTION.slide, ease: EASE.out },
   // content appearing inside an open panel (it fades itself: no compositor here)
   content: { from: { y: -6, opacity: 0 }, duration: MOTION.enter * 0.8, ease: EASE.out },
+  // content replacing itself in place (the launcher's preview pane): fade only, so text never shimmers
+  swap: { from: { opacity: 0 }, duration: MOTION.base, ease: EASE.out },
   // a bar item widening (the clock's date)
   side: { from: { x: -6, opacity: 0 }, duration: MOTION.enter * 0.8, ease: EASE.out },
   // a desktop widget appearing on the grid (added from the gallery)

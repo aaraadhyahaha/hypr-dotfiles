@@ -24,10 +24,11 @@ test("parseQuery reads prefixes and trims", () => {
   assert.deepEqual(parseQuery("fx stop"), { mode: "fx", q: "stop" })
   assert.deepEqual(parseQuery("FX"), { mode: "fx", q: "" })
   assert.deepEqual(parseQuery("fxsomething"), { mode: "apps", q: "fxsomething" })
+  assert.deepEqual(parseQuery("/ notes md"), { mode: "files", q: "notes md" })
 })
 
 test("parseQuery with a prefix and nothing after it", () => {
-  for (const [p, mode] of [["=", "calc"], [":", "emoji"], [">", "shell"], ["?", "web"], ["!", "fx"]] as const)
+  for (const [p, mode] of [["=", "calc"], [":", "emoji"], [">", "shell"], ["?", "web"], ["!", "fx"], ["/", "files"]] as const)
     assert.deepEqual(parseQuery(p), { mode, q: "" })
   assert.deepEqual(parseQuery(""), { mode: "apps", q: "" })
 })

@@ -15,6 +15,38 @@ const MAX = 8
 let toggleFn = () => { }
 export const toggleFiles = () => toggleFn()
 
+// shared with the launcher's `/` mode
+export const openPath = (path: string) => {
+    const isDir = GLib.file_test(path, GLib.FileTest.IS_DIR)
+    execAsync(isDir ? ["nautilus", "--new-window", path] : ["xdg-open", path]).catch(console.error)
+}
+
+export const showInFolder = (path: string) =>
+    execAsync(["nautilus", "--select", path]).catch(console.error)
+
+// fzf over the fd index, best first; "" or a missing index gives []
+export const searchIndex = (q: string, max: number): Promise<string[]> =>
+    execAsync([
+        "sh", "-c",
+        'fzf -i --scheme=path --filter "$1" < "$2" | head -n "$3"',
+        "sh", q, INDEX, String(max),
+    ])
+        .then((out) => out.split("\n").filter(Boolean))
+        .catch(() => [])
+
+// one fd run at a time; callers that ask while it runs share it
+let indexRun: Promise<void> | null = null
+export const isIndexing = () => indexRun !== null
+export const indexFiles = (): Promise<void> =>
+    (indexRun ??= execAsync([
+        "sh", "-c",
+        'fd --type f --type d -E node_modules . "$HOME" > "$1.tmp" && mv "$1.tmp" "$1"',
+        "sh", INDEX,
+    ])
+        .then(() => { })
+        .catch(console.error)
+        .finally(() => { indexRun = null }))
+
 export default function Files() {
     let win: Astal.Window
     let motion: Motion
@@ -25,7 +57,6 @@ export default function Files() {
     let results: string[] = []
     let rows: Gtk.Box[] = []
     let sel = 0
-    let indexing = false
     let seq = 0
     let debounce: { cancel: () => void } | null = null
 
@@ -36,12 +67,10 @@ export default function Files() {
             idx === sel ? r.add_css_class("sel") : r.remove_css_class("sel"))
     }
 
-    const openPath = (path?: string) => {
+    const openSel = (path?: string) => {
         if (!path) return
         close()
-
-        const isDir = GLib.file_test(path, GLib.FileTest.IS_DIR)
-        execAsync(isDir ? ["nautilus", "--new-window", path] : ["xdg-open", path]).catch(console.error)
+        openPath(path)
     }
 
     const render = () => {
@@ -77,7 +106,7 @@ export default function Files() {
             row.append(text)
 
             const click = new Gtk.GestureClick()
-            click.connect("pressed", () => openPath(path))
+            click.connect("pressed", () => openSel(path))
             row.add_controller(click)
             const motion = new Gtk.EventControllerMotion()
             motion.connect("enter", () => setSel(i))
@@ -91,9 +120,9 @@ export default function Files() {
 
     const setStatus = () => {
         const q = entry.text.trim()
-        status.label = results.length ? "" : !q ? "Type to search files" : indexing ? "Indexing..." : "No matches"
+        status.label = results.length ? "" : !q ? "Type to search files" : isIndexing() ? "Indexing..." : "No matches"
         status.visible = !results.length
-        hint.visible = indexing
+        hint.visible = isIndexing()
     }
 
     const search = (text: string) => {
@@ -108,35 +137,22 @@ export default function Files() {
         }
         debounce = timeout(100, () => {
             const my = ++seq
-            const done = (out: string) => {
+            searchIndex(q, MAX).then((paths) => {
                 if (my !== seq) return
-                results = out.split("\n").filter(Boolean)
+                results = paths
                 render()
                 setStatus()
-            }
-            execAsync([
-                "sh", "-c",
-                'fzf -i --scheme=path --filter "$1" < "$2" | head -n 8',
-                "sh", q, INDEX,
-            ]).then(done).catch(() => done(""))
+            })
         })
     }
 
     const reindex = () => {
-        if (indexing) return
-        indexing = true
         hint.visible = true
-        execAsync([
-            "sh", "-c",
-            'fd --type f --type d -E node_modules . "$HOME" > "$1.tmp" && mv "$1.tmp" "$1"',
-            "sh", INDEX,
-        ])
-            .catch(console.error)
-            .finally(() => {
-                indexing = false
-                hint.visible = false
-                if (win.visible) search(entry.text)
-            })
+        // joins a run the launcher already started
+        indexFiles().then(() => {
+            hint.visible = false
+            if (win.visible) search(entry.text)
+        })
     }
 
     const close = () => (win.visible = false) // instant; Hyprland fades the last frame
@@ -188,7 +204,7 @@ export default function Files() {
                             hexpand
                             placeholderText="Search files…"
                             onNotifyText={(self) => search(self.text)}
-                            onActivate={() => openPath(results[sel])}
+                            onActivate={() => openSel(results[sel])}
                         />
                         <label $={(self) => (hint = self)} class="lnch-hint" label="Indexing…" visible={false} />
                     </box>

@@ -5,15 +5,18 @@ import { surfaceTop } from "../common/surface"
 import Pango from "gi://Pango"
 import Apps from "gi://AstalApps"
 import { toggleWallpapers } from "../wallpapers/Wallpapers"
-import { toggleFiles } from "../files/Files"
+import { toggleFiles, openPath, showInFolder, searchIndex, indexFiles, isIndexing } from "../files/Files"
 import { timeout } from "ags/time"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
+import Gio from "gi://Gio"
 import { readFile, writeFile } from "ags/file"
 import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency, type Item } from "./model"
 import { parseAction, parseFxQuery, riskyPrefix } from "./actionsModel"
 import { actionItems, refreshActions } from "./actions"
 import { fxItems } from "./fxItems"
+import { type Recent, matchRecent, mergePaths, tildePath } from "./filesModel"
+import { listRecent, addRecent, fileIcon, loadPreview, emptyPreview, PREVIEW_W } from "./preview"
 import { fxStatus, fxProblem, useFx, refreshFx } from "../../service/fx"
 import emojiTsv from "./emojiData"
 
@@ -92,7 +95,28 @@ const FILES_ITEM: Item = {
     launch: () => toggleFiles(),
 }
 
+const fileItem = (path: string): Item => ({
+    name: GLib.path_get_basename(path),
+    description: tildePath(GLib.path_get_dirname(path), GLib.get_home_dir()),
+    preview: path,
+    hint: "Open",
+    launch: () => { addRecent(path); openPath(path) },
+    altHint: "Show in folder",
+    alt: () => showInFolder(path),
+})
+
+const NO_RECENT: Item = { name: "No recent files yet", description: "Type to search your home folder", symbol: "history" }
+const SEARCHING: Item = { name: "Searching…", symbol: "search" }
+const INDEXING: Item = { name: "Indexing your files…", description: "Matches show up as soon as it's done", symbol: "hourglass_empty" }
+const noMatch = (q: string): Item => ({ name: `No files match “${q}”`, description: "Try fewer or different letters", symbol: "search_off" })
+
 const MAX = 40
+// the list's max height; the preview pane is exactly this tall, so the card never jumps
+const LIST_H = 380
+// the recent list is read once per open, newest first
+const RECENT_MAX = 200
+// a row's identity across re-renders (two files can share a name)
+const idOf = (a?: Item) => a?.preview ?? a?.name
 let toggleFn = (_prefill?: string) => { }
 export const toggleLauncher = (prefill?: string) => toggleFn(prefill)
 
@@ -112,6 +136,54 @@ export default function Launcher() {
     let modeLabel: Gtk.Label
     let debounce: { cancel: () => void } | null = null
     let seq = 0
+    let body: Gtk.Box
+    let pane: Gtk.Box
+    let paneMotion: Motion
+    // what the pane shows (a path, or "" for the placeholder) and the load in flight
+    let paneFor: string | null = null
+    let paneCancel: Gio.Cancellable | null = null
+    let recent: Recent[] | null = null
+    let indexed = false
+
+    const swapPane = (w: Gtk.Widget) => {
+        let c
+        while ((c = paneMotion.get_first_child())) paneMotion.remove(c)
+        paneMotion.append(w)
+        paneMotion.animate(ENTER.swap)
+    }
+
+    // the old content stays until the new one is ready, so arrowing never shows a blank pane
+    const showPreview = (a?: Item) => {
+        if (!pane.visible) return
+        const path = a?.preview ?? ""
+        if (path === paneFor) return
+        paneFor = path
+        paneCancel?.cancel()
+        paneCancel = null
+        if (!path) return swapPane(emptyPreview("draft", "Select a file to preview it"))
+        const cancel = (paneCancel = new Gio.Cancellable())
+        loadPreview(path, win.get_scale_factor(), cancel)
+            .then((w) => { if (!cancel.is_cancelled()) swapPane(w) })
+            .catch((e) => {
+                if (cancel.is_cancelled()) return
+                console.error("launcher preview:", path, e)
+                swapPane(emptyPreview("error", "Can't preview this file"))
+            })
+    }
+
+    const setPane = (on: boolean) => {
+        if (pane.visible === on) return
+        pane.visible = on
+        // .wide: the card makes room for the pane
+        const card = body.get_parent()!
+        if (on) card.add_css_class("wide")
+        else {
+            card.remove_css_class("wide")
+            paneCancel?.cancel()
+            paneCancel = null
+            paneFor = null
+        }
+    }
 
     // hiding is instant; Hyprland fades the last frame out
     const close = () => (win.visible = false)
@@ -121,6 +193,7 @@ export default function Launcher() {
         sel = (i + rows.length) % rows.length
         rows.forEach((r, idx) =>
             idx === sel ? r.add_css_class("sel") : r.remove_css_class("sel"))
+        showPreview(results[sel])
         const a = rows[sel].get_allocation()
         const adj = scroller.get_vadjustment()
         if (a.y < adj.value) adj.value = a.y
@@ -136,7 +209,7 @@ export default function Launcher() {
             frecency = bump(frecency, a.key, Date.now())
             saveFrecency()
         }
-        close()
+        if (!a.stay) close()
         fn()
     }
 
@@ -163,17 +236,22 @@ export default function Launcher() {
                 s.add_css_class("fill")
                 s.add_css_class("symbol")
                 tile.append(s)
+            } else if (a.preview) {
+                tile.append(new Gtk.Image({ gicon: fileIcon(a.preview), pixelSize: 20 }))
             } else {
                 tile.append(new Gtk.Image({ iconName: a.iconName ?? "application-x-executable", pixelSize: 20 }))
             }
             const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER, hexpand: true })
-            const name = new Gtk.Label({ label: a.name, xalign: 0, maxWidthChars: 48, ellipsize: Pango.EllipsizeMode.END })
+            // file rows take the width they're given, so a long name can't widen the card;
+            // the middle of a folder path is the part worth losing
+            const fit = a.preview ? { widthChars: 1, maxWidthChars: 1 } : { maxWidthChars: 48 }
+            const name = new Gtk.Label({ label: a.name, xalign: 0, ...fit, ellipsize: Pango.EllipsizeMode.END })
             name.add_css_class("name")
             text.append(name)
             if (a.description) {
                 const d = new Gtk.Label({
-                    label: a.description, xalign: 0,
-                    maxWidthChars: 48, ellipsize: Pango.EllipsizeMode.END,
+                    label: a.description, xalign: 0, ...fit,
+                    ellipsize: a.preview ? Pango.EllipsizeMode.MIDDLE : Pango.EllipsizeMode.END,
                 })
                 d.add_css_class("desc")
                 text.append(d)
@@ -206,14 +284,14 @@ export default function Launcher() {
             list.append(row)
             rows.push(row)
         })
-        const kept = keep === undefined ? -1 : results.findIndex((r) => r.name === keep)
+        const kept = keep === undefined ? -1 : results.findIndex((r) => idOf(r) === keep)
         setSel(Math.max(0, kept))
         // a layer-shell surface keeps its largest size; re-measure so the card hugs the list
         win.set_default_size(-1, -1)
         win.queue_resize()
     }
 
-    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web", fx: "fx" }
+    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web", fx: "fx", files: "Files" }
 
     // qalc runs after a short pause; `seq` drops answers for stale input
     const calc = (q: string, done: (it: Item | null) => void) => {
@@ -238,6 +316,7 @@ export default function Launcher() {
         modeLabel.label = label ?? "Esc"
         if (label) modeLabel.add_css_class("mode")
         else modeLabel.remove_css_class("mode")
+        setPane(mode === "files")
 
         if (mode === "calc") {
             results = []
@@ -260,6 +339,10 @@ export default function Launcher() {
         if (mode === "web") {
             results = q ? [webItem(q)] : []
             render()
+            return
+        }
+        if (mode === "files") {
+            filesSearch(q, keep)
             return
         }
         if (mode === "fx") {
@@ -286,6 +369,7 @@ export default function Launcher() {
         const found = rank(matches, frecency, Date.now(), (i) => i.key!, t ? APP_WINDOW : matches.length)
         const extras: Item[] = []
         if (lq.length >= 2 && "wallpapers".startsWith(lq)) extras.push(WALLPAPER_ITEM)
+        if (lq.length >= 2 && "recent files".startsWith(lq)) extras.push(recentItem)
         if (lq.length >= 2 && ("search files".startsWith(lq) || "find files".startsWith(lq))) extras.push(FILES_ITEM)
         // a typed quick action ranks first, except a session-ender reached by prefix ("reb"),
         // which waits below the apps so a quick Enter can't fire it
@@ -305,10 +389,53 @@ export default function Launcher() {
         }
     }
 
+    // opens files mode in place
+    const recentItem: Item = {
+        name: "Recent Files",
+        description: "Browse and preview them · type / to search",
+        iconName: "document-open-recent",
+        hint: "Browse",
+        stay: true,
+        launch: () => { entry.set_text("/"); entry.set_position(-1) },
+    }
+
+    // recent matches show at once; the fd index's answer follows and merges in below them
+    const filesSearch = (q: string, keep?: string) => {
+        if (!indexed) {
+            // the index refreshes once per open; whatever's on screen re-runs when it lands
+            indexed = true
+            indexFiles().then(() => {
+                if (win.visible && parseQuery(entry.text).mode === "files") search(entry.text, idOf(results[sel]))
+            })
+        }
+        recent ??= listRecent(RECENT_MAX)
+        const hits = matchRecent(recent, q, MAX).map((r) => r.path)
+        if (!q) {
+            results = hits.length ? hits.map(fileItem) : [NO_RECENT]
+            render(keep)
+            return
+        }
+        // nothing recent matches: keep the last file rows up until the index answers, so typing doesn't flash
+        if (hits.length || !results.some((r) => r.preview)) {
+            results = hits.length ? hits.map(fileItem) : [SEARCHING]
+            render(keep)
+        }
+        const my = seq
+        debounce = timeout(100, () => {
+            searchIndex(q, MAX).then((paths) => {
+                if (my !== seq) return
+                const cur = idOf(results[sel])
+                const all = mergePaths(hits, paths, MAX)
+                results = all.length ? all.map(fileItem) : [isIndexing() ? INDEXING : noMatch(q)]
+                render(cur)
+            })
+        })
+    }
+
     // fx data that lands while fx rows are shown re-renders them in place
     let fxFetched = false
     const fxChanged = () => {
-        if (win?.visible && parseQuery(entry.text).mode === "fx") search(entry.text, results[sel]?.name ?? "")
+        if (win?.visible && parseQuery(entry.text).mode === "fx") search(entry.text, idOf(results[sel]) ?? "")
     }
     fxStatus.subscribe(fxChanged)
     fxProblem.subscribe(fxChanged)
@@ -316,6 +443,8 @@ export default function Launcher() {
     const open = (prefill = "") => {
         armed = false; lastX = null; lastY = null
         fxFetched = false
+        recent = null
+        indexed = false
         apps.reload()
         refreshActions()
         entry.set_text(prefill)
@@ -344,6 +473,13 @@ export default function Launcher() {
                     }
                     if ((keyval === Gdk.KEY_Return || keyval === Gdk.KEY_KP_Enter) && state & Gdk.ModifierType.ALT_MASK) {
                         launch(results[sel], "extra")
+                        return true
+                    }
+                    // Ctrl+C on a file row copies its path, unless there's text selected to copy
+                    const path = results[sel]?.preview
+                    if (keyval === Gdk.KEY_c && state & Gdk.ModifierType.CONTROL_MASK && path && !entry.get_selection_bounds()[0]) {
+                        close()
+                        copy(path)
                         return true
                     }
                     return false
@@ -383,14 +519,26 @@ export default function Launcher() {
                         />
                         <label $={(self) => (modeLabel = self)} class="lnch-key" valign={Gtk.Align.CENTER} label="Esc" />
                     </box>
-                    <scrolledwindow
-                        $={(self) => (scroller = self)}
-                        propagateNaturalHeight
-                        maxContentHeight={380}
-                        hscrollbarPolicy={Gtk.PolicyType.NEVER}
-                    >
-                        <box $={(self) => (list = self)} class="lnch-list" orientation={Gtk.Orientation.VERTICAL} />
-                    </scrolledwindow>
+                    <box $={(self) => (body = self)} class="lnch-body" spacing={8}>
+                        <scrolledwindow
+                            $={(self) => (scroller = self)}
+                            hexpand
+                            propagateNaturalHeight
+                            maxContentHeight={LIST_H}
+                            hscrollbarPolicy={Gtk.PolicyType.NEVER}
+                        >
+                            <box $={(self) => (list = self)} class="lnch-list" orientation={Gtk.Orientation.VERTICAL} />
+                        </scrolledwindow>
+                        <box
+                            $={(self) => (pane = self)}
+                            class="lnch-preview"
+                            visible={false}
+                            valign={Gtk.Align.START}
+                            heightRequest={LIST_H}
+                        >
+                            <Motion $={(self) => (paneMotion = self)} widthRequest={PREVIEW_W} hexpand={false} />
+                        </box>
+                    </box>
                 </box>
             </Motion>
         </window>
