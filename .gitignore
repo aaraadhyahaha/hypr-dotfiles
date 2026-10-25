@@ -26,3 +26,9 @@ node_modules/
 /qt6ct/colors/matugen.conf
 # fish universal variables: machine state, rewritten with the theme colours
 /fish/fish_variables
+
+# GTK theme output
+gtk-3.0/settings.ini
+gtk-4.0/settings.ini
+gtk-4.0/assets
+gtk-4.0/gtk-dark.css
