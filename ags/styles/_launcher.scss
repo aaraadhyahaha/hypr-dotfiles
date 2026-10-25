@@ -93,7 +93,8 @@ window.Files {
 
   .lnch-search-icon,
   .ffsearch-icon {
-    min-width: 32px;
+    // the tile is 32 + 2 × 1px border; GTK's min-width is the content box
+    min-width: 34px;
     font-size: $font-size-5xl;
     color: $text-muted;
   }

@@ -195,6 +195,9 @@ export default function Launcher() {
             rows.push(row)
         })
         setSel(0)
+        // a layer-shell surface keeps its largest size; re-measure so the card hugs the list
+        win.set_default_size(-1, -1)
+        win.queue_resize()
     }
 
     const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web" }
@@ -326,7 +329,7 @@ export default function Launcher() {
         >
             <Motion $={(self) => (motion = self)}>
                 <box class="lnch" orientation={Gtk.Orientation.VERTICAL}>
-                    <box class="lnch-search" spacing={10}>
+                    <box class="lnch-search" spacing={12}>
                         <label class="icon lnch-search-icon" label="search" />
                         <entry
                             $={(self) => (entry = self)}
