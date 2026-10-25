@@ -1,13 +1,14 @@
 // Query parsing, calc detection, emoji search and frecency for the launcher.
 // Pure (no GTK) so it can be unit tested.
 
-export type Mode = "apps" | "calc" | "emoji" | "shell" | "web"
+export type Mode = "apps" | "calc" | "emoji" | "shell" | "web" | "fx"
 
-const PREFIXES: Record<string, Mode> = { "=": "calc", ":": "emoji", ">": "shell", "?": "web" }
+const PREFIXES: Record<string, Mode> = { "=": "calc", ":": "emoji", ">": "shell", "?": "web", "!": "fx" }
 
 export function parseQuery(text: string): { mode: Mode; q: string } {
   const t = text.trim()
   const mode = PREFIXES[t[0]]
+  if (!mode && /^fx(\s|$)/i.test(t)) return { mode: "fx", q: t.slice(2).trim() }
   if (!mode) return { mode: "apps", q: t }
   return { mode, q: t.slice(1).trim() }
 }
