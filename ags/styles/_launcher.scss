@@ -157,4 +157,8 @@ window.Files {
   border-radius: 9px;
   border: 1px solid $glass-hairline;
   background-color: $glass-card;
+
+  .glyph {
+    font-size: $font-size-2xl;
+  }
 }

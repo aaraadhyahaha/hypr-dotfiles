@@ -8,12 +8,15 @@ import { toggleWallpapers } from "../wallpapers/Wallpapers"
 import { toggleFiles } from "../files/Files"
 import { timeout } from "ags/time"
 import { execAsync } from "ags/process"
-import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl } from "./model"
+import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, type Emoji } from "./model"
+import emojiTsv from "./emojiData"
 
 type Item = {
     name: string
     description?: string | null
     iconName?: string | null
+    // text shown in the tile instead of an icon
+    glyph?: string
     launch: () => unknown
     // Shift+Enter
     alt?: () => unknown
@@ -34,6 +37,14 @@ const calcItem = (q: string, result: string): Item => ({
     iconName: "accessories-calculator",
     launch: () => copy(result),
     alt: () => copy(`${q} = ${result}`),
+})
+
+const EMOJI = parseEmojiData(emojiTsv)
+
+const emojiItem = (e: Emoji): Item => ({
+    name: e.name,
+    glyph: e.glyph,
+    launch: () => copy(e.glyph),
 })
 
 const WALLPAPER_ITEM: Item = {
@@ -106,7 +117,13 @@ export default function Launcher() {
             // 32px tile holding the app's own icon
             const tile = new Gtk.Box({ valign: Gtk.Align.CENTER, homogeneous: true })
             tile.add_css_class("lnch-tile")
-            tile.append(new Gtk.Image({ iconName: a.iconName ?? "application-x-executable", pixelSize: 20 }))
+            if (a.glyph) {
+                const g = new Gtk.Label({ label: a.glyph })
+                g.add_css_class("glyph")
+                tile.append(g)
+            } else {
+                tile.append(new Gtk.Image({ iconName: a.iconName ?? "application-x-executable", pixelSize: 20 }))
+            }
             const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER, hexpand: true })
             const name = new Gtk.Label({ label: a.name, xalign: 0 })
             name.add_css_class("name")
@@ -136,7 +153,7 @@ export default function Launcher() {
         setSel(0)
     }
 
-    const MODE_LABEL: Record<string, string> = { calc: "Calc", web: "Web" }
+    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", web: "Web" }
 
     // qalc runs after a short pause; `seq` drops answers for stale input
     const calc = (q: string, done: (it: Item | null) => void) => {
@@ -166,6 +183,11 @@ export default function Launcher() {
             results = []
             render()
             if (q) calc(q, (it) => { if (it) { results = [it]; render() } })
+            return
+        }
+        if (mode === "emoji") {
+            results = searchEmoji(EMOJI, q, MAX).map(emojiItem)
+            render()
             return
         }
         if (mode === "web") {
