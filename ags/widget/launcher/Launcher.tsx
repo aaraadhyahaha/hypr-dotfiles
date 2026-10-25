@@ -334,7 +334,7 @@ export default function Launcher() {
                         <entry
                             $={(self) => (entry = self)}
                             hexpand
-                            placeholderText="Search apps   = calc  : emoji  > run  ? web"
+                            placeholderText="Search apps…"
                             onNotifyText={(self) => search(self.text)}
                             onActivate={() => launch(results[sel])}
                         />
