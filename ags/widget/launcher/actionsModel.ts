@@ -208,3 +208,26 @@ export function parseFxQuery(q: string): FxQuery {
   if (effort !== undefined) out.effort = effort
   return out
 }
+
+// fx's own defaults for `fx add`, shown before Enter
+export const FX_ADD_DEFAULTS = { severity: 3, effort: 30 }
+
+// argv after the fx binary; `--` keeps a title like "-ish notes" from reading as a flag
+export function fxAddArgs(q: { title: string; severity?: number; effort?: number }): string[] {
+  const args = ["add"]
+  if (q.severity !== undefined) args.push("--severity", String(q.severity))
+  if (q.effort !== undefined) args.push("--effort", String(q.effort))
+  return [...args, "--", q.title]
+}
+
+// Open tasks whose title holds every word of `filter` (any order, any case); the task in
+// focus comes first, the rest keep fx's order (severity, highest first)
+export function matchTasks<T extends { id: number; title: string; done: boolean }>(
+  tasks: T[],
+  filter: string,
+  activeId: number | null = null,
+): T[] {
+  const words = filter.toLowerCase().split(/\s+/).filter(Boolean)
+  const hits = tasks.filter((t) => !t.done && words.every((w) => t.title.toLowerCase().includes(w)))
+  return [...hits.filter((t) => t.id === activeId), ...hits.filter((t) => t.id !== activeId)]
+}

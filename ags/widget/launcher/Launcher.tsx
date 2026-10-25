@@ -11,8 +11,10 @@ import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import { readFile, writeFile } from "ags/file"
 import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency, type Item } from "./model"
-import { parseAction, riskyPrefix } from "./actionsModel"
+import { parseAction, parseFxQuery, riskyPrefix } from "./actionsModel"
 import { actionItems, refreshActions } from "./actions"
+import { fxItems } from "./fxItems"
+import { fxStatus, fxProblem, useFx, refreshFx } from "../../service/fx"
 import emojiTsv from "./emojiData"
 
 const FRECENCY_FILE = `${GLib.get_home_dir()}/.cache/ags-launcher.json`
@@ -126,9 +128,9 @@ export default function Launcher() {
             adj.value = a.y + a.height - adj.page_size
     }
 
-    const launch = (a?: Item, alt = false) => {
+    const launch = (a?: Item, key: "launch" | "alt" | "extra" = "launch") => {
         if (!a) return
-        const fn = alt ? a.alt : a.launch
+        const fn = a[key]
         if (!fn) return
         if (a.key) {
             frecency = bump(frecency, a.key, Date.now())
@@ -138,9 +140,10 @@ export default function Launcher() {
         fn()
     }
 
-    const render = () => {
+    // `keep`: the name of the row to stay on, for a data refresh under an unchanged query
+    const render = (keep?: string) => {
         armed = false
-        scroller.get_vadjustment().set_value(0)
+        if (keep === undefined) scroller.get_vadjustment().set_value(0)
         let c
         while ((c = list.get_first_child())) list.remove(c)
         rows = []
@@ -164,7 +167,7 @@ export default function Launcher() {
                 tile.append(new Gtk.Image({ iconName: a.iconName ?? "application-x-executable", pixelSize: 20 }))
             }
             const text = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, valign: Gtk.Align.CENTER, hexpand: true })
-            const name = new Gtk.Label({ label: a.name, xalign: 0 })
+            const name = new Gtk.Label({ label: a.name, xalign: 0, maxWidthChars: 48, ellipsize: Pango.EllipsizeMode.END })
             name.add_css_class("name")
             text.append(name)
             if (a.description) {
@@ -183,7 +186,12 @@ export default function Launcher() {
                 row.append(meter)
             }
             if (a.launch) {
-                const hint = new Gtk.Label({ label: a.hint ? `↵ ${a.hint}` : "↵", valign: Gtk.Align.CENTER })
+                const keys = [
+                    a.hint ? `↵ ${a.hint}` : "↵",
+                    a.alt && a.altHint && `⇧↵ ${a.altHint}`,
+                    a.extra && a.extraHint && `Alt↵ ${a.extraHint}`,
+                ].filter(Boolean).join("   ")
+                const hint = new Gtk.Label({ label: keys, valign: Gtk.Align.CENTER })
                 hint.add_css_class("lnch-hint")
                 row.append(hint)
             } else {
@@ -198,7 +206,8 @@ export default function Launcher() {
             list.append(row)
             rows.push(row)
         })
-        setSel(0)
+        const kept = keep === undefined ? -1 : results.findIndex((r) => r.name === keep)
+        setSel(Math.max(0, kept))
         // a layer-shell surface keeps its largest size; re-measure so the card hugs the list
         win.set_default_size(-1, -1)
         win.queue_resize()
@@ -221,7 +230,7 @@ export default function Launcher() {
         })
     }
 
-    const search = (text: string) => {
+    const search = (text: string, keep?: string) => {
         const { mode, q } = parseQuery(text)
         debounce?.cancel()
         seq++
@@ -254,9 +263,14 @@ export default function Launcher() {
             return
         }
         if (mode === "fx") {
-            // fx rows land in the next step; until then the mode only shows its pill
-            results = []
-            render()
+            // fresh numbers once per open; rows re-render when they land (see fxChanged)
+            if (!fxFetched) {
+                fxFetched = true
+                useFx()
+                refreshFx()
+            }
+            results = fxItems(parseFxQuery(q))
+            render(keep)
             return
         }
 
@@ -291,8 +305,17 @@ export default function Launcher() {
         }
     }
 
+    // fx data that lands while fx rows are shown re-renders them in place
+    let fxFetched = false
+    const fxChanged = () => {
+        if (win?.visible && parseQuery(entry.text).mode === "fx") search(entry.text, results[sel]?.name ?? "")
+    }
+    fxStatus.subscribe(fxChanged)
+    fxProblem.subscribe(fxChanged)
+
     const open = (prefill = "") => {
         armed = false; lastX = null; lastY = null
+        fxFetched = false
         apps.reload()
         refreshActions()
         entry.set_text(prefill)
@@ -316,7 +339,11 @@ export default function Launcher() {
                     if (keyval === Gdk.KEY_Down) { setSel(sel + 1); return true }
                     if (keyval === Gdk.KEY_Up) { setSel(sel - 1); return true }
                     if ((keyval === Gdk.KEY_Return || keyval === Gdk.KEY_KP_Enter) && state & Gdk.ModifierType.SHIFT_MASK) {
-                        launch(results[sel], true)
+                        launch(results[sel], "alt")
+                        return true
+                    }
+                    if ((keyval === Gdk.KEY_Return || keyval === Gdk.KEY_KP_Enter) && state & Gdk.ModifierType.ALT_MASK) {
+                        launch(results[sel], "extra")
                         return true
                     }
                     return false

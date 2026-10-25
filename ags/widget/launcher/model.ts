@@ -18,8 +18,12 @@ export type Item = {
   hint?: string
   // none = an informational row: Enter and click do nothing
   launch?: () => unknown
-  // Shift+Enter
+  // Shift+Enter, and its label next to the ↵ hint ("Done")
   alt?: () => unknown
+  altHint?: string
+  // Alt+Enter, and its label
+  extra?: () => unknown
+  extraHint?: string
 }
 
 export type Mode ="apps" | "calc" | "emoji" | "shell" | "web" | "fx"

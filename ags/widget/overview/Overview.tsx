@@ -8,6 +8,7 @@ import Gio from "gi://Gio"
 import Hyprland from "gi://AstalHyprland"
 import Pango from "gi://Pango"
 import { type NavKey, type Sel, hoverSel, initialSel, pointerMoved, reconcile, step } from "./nav"
+import { hyprDispatch } from "../../service/hypr"
 import { addr, captureStillValid, captureTargets, mergeShots, parseClients, type WinInfo } from "./shots"
 
 const hypr = Hyprland.get_default()
@@ -30,20 +31,6 @@ const SHOT_DIR = "/tmp/ags-overview"
 const CAPTURE_DELAY_MS = 800
 
 // ---------- hyprland helpers ----------
-
-// Hyprland >= 0.55 replaced `hyprctl dispatch workspace 2` with Lua expressions
-// (`hl.dsp.focus({ workspace = "2" })`), and AstalHyprland's dispatch()/focus()/kill()
-// still use the old syntax, so they silently do nothing. Try the Lua form first and
-// fall back to the legacy form for older Hyprland. Success prints "ok".
-async function hyprDispatch(lua: string, legacy: string[]) {
-  try {
-    const out = await execAsync(["hyprctl", "dispatch", lua])
-    if (out.trim() === "ok") return
-  } catch {}
-  try {
-    await execAsync(["hyprctl", "dispatch", ...legacy])
-  } catch {}
-}
 
 const focusWorkspace = (id: number) =>
   hyprDispatch(`hl.dsp.focus({ workspace = "${id}" })`, ["workspace", String(id)])

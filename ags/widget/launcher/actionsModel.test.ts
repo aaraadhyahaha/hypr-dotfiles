@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { parseAction, parseDuration, parseFxQuery, riskyPrefix } from "./actionsModel.ts"
+import { fxAddArgs, matchTasks, parseAction, parseDuration, parseFxQuery, riskyPrefix } from "./actionsModel.ts"
 
 test("parseDuration reads units, h-m shorthand and clock forms", () => {
   assert.equal(parseDuration("10m"), 600)
@@ -128,4 +128,24 @@ test("parseFxQuery add with severity and effort", () => {
   assert.deepEqual(parseFxQuery("add /5 Fix bug 1h"), { kind: "add", title: "Fix bug", severity: 5, effort: 60 })
   assert.deepEqual(parseFxQuery("add"), { kind: "add", title: "" })
   assert.deepEqual(parseFxQuery("add Chapter 2h2o"), { kind: "add", title: "Chapter 2h2o" })
+})
+
+test("fxAddArgs passes only the flags given and guards the title", () => {
+  assert.deepEqual(fxAddArgs({ title: "Read ch 4", severity: 3, effort: 45 }), ["add", "--severity", "3", "--effort", "45", "--", "Read ch 4"])
+  assert.deepEqual(fxAddArgs({ title: "-ish notes" }), ["add", "--", "-ish notes"])
+})
+
+test("matchTasks keeps open tasks matching every word, focus first", () => {
+  const tasks = [
+    { id: 1, title: "Physics: waves", done: false },
+    { id: 2, title: "Chem revision", done: true },
+    { id: 3, title: "Physics mock review", done: false },
+    { id: 4, title: "Read ch 4", done: false },
+  ]
+  const ids = (ts: { id: number }[]) => ts.map((t) => t.id)
+  assert.deepEqual(ids(matchTasks(tasks, "")), [1, 3, 4])
+  assert.deepEqual(ids(matchTasks(tasks, "", 4)), [4, 1, 3])
+  assert.deepEqual(ids(matchTasks(tasks, "review PHYS")), [3])
+  assert.deepEqual(ids(matchTasks(tasks, "chem")), [])
+  assert.deepEqual(ids(matchTasks(tasks, "", 2)), [1, 3, 4])
 })

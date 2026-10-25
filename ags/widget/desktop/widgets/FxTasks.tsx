@@ -1,10 +1,9 @@
 import { Gtk } from "ags/gtk4"
 import { onCleanup } from "ags"
 import Pango from "gi://Pango"
-import { fxProblem, fxStatus, useFx } from "../../../service/fx"
+import { fxProblem, fxStatus, openFx, useFx } from "../../../service/fx"
 import { hm, type FxTask } from "../../../service/fxModel"
 import { EmptyState, SeverityDot, box, label } from "./common"
-import { openFx } from "./FxToday"
 import type { WidgetProps } from "./types"
 
 // fx's task list for today, most important first; finished ones sink to the bottom, struck.

@@ -1,9 +1,8 @@
 import { Gtk } from "ags/gtk4"
 import { createComputed, onCleanup } from "ags"
 import { createPoll } from "ags/time"
-import { execAsync } from "ags/process"
 import Pango from "gi://Pango"
-import { fxProblem, fxStatus, useFx } from "../../../service/fx"
+import { fxProblem, fxStatus, openFx, useFx } from "../../../service/fx"
 import { hm, sinceMinutes } from "../../../service/fxModel"
 import { Bars, EmptyState, Meter, Ring, SeverityDot, box, label } from "./common"
 import type { WidgetProps } from "./types"
@@ -119,4 +118,3 @@ export default function FxToday(p: WidgetProps) {
   return body
 }
 
-export const openFx = () => execAsync(["kitty", "--title", "fx", "fx"]).catch(console.error)
