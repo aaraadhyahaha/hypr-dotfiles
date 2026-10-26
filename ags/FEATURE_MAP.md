@@ -400,8 +400,10 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 
 - `~/.config/hypr/hyprland.lua`
   - L50 `ags run` at startup (the `~/.local/bin/ags` wrapper sets `GDK_WAYLAND_DISABLE` for blur).
-  - Keybinds → IPC, L269–345: Super+Space launcher · Super+. launcher in emoji mode · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Shift+R restart AGS · Super+Tab overview · brightness keys → `osd-brightness` · Print → `toggle-shotmenu` (centered toolbar) / Shift+Print full screenshot.
-  - Layer rules L388–405: `shot` no-anim; blur for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu`; `blur_popups` for `bar|desktop`. **A new layer window needs its namespace added here.**
+  - `general` L104–118: `resize_on_border` + 15px `extend_border_grab_area` (borders are 0px, so edges are grabbed in the gap).
+  - Window management: Super+V L304–314 toggles float and gives a newly floating window 60% of the monitor, centered (monitor size is in pixels, window size logical, so it divides by `scale`) · Super+Ctrl+arrows L345–348 resize the active window by 40px (repeating) · Super+LMB/RMB drag move/resize.
+  - Keybinds → IPC, L270–364: Super+Space launcher · Super+. launcher in emoji mode · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Shift+R restart AGS · Super+Tab overview · brightness keys → `osd-brightness` · Print → `toggle-shotmenu` (centered toolbar) / Shift+Print full screenshot.
+  - Layer rules L410–424: `shot` no-anim; blur for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu`; `blur_popups` for `bar|desktop`. **A new layer window needs its namespace added here.**
 - `~/.config/hypr/scripts/theme-apply.sh` — called by `cc.theme`.
 - `~/.config/hypr/scripts/wallpaper-set.sh` — called by `wallpapers`.
 - `~/.config/matugen/templates/ags-colors.scss` → generates `colors.scss`.
