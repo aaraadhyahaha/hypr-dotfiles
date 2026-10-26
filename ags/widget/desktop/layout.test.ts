@@ -1,6 +1,7 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import {
+  adapt,
   CELL,
   GAP,
   MARGIN,
@@ -13,6 +14,7 @@ import {
   makeId,
   nearestFree,
   nearestSize,
+  parseExtent,
   parseLayout,
   pxToCell,
   reflow,
@@ -136,12 +138,54 @@ test("reflow never drops a widget, even with no room left", () => {
   assert.equal(out.length, 2)
 })
 
+test("adapt keeps widgets on the edge they were near when the grid grows", () => {
+  const from = { cols: 14, rows: 7 }
+  const to = { ...NOMINAL, cols: 22, rows: 12 }
+  const out = adapt([item("a", "m", 0, 0), item("b", "l", 10, 0), item("c", "m", 5, 5)], from, to)
+  assert.deepEqual(out.map(({ col, row }) => ({ col, row })), [
+    { col: 0, row: 0 }, // top-left stays put
+    { col: 18, row: 0 }, // flush right stays flush right
+    { col: 9, row: 10 }, // middle column keeps its relative place, bottom stays at the bottom
+  ])
+})
+
+test("adapt moves touching widgets together, so a stacked column stays stacked", () => {
+  const from = { cols: 14, rows: 8 }
+  const to = { ...NOMINAL, cols: 22, rows: 12 }
+  const left = [item("a", "m", 0, 0), item("b", "m", 0, 2), item("c", "m", 0, 4)]
+  const right = [item("d", "l", 10, 0), item("e", "m", 10, 4)]
+  const out = adapt([...left, ...right], from, to)
+  assert.deepEqual(out.map(({ col, row }) => ({ col, row })), [
+    { col: 0, row: 0 },
+    { col: 0, row: 2 },
+    { col: 0, row: 4 },
+    { col: 18, row: 0 },
+    { col: 18, row: 4 },
+  ])
+})
+
+test("adapt round-trips back to the grid it was arranged on", () => {
+  const items = [item("a", "m", 0, 0), item("b", "l", 10, 0)]
+  assert.deepEqual(adapt(items, { cols: 14, rows: 7 }, { ...NOMINAL, cols: 14, rows: 7 }), items)
+})
+
+test("adapt settles overlaps when the grid shrinks", () => {
+  const out = adapt([item("a", "l", 0, 0), item("b", "l", 6, 0)], { cols: 12, rows: 8 }, { ...NOMINAL, cols: 8, rows: 4 })
+  assert.equal(fits([out[0]], { col: out[1].col, row: out[1].row, size: "l" }, { ...NOMINAL, cols: 8, rows: 4 }), true)
+})
+
 const kinds = { clock: ["s", "m"] as Size[], note: ["s", "m", "l"] as Size[] }
 const sizesOf = (k: string) => kinds[k as keyof typeof kinds]
 
 test("serialize and parseLayout round-trip", () => {
   const items = [item("clock-1", "s", 0, 0), { ...item("note-1", "m", 2, 0, "note"), config: { text: "hi" } }]
   assert.deepEqual(parseLayout(serialize(items), sizesOf), items)
+})
+
+test("the grid a layout was arranged on is saved with it", () => {
+  assert.deepEqual(parseExtent(serialize([], { cols: 14, rows: 7 })), { cols: 14, rows: 7 })
+  assert.equal(parseExtent(serialize([])), null)
+  assert.equal(parseExtent("{not json"), null)
 })
 
 test("parseLayout returns null for a corrupt file", () => {

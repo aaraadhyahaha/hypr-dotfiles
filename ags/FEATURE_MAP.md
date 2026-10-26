@@ -349,7 +349,7 @@ Architecture & rules: `DESIGN.md › Desktop widgets`. Style: `styles/_desktop.s
 - **Touches:** `bar.shell` (`.editing` scrim), every ticking widget.
 
 ### `desktop.layout` — grid model (pure)
-- **Code:** `layout.ts` — constants `CELL`/`GAP`/`MARGIN`/`SPANS` L20–33; `gridFor`/`NOMINAL` L35–46; px↔cell L48–62; `fits`, `nearestFree`, `firstFree` L63–96; `nearestSize` L97–111; `reflow` L112–130; `makeId`, `serialize`, `parseLayout` L131–161.
+- **Code:** `layout.ts` — constants `CELL`/`GAP`/`MARGIN`/`SPANS` L20–33; `gridFor`/`NOMINAL` L35–46; px↔cell L48–62; `fits`, `nearestFree`, `firstFree` L63–96; `nearestSize` L97–111; `reflow` L112–132; `adapt` (re-anchor onto another grid on a scale change, touching widgets as groups) L131–184; `makeId`, `serialize`, `parseExtent`, `parseLayout` L186–end.
 - **Test:** `layout.test.ts`.
 
 ### `desktop.catalog` — widget kinds (pure)
@@ -361,7 +361,7 @@ Architecture & rules: `DESIGN.md › Desktop widgets`. Style: `styles/_desktop.s
 - **Code:** `registry.ts` — `RENDER` (kind → component), `EDIT` (goal, countdown), fallback label.
 
 ### `desktop.store` — persistence
-- **Code:** `store.ts` — `~/.local/state/ags/desktop.json`; `load` (corrupt → `.bak` + default) L27–46; `grid` L48–51; `items`, debounced atomic `save` L53–70; API `setGrid`, `slotFor`, `add`, `move`, `resize`, `remove`, `setConfig` L79–127.
+- **Code:** `store.ts` — `~/.local/state/ags/desktop.json` (widgets + the grid they were arranged on); `load` (corrupt → `.bak` + default); `saved`/`extent` vs shown `items`; `setGrid` adapts without saving; debounced atomic `save`; API `setGrid`, `slotFor`, `add`, `move`, `resize`, `remove`, `setConfig`.
 
 ### `desktop.window` — the desktop layer
 - **Code:** `Desktop.tsx` — `toggleEditWidgets` L20; `DesktopFixed` (measures surface → `setGrid`) L22–43; ghost slot L45–86; right-click desktop menu L87–116; frame sync with store L117–156; click on empty desktop L157–177; gallery drag-out proxy & drop L178–258; window (BOTTOM ↔ TOP in edit mode, keymode switch) L259–295.

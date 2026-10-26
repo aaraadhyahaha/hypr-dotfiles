@@ -128,6 +128,61 @@ export function reflow(items: Item[], grid: Grid): Item[] {
   return items.map((it) => out.get(it.id)!)
 }
 
+// carry a layout from the grid it was arranged on to another one (the monitor's scale changed).
+// Widgets that touch move together, so a stacked column stays stacked. On each axis a group keeps
+// its distance to the nearer edge (flush stays flush), or its relative place if it sits in the middle third, then
+// reflow settles any overlaps. Shown only: the saved layout is kept.
+export type Extent = { cols: number; rows: number }
+
+function anchor(start: number, span: number, from: number, to: number) {
+  if (from === to) return start
+  // flush against an edge stays flush, however far it reaches
+  if (start === 0) return 0
+  if (start + span === from) return Math.max(0, to - span)
+  const centre = start + span / 2
+  const at =
+    centre < from / 3 ? start : centre > (2 * from) / 3 ? to - (from - start) : Math.round((centre / from) * to - span / 2)
+  return Math.max(0, Math.min(at, to - span))
+}
+
+const box = (it: Item) => {
+  const s = SPANS[it.size]
+  return { c0: it.col, r0: it.row, c1: it.col + s.w, r1: it.row + s.h }
+}
+
+// sharing an edge or a corner counts as touching
+function touches(a: Item, b: Item) {
+  const p = box(a)
+  const q = box(b)
+  return p.c0 <= q.c1 && q.c0 <= p.c1 && p.r0 <= q.r1 && q.r0 <= p.r1
+}
+
+function groups(items: Item[]): number[][] {
+  const parent = items.map((_, i) => i)
+  const find = (i: number): number => (parent[i] === i ? i : (parent[i] = find(parent[i])))
+  for (let i = 0; i < items.length; i++)
+    for (let j = i + 1; j < items.length; j++) if (touches(items[i], items[j])) parent[find(i)] = find(j)
+  const out = new Map<number, number[]>()
+  items.forEach((_, i) => out.set(find(i), [...(out.get(find(i)) ?? []), i]))
+  return [...out.values()]
+}
+
+export function adapt(items: Item[], from: Extent, to: Grid): Item[] {
+  if (from.cols === to.cols && from.rows === to.rows) return reflow(items, to)
+  const moved = [...items]
+  for (const g of groups(items)) {
+    const b = g.map((i) => box(items[i]))
+    const c0 = Math.min(...b.map((x) => x.c0))
+    const r0 = Math.min(...b.map((x) => x.r0))
+    const w = Math.max(...b.map((x) => x.c1)) - c0
+    const h = Math.max(...b.map((x) => x.r1)) - r0
+    const dc = anchor(c0, w, from.cols, to.cols) - c0
+    const dr = anchor(r0, h, from.rows, to.rows) - r0
+    if (dc || dr) for (const i of g) moved[i] = { ...items[i], col: items[i].col + dc, row: items[i].row + dr }
+  }
+  return reflow(moved, to)
+}
+
 export function makeId(kind: string, items: Item[]) {
   const n = items.reduce((max, it) => {
     const m = it.id.match(/-(\d+)$/)
@@ -136,7 +191,19 @@ export function makeId(kind: string, items: Item[]) {
   return `${kind}-${n + 1}`
 }
 
-export const serialize = (items: Item[]) => JSON.stringify({ version: VERSION, widgets: items }, null, 2)
+// `grid`: the extent the layout was arranged on, so another scale can re-anchor it
+export const serialize = (items: Item[], grid?: Extent) =>
+  JSON.stringify({ version: VERSION, ...(grid && { grid: { cols: grid.cols, rows: grid.rows } }), widgets: items }, null, 2)
+
+// the extent saved with the layout; null for a file written before it was recorded
+export function parseExtent(text: string): Extent | null {
+  try {
+    const g = JSON.parse(text)?.grid
+    return isInt(g?.cols) && isInt(g?.rows) && g.cols > 0 && g.rows > 0 ? { cols: g.cols, rows: g.rows } : null
+  } catch {
+    return null
+  }
+}
 
 const isInt = (v: unknown): v is number => Number.isInteger(v)
 
