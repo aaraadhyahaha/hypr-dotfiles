@@ -32,14 +32,17 @@ export type Item = {
 
 export type Mode = "apps" | "calc" | "emoji" | "shell" | "web" | "fx" | "files"
 
-const PREFIXES: Record<string, Mode> = { "=": "calc", ":": "emoji", ">": "shell", "?": "web", "!": "fx", "/": "files" }
+const PREFIXES: Record<string, Exclude<Mode, "apps">> = { "=": "calc", ":": "emoji", ">": "shell", "?": "web", "!": "fx", "/": "files" }
 
-export function parseQuery(text: string): { mode: Mode; q: string } {
-  const t = text.trim()
+// A mode prefix at the start of apps-mode text (typed, pasted or prefilled): the launcher turns
+// it into the mode tab and keeps the rest as the query. `fx` needs a space after it, so an app
+// name starting with "fx" isn't swallowed. Only the start is trimmed: the rest is still being typed.
+export function takeMode(text: string): { mode: Exclude<Mode, "apps">; rest: string } | null {
+  const t = text.trimStart()
   const mode = PREFIXES[t[0]]
-  if (!mode && /^fx(\s|$)/i.test(t)) return { mode: "fx", q: t.slice(2).trim() }
-  if (!mode) return { mode: "apps", q: t }
-  return { mode, q: t.slice(1).trim() }
+  if (mode) return { mode, rest: t.slice(1).trimStart() }
+  const fx = /^fx\s+/i.exec(t)
+  return fx ? { mode: "fx", rest: t.slice(fx[0].length) } : null
 }
 
 const MATH_WORDS = /\b(sqrt|cbrt|sin|cos|tan|asin|acos|atan|log|ln|exp|abs|floor|ceil|round|pi|e)\b/gi

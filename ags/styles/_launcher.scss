@@ -183,14 +183,14 @@ window.Files {
   }
 }
 
-.lnch-key,
 .lnch-hint {
   font-size: $font-size-sm;
   color: $text-faint;
 }
 
-// active mode pill (Calc, Emoji, Run, Web)
-.lnch-key.mode {
+// the active mode's tab, left of the field (Calc, Emoji, Run, Web, fx, Files)
+.lnch-mode {
+  margin-right: $spacing-2;
   background-color: rgba($primary, $state-selected);
   color: $primary;
   font-size: $font-size-xs;

@@ -1,6 +1,6 @@
 import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
-import { Motion, ENTER } from "../common/motion"
+import { Motion, ENTER, LEAVE, MOTION } from "../common/motion"
 import { surfaceTop } from "../common/surface"
 import Pango from "gi://Pango"
 import Apps from "gi://AstalApps"
@@ -11,7 +11,7 @@ import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import Gio from "gi://Gio"
 import { readFile, writeFile } from "ags/file"
-import { parseQuery, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency, type Item } from "./model"
+import { takeMode, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency, type Item, type Mode } from "./model"
 import { parseAction, parseFxQuery, riskyPrefix } from "./actionsModel"
 import { actionItems, refreshActions } from "./actions"
 import { fxItems } from "./fxItems"
@@ -133,7 +133,13 @@ export default function Launcher() {
     let lastY: number | null = null
     let rows: Gtk.Box[] = []
     let sel = 0
-    let modeLabel: Gtk.Label
+    // the mode tab left of the field; the field holds only the query
+    let mode: Mode = "apps"
+    let modeTab: Gtk.Revealer
+    let modeChip: Gtk.Label
+    let modeMotion: Motion
+    // set while the code rewrites the field, so its notify doesn't search twice
+    let quiet = false
     let debounce: { cancel: () => void } | null = null
     let seq = 0
     let body: Gtk.Box
@@ -291,7 +297,50 @@ export default function Launcher() {
         win.queue_resize()
     }
 
-    const MODE_LABEL: Record<string, string> = { calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web", fx: "fx", files: "Files" }
+    const MODE_LABEL: Record<Mode, string> = { apps: "", calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web", fx: "fx", files: "Files" }
+    const PLACEHOLDER: Record<Mode, string> = {
+        apps: "Search apps…",
+        calc: "Expression or conversion…",
+        emoji: "Search emoji…",
+        shell: "Command…",
+        web: "Search the web…",
+        fx: "Filter tasks, add, stop…",
+        files: "Search files…",
+    }
+
+    // the tab widens in from the field's left edge; `animate` off snaps it (a fresh open)
+    const setMode = (m: Mode, animate = true) => {
+        entry.placeholderText = PLACEHOLDER[m]
+        if (m === mode) return
+        mode = m
+        modeTab.transitionDuration = animate ? MOTION.base : 0
+        if (m === "apps") {
+            if (animate) modeMotion.animate(LEAVE.content)
+            modeTab.revealChild = false
+            return
+        }
+        modeChip.label = MODE_LABEL[m]
+        modeTab.revealChild = true
+        if (animate) modeMotion.animate(ENTER.side)
+        else { modeMotion.stop(); modeMotion.set({}) }
+    }
+
+    // puts `text` in the field; a leading prefix becomes the mode tab
+    const setQuery = (text: string, animate = true) => {
+        const took = takeMode(text)
+        setMode(took?.mode ?? "apps", animate)
+        quiet = true
+        entry.set_text(took?.rest ?? text)
+        quiet = false
+        entry.set_position(-1)
+        search()
+    }
+
+    const onText = () => {
+        if (quiet) return
+        if (mode === "apps" && takeMode(entry.text)) return setQuery(entry.text)
+        search()
+    }
 
     // qalc runs after a short pause; `seq` drops answers for stale input
     const calc = (q: string, done: (it: Item | null) => void) => {
@@ -308,14 +357,10 @@ export default function Launcher() {
         })
     }
 
-    const search = (text: string, keep?: string) => {
-        const { mode, q } = parseQuery(text)
+    const search = (keep?: string) => {
+        const q = entry.text.trim()
         debounce?.cancel()
         seq++
-        const label = MODE_LABEL[mode]
-        modeLabel.label = label ?? "Esc"
-        if (label) modeLabel.add_css_class("mode")
-        else modeLabel.remove_css_class("mode")
         setPane(mode === "files")
 
         if (mode === "calc") {
@@ -357,7 +402,7 @@ export default function Launcher() {
             return
         }
 
-        const t = text.trim()
+        const t = q
         const lq = t.toLowerCase()
         const matches: Item[] = (t ? apps.fuzzy_query(t) : apps.list).slice(0, MAX).map((a): Item => ({
             key: `app:${a.entry}`,
@@ -396,7 +441,7 @@ export default function Launcher() {
         iconName: "document-open-recent",
         hint: "Browse",
         stay: true,
-        launch: () => { entry.set_text("/"); entry.set_position(-1) },
+        launch: () => setQuery("/"),
     }
 
     // recent matches show at once; the fd index's answer follows and merges in below them
@@ -405,7 +450,7 @@ export default function Launcher() {
             // the index refreshes once per open; whatever's on screen re-runs when it lands
             indexed = true
             indexFiles().then(() => {
-                if (win.visible && parseQuery(entry.text).mode === "files") search(entry.text, idOf(results[sel]))
+                if (win.visible && mode === "files") search(idOf(results[sel]))
             })
         }
         recent ??= listRecent(RECENT_MAX)
@@ -435,7 +480,7 @@ export default function Launcher() {
     // fx data that lands while fx rows are shown re-renders them in place
     let fxFetched = false
     const fxChanged = () => {
-        if (win?.visible && parseQuery(entry.text).mode === "fx") search(entry.text, idOf(results[sel]) ?? "")
+        if (win?.visible && mode === "fx") search(idOf(results[sel]) ?? "")
     }
     fxStatus.subscribe(fxChanged)
     fxProblem.subscribe(fxChanged)
@@ -447,9 +492,7 @@ export default function Launcher() {
         indexed = false
         apps.reload()
         refreshActions()
-        entry.set_text(prefill)
-        entry.set_position(-1)
-        search(prefill)
+        setQuery(prefill, false)
         motion.animate(ENTER.card)
         win.visible = true
         entry.grab_focus()
@@ -467,6 +510,8 @@ export default function Launcher() {
                     if (keyval === Gdk.KEY_Escape) { close(); return true }
                     if (keyval === Gdk.KEY_Down) { setSel(sel + 1); return true }
                     if (keyval === Gdk.KEY_Up) { setSel(sel - 1); return true }
+                    // Backspace on an empty field drops the mode tab
+                    if (keyval === Gdk.KEY_BackSpace && mode !== "apps" && !entry.text) { setQuery(""); return true }
                     if ((keyval === Gdk.KEY_Return || keyval === Gdk.KEY_KP_Enter) && state & Gdk.ModifierType.SHIFT_MASK) {
                         launch(results[sel], "alt")
                         return true
@@ -510,14 +555,24 @@ export default function Launcher() {
                 <box class="lnch" orientation={Gtk.Orientation.VERTICAL}>
                     <box class="lnch-search" spacing={12}>
                         <label class="icon lnch-search-icon" label="search" />
-                        <entry
-                            $={(self) => (entry = self)}
-                            hexpand
-                            placeholderText="Search apps…"
-                            onNotifyText={(self) => search(self.text)}
-                            onActivate={() => launch(results[sel])}
-                        />
-                        <label $={(self) => (modeLabel = self)} class="lnch-key" valign={Gtk.Align.CENTER} label="Esc" />
+                        <box hexpand>
+                            <revealer
+                                $={(self) => (modeTab = self)}
+                                transitionType={Gtk.RevealerTransitionType.SLIDE_RIGHT}
+                                valign={Gtk.Align.CENTER}
+                            >
+                                <Motion $={(self) => (modeMotion = self)}>
+                                    <label $={(self) => (modeChip = self)} class="lnch-mode" />
+                                </Motion>
+                            </revealer>
+                            <entry
+                                $={(self) => (entry = self)}
+                                hexpand
+                                placeholderText="Search apps…"
+                                onNotifyText={onText}
+                                onActivate={() => launch(results[sel])}
+                            />
+                        </box>
                     </box>
                     <box $={(self) => (body = self)} class="lnch-body" spacing={8}>
                         <scrolledwindow

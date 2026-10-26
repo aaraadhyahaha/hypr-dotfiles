@@ -6,31 +6,37 @@ import {
   frecencyScore,
   looksLikeMath,
   parseEmojiData,
-  parseQuery,
   qalcExpr,
   rank,
   searchEmoji,
+  takeMode,
   webUrl,
 } from "./model.ts"
 
-test("parseQuery reads prefixes and trims", () => {
-  assert.deepEqual(parseQuery("firefox"), { mode: "apps", q: "firefox" })
-  assert.deepEqual(parseQuery("= 2^10"), { mode: "calc", q: "2^10" })
-  assert.deepEqual(parseQuery("=5 km to mi"), { mode: "calc", q: "5 km to mi" })
-  assert.deepEqual(parseQuery(":fire"), { mode: "emoji", q: "fire" })
-  assert.deepEqual(parseQuery("> htop"), { mode: "shell", q: "htop" })
-  assert.deepEqual(parseQuery("?  hyprland lua "), { mode: "web", q: "hyprland lua" })
-  assert.deepEqual(parseQuery("! add x /2"), { mode: "fx", q: "add x /2" })
-  assert.deepEqual(parseQuery("fx stop"), { mode: "fx", q: "stop" })
-  assert.deepEqual(parseQuery("FX"), { mode: "fx", q: "" })
-  assert.deepEqual(parseQuery("fxsomething"), { mode: "apps", q: "fxsomething" })
-  assert.deepEqual(parseQuery("/ notes md"), { mode: "files", q: "notes md" })
+test("takeMode turns a leading prefix into a mode and keeps the rest", () => {
+  assert.equal(takeMode("firefox"), null)
+  assert.equal(takeMode(""), null)
+  assert.deepEqual(takeMode("= 2^10"), { mode: "calc", rest: "2^10" })
+  assert.deepEqual(takeMode("=5 km to mi"), { mode: "calc", rest: "5 km to mi" })
+  assert.deepEqual(takeMode(":fire"), { mode: "emoji", rest: "fire" })
+  assert.deepEqual(takeMode("> htop"), { mode: "shell", rest: "htop" })
+  assert.deepEqual(takeMode("  ?  hyprland lua "), { mode: "web", rest: "hyprland lua " })
+  assert.deepEqual(takeMode("! add x /2"), { mode: "fx", rest: "add x /2" })
+  assert.deepEqual(takeMode("/ notes md"), { mode: "files", rest: "notes md" })
+  // a prefix later on is just text
+  assert.equal(takeMode("a=b"), null)
 })
 
-test("parseQuery with a prefix and nothing after it", () => {
+test("takeMode with a prefix and nothing after it", () => {
   for (const [p, mode] of [["=", "calc"], [":", "emoji"], [">", "shell"], ["?", "web"], ["!", "fx"], ["/", "files"]] as const)
-    assert.deepEqual(parseQuery(p), { mode, q: "" })
-  assert.deepEqual(parseQuery(""), { mode: "apps", q: "" })
+    assert.deepEqual(takeMode(p), { mode, rest: "" })
+})
+
+test("takeMode needs a space after fx", () => {
+  assert.deepEqual(takeMode("fx stop"), { mode: "fx", rest: "stop" })
+  assert.deepEqual(takeMode("FX "), { mode: "fx", rest: "" })
+  assert.equal(takeMode("fx"), null)
+  assert.equal(takeMode("fxsomething"), null)
 })
 
 test("looksLikeMath accepts maths and conversions", () => {
