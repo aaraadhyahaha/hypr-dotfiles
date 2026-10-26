@@ -47,13 +47,13 @@ function DeviceRow({ d }: { d: Device }) {
       onClick={() => {
         const fail = (e: unknown) => console.error(`bluetooth: ${e}`)
         if (d.connected) return d.disconnect_device().catch(fail)
-        if (!d.paired) {
-          try {
-            d.pair()
-            d.trusted = true
-          } catch (e) {
-            return fail(e)
-          }
+        try {
+          if (!d.paired) d.pair()
+          // with no agent running, bluez rejects A2DP/HFP from untrusted devices:
+          // the link connects but no audio sink ever appears
+          if (!d.trusted) d.trusted = true
+        } catch (e) {
+          return fail(e)
         }
         d.connect_device().catch(fail)
       }}
