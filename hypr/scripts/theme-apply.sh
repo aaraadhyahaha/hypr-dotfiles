@@ -1,5 +1,6 @@
 #!/bin/sh
-# usage: theme-apply.sh [image]   (defaults to the last wallpaper)
+# usage: theme-apply.sh [image] — matugen palette + GTK/icon theme for ~/.cache/theme_mode.
+# Defaults to the last wallpaper. Called by wallpaper-set.sh and ags cc.theme.
 img="${1:-$(cat ~/.cache/last_wall)}"
 mode="$(cat ~/.cache/theme_mode 2>/dev/null || echo dark)"
 idx="$(cat ~/.cache/theme_idx 2>/dev/null || echo 0)"

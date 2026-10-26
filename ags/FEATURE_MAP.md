@@ -49,7 +49,11 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `shot.*` | Region selector, capture, preview toast | `widget/screenshot/Screenshot.tsx` |
 | `overview.*` | Workspace overview with window previews | `widget/overview/Overview.tsx` |
 | `desktop.*` | Desktop widgets, grid, edit mode, gallery | `widget/desktop/*` |
-| `ext.hypr` | Hyprland keybinds, layer rules, scripts | `~/.config/hypr/*` |
+| `ext.hypr.shell` | AGS IPC keybinds + layer rules (blur, no-anim) | `~/.config/hypr/conf/shell.lua` |
+| `ext.hypr.binds` | Window, workspace, scratchpad, media binds | `~/.config/hypr/conf/binds.lua` |
+| `ext.hypr.look` | Gaps, decoration, blur, layouts, animations | `~/.config/hypr/conf/look.lua`, `animations.lua` |
+| `ext.hypr.session` | Monitors, env, autostart, input, window rules, idle/lock | `~/.config/hypr/conf/*.lua`, `hypridle.conf` |
+| `ext.hypr.scripts` | Wallpaper + theme scripts | `~/.config/hypr/scripts/*.sh` |
 
 ---
 
@@ -57,8 +61,8 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `core.app` — startup & IPC
 - **Code:** `app.ts` (62 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` calls `restoreTimers()` (`svc.timer`) and creates every window once (Desktop, one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview).
-- **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`.
-- **Pattern for a new IPC command:** export `toggleX` from the widget (module-level `let toggleFn`), add one `if` in `app.ts`, bind it in `ext.hypr`.
+- **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-shotmenu`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`.
+- **Pattern for a new IPC command:** export `toggleX` from the widget (module-level `let toggleFn`), add one `if` in `app.ts`, bind it in `ext.hypr.shell`.
 - **Also:** `style.scss` (only `@use` lines — add new partials here), `env.d.ts` (module typings), `tsconfig.json`, `package.json` (`npm test`).
 
 ### `core.motion` — animation system
@@ -396,16 +400,40 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 
 ---
 
-## 11. External integration (`ext.hypr`, outside this repo folder)
+## 11. External integration (`ext.hypr.*`, `~/.config/hypr/`, outside this repo folder)
 
-- `~/.config/hypr/hyprland.lua`
-  - L50 `ags run` at startup (the `~/.local/bin/ags` wrapper sets `GDK_WAYLAND_DISABLE` for blur).
-  - `general` L104–118: `resize_on_border` + 15px `extend_border_grab_area` (borders are 0px, so edges are grabbed in the gap).
-  - Window management: Super+V L304–314 toggles float and gives a newly floating window 60% of the monitor, centered (monitor size is in pixels, window size logical, so it divides by `scale`) · Super+Ctrl+arrows L345–348 resize the active window by 40px (repeating) · Super+LMB/RMB drag move/resize.
-  - Keybinds → IPC, L270–364: Super+Space launcher · Super+. launcher in emoji mode · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Shift+R restart AGS · Super+Tab overview · brightness keys → `osd-brightness` · Print → `toggle-shotmenu` (centered toolbar) / Shift+Print full screenshot.
-  - Layer rules L410–424: `shot` no-anim; blur for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu`; `blur_popups` for `bar|desktop`. **A new layer window needs its namespace added here.**
-- `~/.config/hypr/scripts/theme-apply.sh` — called by `cc.theme`.
-- `~/.config/hypr/scripts/wallpaper-set.sh` — called by `wallpapers`.
+`hyprland.lua` is only `require("conf.<name>")` lines; each module is `~/.config/hypr/conf/<name>.lua` (Hyprland puts `~/.config/hypr/?.lua` on `package.path`). Apply with `hyprctl reload`, check `hyprctl configerrors`. A new module needs a `require` line in `hyprland.lua`.
+
+### `ext.hypr.shell` — AGS keybinds & layer rules
+- **Code:** `conf/shell.lua` (44 lines). `ags(cmd)` helper L5 → `ags request <cmd>`.
+- **Keybinds → IPC, L7–20:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Print → `toggle-shotmenu` (centered toolbar) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
+- **Layer rules L22–44:** `ags-no-anim` (`shot`, so it vanishes before grim captures) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
+- **Pairs with:** `core.app` (one `if` per IPC command), `core.motion` (AGS moves content, Hyprland fades the layer).
+
+### `ext.hypr.binds` — window, workspace & media binds
+- **Code:** `conf/binds.lua` (69 lines). Apps/session L7–10 (Super+Q kitty, Super+L lock, Super+M exit via `hyprshutdown`) · Super+C/P/J close/pseudo/togglesplit L12–15.
+- Super+V L17–28 toggles float and gives a newly floating window 60% of the monitor, centered (monitor size is in pixels, window size logical, so it divides by `scale`).
+- Focus Super+arrows L30–33 · Super+Ctrl+arrows L35–40 resize the active window by `step` (40px, repeating) · Super+LMB/RMB drag move/resize L42–44.
+- Workspaces L46–53 (Super+[0-9] / Super+Shift+[0-9], Super+scroll) · scratchpad `special:magic` L55–57 (shown by `bar.workspaces`).
+- Media keys L59–69 (`wpctl`, `playerctl`); the volume OSD comes from `osd` watching WirePlumber, not from these binds.
+
+### `ext.hypr.look` — general, decoration, layouts, animations
+- **Code:** `conf/look.lua` (50 lines) — gaps 6/12, border 0, `resize_on_border` + 15px `extend_border_grab_area` L9–12 (edges are grabbed in the gap), rounding 10, opacity 0.9/0.8, shadow, blur L32–39, dwindle/master/scrolling, misc.
+- `conf/animations.lua` (25 lines) — curves L5–11 (`glassIn` is the AGS glass fade-in), per-leaf animations L13–25 (`fadeLayers*`/`fadePopups*` drive AGS layer opacity).
+
+### `ext.hypr.session` — monitors, env, autostart, input, window rules
+- `conf/monitors.lua` — one catch-all monitor at scale 1.25.
+- `conf/env.lua` — Qt/cursor vars; `GDK_WAYLAND_DISABLE=ext_background_effect_manager_v1` L11 (GTK 4.24 blur fix; D-Bus-activated apps get it from `~/.config/environment.d/50-gtk-blur.conf`).
+- `conf/autostart.lua` — `hyprland.start`: `ags run` L5 (the `~/.local/bin/ags` wrapper also sets `GDK_WAYLAND_DISABLE`), cursor, `hypridle`, nm-applet, polkit agent, cliphist watchers (feed `clipboard`), `wallpaper-init.sh`.
+- `conf/input.lua` — keyboard, touchpad, 3-finger workspace swipe.
+- `conf/rules.lua` — window rules: suppress maximize, XWayland drag fix, float+center pavucontrol/blueman/nm-connection-editor, `hyprland-run` placement.
+- `hypridle.conf` — dim 150s, lock 300s, suspend 600s. `bar.caffeine` kills/starts `hypridle`.
+- `hyprlock.conf` — **generated by matugen**; edit `~/.config/matugen/templates/hyprlock.conf`.
+
+### `ext.hypr.scripts`
+- `scripts/theme-apply.sh [image]` — matugen (mode/index from `~/.cache/theme_mode`, `theme_idx`) + gsettings GTK/icon theme. Called by `cc.theme` and `wallpaper-set.sh`.
+- `scripts/wallpaper-set.sh IMAGE` — starts `awww-daemon` if needed, writes `~/.cache/last_wall`, grow transition, then `theme-apply.sh`. Called by `wallpapers`.
+- `scripts/wallpaper-init.sh` — autostart: restore `last_wall` with no transition.
 - `~/.config/matugen/templates/ags-colors.scss` → generates `colors.scss`.
 
 ## 12. State & cache files written by the shell

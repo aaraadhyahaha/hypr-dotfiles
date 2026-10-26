@@ -1,4 +1,5 @@
 #!/bin/sh
+# Autostart: start awww and restore the last wallpaper without a transition.
 awww-daemon &
 until awww query >/dev/null 2>&1; do sleep 0.2; done
 
