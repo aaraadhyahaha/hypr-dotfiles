@@ -138,7 +138,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Style:** `_bar.scss` L113–155.
 
 ### `bar.wintitle`
-- **Code:** `bar/modules/WindowTitle.tsx` — "class — title", 48 chars max. **Style:** `_bar.scss` L97–112.
+- **Code:** `bar/modules/WindowTitle.tsx` — "class — title"; label has `maxWidthChars={0}` + hexpand so it fills the start half up to the centre pills and ellipsizes rather than pushing them off centre. **Style:** `_bar.scss` L97–112.
 
 ### `bar.datemenu` — clock, bell, notification center, calendar
 - **Code:**

@@ -16,7 +16,12 @@ export default function WindowTitle() {
           return (
             <box class="wintitle">
               <label
-                maxWidthChars={48}
+                // a 0-char natural width + hexpand fills what's left of the bar's start half,
+                // so a long title ellipsizes instead of shoving the centred pills off centre
+                // (GtkCenterBox gives its start child its full natural width)
+                hexpand
+                xalign={0}
+                maxWidthChars={0}
                 ellipsize={Pango.EllipsizeMode.END}
                 // "kitty — ~/.config/ags"; title goes null while a closing client is torn down
                 label={createComputed(() =>
