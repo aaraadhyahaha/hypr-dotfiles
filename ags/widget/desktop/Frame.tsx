@@ -217,7 +217,7 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
     pop.add_css_class("dw-menu-pop")
     pop.set_parent(overlay)
     const m = new Motion({ origin: "top" })
-    const box = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL })
+    const box = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL, spacing: 2 })
     box.add_css_class("menu")
     m.append(box)
     pop.set_child(m)
@@ -227,8 +227,8 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
       const b = new Gtk.Button()
       b.add_css_class("menu-item")
       if (danger) b.add_css_class("danger")
-      const inner = new Gtk.Box()
-      inner.append(glyph(g))
+      const inner = new Gtk.Box({ spacing: 12 })
+      inner.append(glyph(g, "icon"))
       inner.append(new Gtk.Label({ label: text, xalign: 0, hexpand: true }))
       b.set_child(inner)
       b.connect("clicked", () => {
@@ -260,9 +260,9 @@ export function createFrame(host: Host, initial: Item, opts: { animateIn?: boole
     }
     const edit = editorFor(item.kind)
     if (e?.editable && edit)
-      row("Edit Widget…", "", () => edit(overlay, config.get(), (change) => store.setConfig(item.id, change)))
-    row("Edit Widgets", "", () => setEditing(true))
-    row("Remove Widget", "", removeAnimated, true)
+      row("Edit Widget…", "edit", () => edit(overlay, config.get(), (change) => store.setConfig(item.id, change)))
+    row("Edit Widgets", "widgets", () => setEditing(true))
+    row("Remove Widget", "delete", removeAnimated, true)
     return pop
   }
   const right = new Gtk.GestureClick({ button: Gdk.BUTTON_SECONDARY })
