@@ -11,6 +11,7 @@ import Tray from "./modules/Tray"
 import Battery from "./modules/Battery"
 import Caffeine from "./modules/Caffeine"
 import Power from "./modules/Power"
+import Privacy from "./modules/Privacy"
 import Recording from "./modules/Recording"
 import SysMini from "./modules/SysMini"
 import ScreenshotBtn from "./modules/ScreenshotBtn"
@@ -46,6 +47,7 @@ export default function Bar(gdkmonitor: Gdk.Monitor) {
           <Media />
         </box>
         <box $type="end" class="end" spacing={2}>
+          <Privacy />
           <Recording />
           <SysMini />
           <ScreenshotBtn />
