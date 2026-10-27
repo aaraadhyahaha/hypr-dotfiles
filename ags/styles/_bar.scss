@@ -191,6 +191,69 @@ button.recording {
   }
 }
 
+// privacy indicator: another app captures the mic / camera / screen. Same pill as recording,
+// tinted by the most sensitive kind in use; each icon keeps its own kind's colour.
+// (on the button: a popover is the menubutton's CSS child and would inherit it)
+menubutton.privacy>button {
+  @include flat-button;
+  min-height: $bar-item-h;
+  padding: 0 $spacing-2;
+  border-radius: $radius-full;
+  font-size: $font-size-base;
+
+  .rec-dot {
+    min-width: 7px;
+    min-height: 7px;
+    border-radius: $radius-full;
+    background-color: currentColor;
+  }
+
+  .icon {
+    font-size: $icon-size;
+  }
+}
+
+$privacy-kinds: (screen: $error, camera: $tertiary, mic: $primary);
+
+@each $kind, $c in $privacy-kinds {
+  menubutton.privacy.#{$kind}>button {
+    background-color: rgba($c, 0.14);
+    color: $c;
+  }
+
+  menubutton.privacy>button .icon.#{$kind},
+  .privacy-row .icon.#{$kind} {
+    color: $c;
+  }
+}
+
+// a mic stream is open but muted: nothing is heard, so no tint and no pulse
+menubutton.privacy.mic.muted>button {
+  background-color: rgba($on-surface-variant, $state-hover);
+  color: $on-surface-variant;
+
+  .rec-dot {
+    animation: none;
+  }
+}
+
+menubutton.privacy.muted>button .icon.mic {
+  color: $on-surface-variant;
+}
+
+.privacy-row {
+  padding: $spacing-2 $spacing-3;
+
+  .icon {
+    font-size: $font-size-4xl;
+  }
+
+  .privacy-kinds {
+    font-size: $font-size-sm;
+    color: $text-muted;
+  }
+}
+
 menubutton.battery.low>button {
   color: $error;
 }

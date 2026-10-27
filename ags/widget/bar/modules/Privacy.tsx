@@ -29,8 +29,8 @@ export default function Privacy() {
       visible={privacy.as((p) => p.level !== "none")}
       tooltipText={privacy.as((p) => p.apps.map((a) => a.app).join(", "))}
     >
-      <box spacing={6}>
-        <box class="rec-dot" valign={Gtk.Align.CENTER} />
+      <box spacing={4}>
+        <box class="rec-dot pulse" valign={Gtk.Align.CENTER} />
         {kindIcon("screen")}
         {kindIcon("camera")}
         {kindIcon("mic")}

@@ -25,11 +25,13 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `svc.fx` | fx focus-tracker data + CLI verbs | `service/fx.ts` |
 | `svc.timer` | Countdown timers (launcher `timer 10m`) | `service/timer.ts` |
 | `svc.hypr` | Lua-first `hyprctl dispatch` helper | `service/hypr.ts` |
+| `svc.privacy` | Which apps capture mic/camera/screen (AstalWp) | `service/privacy.ts` |
 | `bar.shell` | Bar window & item order | `widget/bar/Bar.tsx` |
 | `bar.workspaces` | Workspace pips, scratchpad, urgency | `bar/modules/Workspaces.tsx` |
 | `bar.wintitle` | Focused window title | `bar/modules/WindowTitle.tsx` |
 | `bar.datemenu` | Clock + bell, notification center, calendar | `bar/modules/DateMenu.tsx` |
 | `bar.media` | Media pill + player popover | `widget/media/Media.tsx` |
+| `bar.privacy` | Mic/camera/screen-in-use pill + popover | `bar/modules/Privacy.tsx` |
 | `bar.recording` | Recording indicator | `bar/modules/Recording.tsx` |
 | `bar.sysmini` | CPU/RAM readout + System popover | `bar/modules/SysMini.tsx`, `SysPanel.tsx` |
 | `bar.screenshot` | Screenshot button + capture toolbar | `bar/modules/ScreenshotBtn.tsx`, `screenshot/Toolbar.tsx` |
@@ -123,14 +125,19 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Code:** `service/hypr.ts` — `hyprDispatch(lua, legacy)`: Lua `hl.dsp.*` first, legacy `hyprctl dispatch` fallback (AstalHyprland's own dispatch is broken on Hyprland ≥ 0.55).
 - **Used by:** `overview.hypr`, `svc.fx` `openFx`.
 
+### `svc.privacy` — apps capturing mic / camera / screen
+- **Code:** `service/privacy.ts` — `privacy` state L12, `update()` L39 rebuilds it from `audio.recorders` + `video.recorders`. Signal-driven, no polling: recorder/source added/removed, per-node `notify::` (`target-serial`, `description`, source `state`) via `watch`/`unwatch` L50–58, default-mic mute `followMic` L75. A video stream's source is found by `targetSerial` in `video.sources`; unresolved → `fallback()` L23 (camera only if a camera runs and no other video source exists). `toggleMicMute()` L88.
+- **Model:** `service/privacyModel.ts` — `Stream`/`Privacy` types, `IGNORE` L28 (own meters, cava, easyeffects, wf-recorder), `classify` L38 (v4l2/libcamera/role Camera → camera, other video → screen), `summarize` L47 (per-app dedupe, `level` screen > camera > mic, `micMuted`). **Test:** `privacyModel.test.ts`.
+- **Used by:** `bar.privacy`.
+
 ---
 
 ## 3. Bar (`widget/bar/`)
 
 ### `bar.shell` — bar window & layout
-- **Code:** `widget/bar/Bar.tsx` — layer window (`namespace="bar"`, exclusive, top). Start: launcher button, Sep, Workspaces, WindowTitle. Center: DateMenu, Media. End: Recording, SysMini, ScreenshotBtn, Battery, Sep, PomodoroPill, QuickSettings, Sep, Tray, Caffeine, Power. Takes `.editing` class from `desktop.state`.
+- **Code:** `widget/bar/Bar.tsx` — layer window (`namespace="bar"`, exclusive, top). Start: launcher button, Sep, Workspaces, WindowTitle. Center: DateMenu, Media. End: Privacy, Recording, SysMini, ScreenshotBtn, Battery, Sep, PomodoroPill, QuickSettings, Sep, Tray, Caffeine, Power. Takes `.editing` class from `desktop.state`.
 - `widget/bar/common/Sep.tsx` — bar separator.
-- **Style:** `styles/_bar.scss` — window/edit scrim L1–37, shared item shape & state L38–96, wintitle L97–112, workspaces L113–155, clock L156–162, battery L163–167, sysmini L168–174, recording L175–197, separators L198–219, QS pill L220–221, caffeine L222–226, pomodoro pill L227–end.
+- **Style:** `styles/_bar.scss` — window/edit scrim L1–37, shared item shape & state L38–96, wintitle L97–112, workspaces L113–155, clock L156–162, battery L163–167, sysmini L168–174, recording L175–193, privacy L194–256, separators L261–282, QS pill L283–284, caffeine L285–289, pomodoro pill L290–end.
 
 ### `bar.workspaces`
 - **Code:** `bar/modules/Workspaces.tsx` — refresh on Hyprland signals L16–35, urgency tracking L29–34, scroll-to-switch L51–59, pips L60–66, scratchpad (`special:magic`) button L67–74. Dispatches Lua `hl.dsp.*` via `hyprctl dispatch`.
@@ -155,8 +162,13 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Style:** `styles/_media.scss` — pill L5–24, card L25–71, seek L72–108, controls L109–end.
 - **Related:** CC mini player is separate → `cc.media`.
 
+### `bar.privacy` — mic / camera / screen in use
+- **Code:** `bar/modules/Privacy.tsx` — menubutton visible while `svc.privacy` `level !== "none"`; class `privacy <level> [muted]`; pulsing dot + one icon per active kind. Popover (`qs-pop` + `<Motion>`): one row per app (`.privacy-row`, kinds in `.privacy-kinds`) + Mute/Unmute microphone `menu-item`.
+- **Style:** `_bar.scss` L194–256 — recording-pill shape; `$privacy-kinds` map tints screen `$error`, camera `$tertiary`, mic `$primary`; `.mic.muted` greys and stops the pulse.
+- **Touches:** `bar.recording` (wf-recorder is ignored here so they don't double up).
+
 ### `bar.recording`
-- **Code:** `bar/modules/Recording.tsx` — visible only while `svc.recorder` records; click stops. **Style:** `_bar.scss` L175–197.
+- **Code:** `bar/modules/Recording.tsx` — visible only while `svc.recorder` records; click stops. **Style:** `_bar.scss` L175–193.
 
 ### `bar.sysmini` — CPU/RAM readout + System popover
 - **Code:**
