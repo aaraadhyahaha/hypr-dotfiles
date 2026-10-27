@@ -76,11 +76,9 @@ test("classify leaves out the shell's own streams by pid, but not other GJS apps
   assert.equal(classify({ ...mic("Sound Recorder", "gjs"), pid: 7 }, 42), "mic")
 })
 
-test("classify skips paused streams and desktop-audio capture", () => {
-  assert.equal(classify({ ...mic("Discord"), running: false }), null)
-  assert.equal(classify({ ...cam("Cheese"), running: false }), null)
+test("classify skips desktop-audio capture", () => {
   assert.equal(classify({ ...mic("OBS"), monitor: true }), null)
-  assert.equal(classify({ ...mic("Discord"), running: true }), "mic")
+  assert.equal(classify({ ...mic("Discord"), monitor: false }), "mic")
 })
 
 test("isCamera matches role or api", () => {
@@ -90,13 +88,11 @@ test("isCamera matches role or api", () => {
   assert.equal(isCamera(null), false)
 })
 
-test("guessSource picks a running camera only when no other video source runs", () => {
-  const camera = { api: "v4l2", running: true }
-  const xdph = { running: true }
+test("guessSource picks the camera only when every video source is one", () => {
+  const camera = { api: "v4l2", role: "Camera" }
   assert.equal(guessSource([camera]), camera)
-  assert.equal(guessSource([camera, { running: false }]), camera) // idle leftover node
-  assert.equal(guessSource([camera, xdph]), null)
-  assert.equal(guessSource([{ api: "v4l2", running: false }]), null)
+  assert.equal(guessSource([camera, { api: "v4l2" }]), camera) // e.g. v4l2loopback
+  assert.equal(guessSource([camera, {}]), null) // an xdph screencast node exists
   assert.equal(guessSource([]), null)
 })
 

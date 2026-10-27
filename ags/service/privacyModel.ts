@@ -4,7 +4,7 @@ export type Kind = "mic" | "camera" | "screen"
 export type Level = Kind | "none"
 
 // A Video/Source node's props (or the one a stream is linked to)
-export type Source = { role?: string; api?: string; running?: boolean }
+export type Source = { role?: string; api?: string }
 
 // One capturing stream, flattened from an AstalWp node by svc.privacy
 export type Stream = {
@@ -12,7 +12,6 @@ export type Stream = {
   binary?: string // application.process.binary
   pid?: number // application.process.id
   media: "audio" | "video"
-  running?: boolean // false: corked/paused, nothing is captured
   monitor?: boolean // audio taken from a speaker's monitor (desktop audio), not a mic
   muted?: boolean // the mic it records from is muted
   source?: Source | null // the source node the stream is linked to, when known
@@ -42,18 +41,18 @@ const ignored = (s: Stream) =>
 export const isCamera = (src?: Source | null) =>
   src?.role?.toLowerCase() === "camera" || src?.api === "v4l2" || src?.api === "libcamera"
 
-// Portal streams may not set a target. Such a stream is a camera only when a camera is
-// running and no other video source (an xdph screencast node) is.
+// Portal streams may not set a target. Such a stream is a camera only when every video
+// source is one, i.e. no xdph screencast node exists. (AstalWp's node `state` never leaves
+// CREATING, so whether a source is running can't be told.)
 export function guessSource(sources: Source[]): Source | null {
-  const running = sources.filter((s) => s.running)
-  return running.length > 0 && running.every(isCamera) ? running[0] : null
+  return sources.length > 0 && sources.every(isCamera) ? sources[0] : null
 }
 
 // Video consumers are either a camera (linked to a v4l2/libcamera source) or a screencast
 // (linked to a portal/xdph node). Anything not provably a camera counts as the screen,
 // the more sensitive of the two.
 export function classify(s: Stream, ownPid?: number): Kind | null {
-  if (ignored(s) || (ownPid !== undefined && s.pid === ownPid) || s.running === false) return null
+  if (ignored(s) || (ownPid !== undefined && s.pid === ownPid)) return null
   if (s.media === "audio") return s.monitor ? null : "mic"
   return isCamera(s.source) ? "camera" : "screen"
 }
