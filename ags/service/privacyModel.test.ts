@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { classify, summarize, type Stream } from "./privacyModel.ts"
+import { classify, guessSource, isCamera, samePrivacy, summarize, type Stream } from "./privacyModel.ts"
 
 const mic = (app: string, binary?: string): Stream => ({ app, binary, media: "audio" })
 const cam = (app: string): Stream => ({ app, media: "video", source: { role: "Camera", api: "v4l2" } })
@@ -26,7 +26,6 @@ test("classify treats a video stream with no known source as the screen", () => 
 test("classify ignores our own meters by app or binary, any case", () => {
   assert.equal(classify(mic("cava")), null)
   assert.equal(classify(mic("PulseAudio Volume Control", "pavucontrol")), null)
-  assert.equal(classify(mic("GJS")), null)
   assert.equal(classify(mic("wf-recorder")), null)
 })
 
@@ -58,14 +57,50 @@ test("summarize sorts apps by their most sensitive use, then name", () => {
   assert.deepEqual(p.apps.map((a) => a.app), ["OBS", "Cheese", "Discord", "Zoom"])
 })
 
-test("summarize reports a muted mic only while a mic stream is open", () => {
-  assert.equal(summarize([mic("Discord")], true).micMuted, true)
-  assert.equal(summarize([mic("Discord")], false).micMuted, false)
-  assert.equal(summarize([cam("Cheese")], true).micMuted, false)
+test("summarize reports a muted mic only when every open mic stream is muted", () => {
+  const muted = { ...mic("Discord"), muted: true }
+  assert.equal(summarize([muted]).micMuted, true)
+  assert.equal(summarize([mic("Discord")]).micMuted, false)
+  assert.equal(summarize([muted, mic("Zoom")]).micMuted, false) // Zoom's mic is live
+  assert.equal(summarize([cam("Cheese")]).micMuted, false)
 })
 
 test("summarize names a stream without app name by its binary", () => {
   assert.deepEqual(summarize([{ app: "", binary: "arecord", media: "audio" }]).apps, [
     { app: "arecord", kinds: ["mic"] },
   ])
+})
+
+test("classify leaves out the shell's own streams by pid, but not other GJS apps", () => {
+  assert.equal(classify({ ...mic("gjs", "gjs"), pid: 42 }, 42), null)
+  assert.equal(classify({ ...mic("Sound Recorder", "gjs"), pid: 7 }, 42), "mic")
+})
+
+test("classify skips paused streams and desktop-audio capture", () => {
+  assert.equal(classify({ ...mic("Discord"), running: false }), null)
+  assert.equal(classify({ ...cam("Cheese"), running: false }), null)
+  assert.equal(classify({ ...mic("OBS"), monitor: true }), null)
+  assert.equal(classify({ ...mic("Discord"), running: true }), "mic")
+})
+
+test("isCamera matches role or api", () => {
+  assert.equal(isCamera({ role: "Camera" }), true)
+  assert.equal(isCamera({ api: "v4l2" }), true)
+  assert.equal(isCamera({}), false)
+  assert.equal(isCamera(null), false)
+})
+
+test("guessSource picks a running camera only when no other video source runs", () => {
+  const camera = { api: "v4l2", running: true }
+  const xdph = { running: true }
+  assert.equal(guessSource([camera]), camera)
+  assert.equal(guessSource([camera, { running: false }]), camera) // idle leftover node
+  assert.equal(guessSource([camera, xdph]), null)
+  assert.equal(guessSource([{ api: "v4l2", running: false }]), null)
+  assert.equal(guessSource([]), null)
+})
+
+test("samePrivacy compares by value", () => {
+  assert.equal(samePrivacy(summarize([mic("a")]), summarize([mic("a")])), true)
+  assert.equal(samePrivacy(summarize([mic("a")]), summarize([mic("b")])), false)
 })

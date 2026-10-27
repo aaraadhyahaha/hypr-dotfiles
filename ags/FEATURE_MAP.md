@@ -126,8 +126,8 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Used by:** `overview.hypr`, `svc.fx` `openFx`.
 
 ### `svc.privacy` — apps capturing mic / camera / screen
-- **Code:** `service/privacy.ts` — `privacy` state L12, `update()` L39 rebuilds it from `audio.recorders` + `video.recorders`. Signal-driven, no polling: recorder/source added/removed, per-node `notify::` (`target-serial`, `description`, source `state`) via `watch`/`unwatch` L50–58, default-mic mute `followMic` L75. A video stream's source is found by `targetSerial` in `video.sources`; unresolved → `fallback()` L23 (camera only if a camera runs and no other video source exists). `toggleMicMute()` L88.
-- **Model:** `service/privacyModel.ts` — `Stream`/`Privacy` types, `IGNORE` L28 (own meters, cava, easyeffects, wf-recorder), `classify` L38 (v4l2/libcamera/role Camera → camera, other video → screen), `summarize` L47 (per-app dedupe, `level` screen > camera > mic, `micMuted`). **Test:** `privacyModel.test.ts`.
+- **Code:** `service/privacy.ts` — `privacy` state L14; `update(gone?)` L50 rebuilds it from `audio.recorders` + `video.recorders` (minus a node being removed) and only sets it when the value changed. Signal-driven, no polling: recorder/source/mic added/removed, per-node `notify::` via `watch`/`unwatch` L66–74 (recorders `RECORDER` L76, source `state`, mic `mute`), `default-microphone`. `audioStream` L37: target mic (no target → default) gives `muted`; a speaker target or `stream.capture.sink` marks desktop-audio `monitor`. `videoStream` L44: source by `targetSerial` in `video.sources`, else `guessSource`. The shell's own streams drop out by `ownPid` L12. `toggleMicMute()` L98.
+- **Model:** `service/privacyModel.ts` — `Source`/`Stream`/`Privacy` types, `IGNORE` L35 (cava, pavucontrol, easyeffects, wf-recorder), `isCamera` L42 (v4l2/libcamera/role Camera), `guessSource` L47 (a running camera, only if no other video source runs), `classify` L55 (skips own pid, paused, monitor capture; non-camera video → screen), `summarize` L61 (per-app dedupe, `level` screen > camera > mic, `micMuted` = every mic stream muted), `samePrivacy` L88. **Test:** `privacyModel.test.ts`.
 - **Used by:** `bar.privacy`.
 
 ---
@@ -137,7 +137,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 ### `bar.shell` — bar window & layout
 - **Code:** `widget/bar/Bar.tsx` — layer window (`namespace="bar"`, exclusive, top). Start: launcher button, Sep, Workspaces, WindowTitle. Center: DateMenu, Media. End: Privacy, Recording, SysMini, ScreenshotBtn, Battery, Sep, PomodoroPill, QuickSettings, Sep, Tray, Caffeine, Power. Takes `.editing` class from `desktop.state`.
 - `widget/bar/common/Sep.tsx` — bar separator.
-- **Style:** `styles/_bar.scss` — window/edit scrim L1–37, shared item shape & state L38–96, wintitle L97–112, workspaces L113–155, clock L156–162, battery L163–167, sysmini L168–174, recording L175–193, privacy L194–256, separators L261–282, QS pill L283–284, caffeine L285–289, pomodoro pill L290–end.
+- **Style:** `styles/_bar.scss` — window/edit scrim L1–37, shared item shape & state L38–96, wintitle L97–112, workspaces L113–155, clock L156–162, battery L163–167, sysmini L168–174, recording + privacy pill shape L175–200, recording tint L193–200, privacy L202–247, separators L253–274, QS pill L275–276, caffeine L277–281, pomodoro pill L282–end.
 
 ### `bar.workspaces`
 - **Code:** `bar/modules/Workspaces.tsx` — refresh on Hyprland signals L16–35, urgency tracking L29–34, scroll-to-switch L51–59, pips L60–66, scratchpad (`special:magic`) button L67–74. Dispatches Lua `hl.dsp.*` via `hyprctl dispatch`.
@@ -164,11 +164,11 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `bar.privacy` — mic / camera / screen in use
 - **Code:** `bar/modules/Privacy.tsx` — menubutton visible while `svc.privacy` `level !== "none"`; class `privacy <level> [muted]`; pulsing dot + one icon per active kind. Popover (`qs-pop` + `<Motion>`): one row per app (`.privacy-row`, kinds in `.privacy-kinds`) + Mute/Unmute microphone `menu-item`.
-- **Style:** `_bar.scss` L194–256 — recording-pill shape; `$privacy-kinds` map tints screen `$error`, camera `$tertiary`, mic `$primary`; `.mic.muted` greys and stops the pulse.
+- **Style:** `_bar.scss` L175–191 (pill shape shared with `bar.recording`), L202–247; `$privacy-kinds` map tints screen `$error`, camera `$tertiary`, mic `$primary`; `.mic.muted` greys and stops the pulse.
 - **Touches:** `bar.recording` (wf-recorder is ignored here so they don't double up).
 
 ### `bar.recording`
-- **Code:** `bar/modules/Recording.tsx` — visible only while `svc.recorder` records; click stops. **Style:** `_bar.scss` L175–193.
+- **Code:** `bar/modules/Recording.tsx` — visible only while `svc.recorder` records; click stops. **Style:** `_bar.scss` L175–200 (shape shared with `bar.privacy`).
 
 ### `bar.sysmini` — CPU/RAM readout + System popover
 - **Code:**

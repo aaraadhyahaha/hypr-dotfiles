@@ -172,28 +172,9 @@ menubutton.sysmini>button {
   color: $text-muted;
 }
 
-// recording indicator
-button.recording {
-  @include flat-button;
-  min-height: $bar-item-h;
-  padding: 0 $spacing-2;
-  border-radius: $radius-full;
-  background-color: rgba($error, 0.14);
-  color: $error;
-  font-size: $font-size-base;
-
-  .rec-dot {
-    min-width: 7px;
-    min-height: 7px;
-    border-radius: $radius-full;
-    background-color: $error;
-    animation: pulse 1.4s ease-in-out infinite;
-  }
-}
-
-// privacy indicator: another app captures the mic / camera / screen. Same pill as recording,
-// tinted by the most sensitive kind in use; each icon keeps its own kind's colour.
-// (on the button: a popover is the menubutton's CSS child and would inherit it)
+// recording and privacy indicators: the same pill, its dot in the pill's colour
+// (privacy on the button: a popover is the menubutton's CSS child and would inherit it)
+button.recording,
 menubutton.privacy>button {
   @include flat-button;
   min-height: $bar-item-h;
@@ -207,10 +188,21 @@ menubutton.privacy>button {
     border-radius: $radius-full;
     background-color: currentColor;
   }
+}
 
-  .icon {
-    font-size: $icon-size;
+button.recording {
+  background-color: rgba($error, 0.14);
+  color: $error;
+
+  .rec-dot {
+    animation: pulse 1.4s ease-in-out infinite;
   }
+}
+
+// privacy indicator: another app captures the mic / camera / screen. Tinted by the most
+// sensitive kind in use; each icon keeps its own kind's colour.
+menubutton.privacy>button .icon {
+  font-size: $icon-size;
 }
 
 $privacy-kinds: (screen: $error, camera: $tertiary, mic: $primary);
