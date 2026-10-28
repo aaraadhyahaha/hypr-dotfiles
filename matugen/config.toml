@@ -3,7 +3,7 @@
 [templates.ags]
 input_path = '~/.config/matugen/templates/ags-colors.scss'
 output_path = '~/.config/ags/colors.scss'
-post_hook = 'agsr'
+post_hook = "fish -c agsr"
 
 [templates.kitty]
 input_path = '~/.config/matugen/templates/kitty-colors.conf'
