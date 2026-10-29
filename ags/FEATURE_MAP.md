@@ -445,8 +445,8 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 
 ### `ext.hypr.shell` — AGS keybinds & layer rules
 - **Code:** `conf/shell.lua` (44 lines). `ags(cmd)` helper L5 → `ags request <cmd>`.
-- **Keybinds → IPC, L7–20:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Print → `toggle-shotmenu` (screenshot session) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
-- **Layer rules L22–44:** `ags-no-anim` (`shot`, so it vanishes before grim captures) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu|bridge` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
+- **Keybinds → IPC, L7–21:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Super+B `bridge` (tomorrow's first question, now) · Print → `toggle-shotmenu` (screenshot session) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
+- **Layer rules L23–54:** `ags-no-anim` (`shot`, so it vanishes before grim captures) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu|bridge` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
 - **Pairs with:** `core.app` (one `if` per IPC command), `core.motion` (AGS moves content, Hyprland fades the layer).
 
 ### `ext.hypr.binds` — window, workspace & media binds

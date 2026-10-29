@@ -11,6 +11,7 @@ hl.bind(mod .. " + SHIFT + V",   ags("toggle-clipboard"))
 hl.bind(mod .. " + W",           ags("toggle-wallpapers"))
 hl.bind(mod .. " + G",           ags("toggle-widgets")) -- desktop edit mode + gallery
 hl.bind(mod .. " + TAB",         ags("toggle-overview"))
+hl.bind(mod .. " + B",           ags("bridge")) -- leave tomorrow's first question now
 hl.bind("Print",                 ags("toggle-shotmenu"))
 hl.bind("SHIFT + Print",         ags("screenshot-full"))
 hl.bind(mod .. " + SHIFT + R",   hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; cd ~/.config/ags && setsid ags run'"))
