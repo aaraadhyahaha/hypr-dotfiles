@@ -87,16 +87,16 @@ One split, everywhere: **Hyprland owns opacity, AGS owns geometry.**
 
 | SCSS | `MOTION` (TS) | Use |
 |---|---|---|
-| `$dur-fast` 110ms + `$ease` | `fast` | hover, press, colour |
-| `$dur` 200ms + `$ease` | `base` | routine state, revealer widths, OSD bar tween |
-| `$dur-enter` 380ms + `$ease-out` | `enter` | geometry settling in, workspace pip stretch |
-| `$dur-exit` 180ms + `$ease-in` | `exit` | geometry leaving |
-| — | `slide` 460ms | toasts arriving from the screen edge |
+| `$dur-fast` 90ms + `$ease` | `fast` | hover, press, colour |
+| `$dur` 160ms + `$ease` | `base` | routine state, revealer widths, OSD bar tween |
+| `$dur-enter` 260ms + `$ease-out` | `enter` | geometry settling in, workspace pip stretch |
+| `$dur-exit` 140ms + `$ease-in` | `exit` | geometry leaving |
+| — | `slide` 320ms | toasts arriving from the screen edge |
 | — | `settle(from)` (`enter`) | a desktop widget gliding into its slot after a drop, reflow or gallery drag |
 
 Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.16,1,.3,1)` (fast arrival, then a long quiet settle) and `$ease-in` is `(.4,0,1,1)`. `EASE.*` in TS uses the same curves. No springs, no bounce, with one exception below.
 
-**The corner note is the one exception** (`bridge.note`). It's opaque paper, not glass, so there's no blur to keep in step: Hyprland doesn't fade it (`no_anim`) and AGS drives both its entry and its exits. `ENTER.slap` (`MOTION.enter`, `EASE.back` = `(.34,1.56,.64,1)`) overshoots about 10px and 0.3° before settling, the only overshoot in the shell. It leaves with `LEAVE.lift` (`$dur-lift` 90ms, `EASE.lift`) then `LEAVE.swoop` (`$dur-swoop` 260ms, `EASE.swoop`), off past the corner, and hides only after the swoop. `Pose.rot` (degrees) exists for it; the `<Motion>` sits inside the -4° rotation, so x/y run along the note's own tilted axes.
+**The corner note is the one exception** (`bridge.note`). It's opaque paper, not glass, so there's no blur to keep in step: Hyprland doesn't fade it (`no_anim`) and AGS drives both its entry and its exits. `ENTER.slap` (`MOTION.enter`, `EASE.back` = `(.34,1.56,.64,1)`) overshoots about 10px and 0.3° before settling, the only overshoot in the shell. It leaves with `LEAVE.lift` (`$dur-lift` 70ms, `EASE.lift`) then `LEAVE.swoop` (`$dur-swoop` 200ms, `EASE.swoop`), off past the corner, and hides only after the swoop. `Pose.rot` (degrees) exists for it; the `<Motion>` sits inside the -4° rotation, so x/y run along the note's own tilted axes.
 
 `ENTER` presets (call `motion.animate(preset)` *before* showing; `onShow(popover, motion, preset)` wires a popover):
 

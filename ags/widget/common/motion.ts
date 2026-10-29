@@ -10,8 +10,8 @@ import { Gtk } from "ags/gtk4"
 //   driven by the frame clock. No relayout, no CSS-animation start races, interruptible.
 // - Surfaces leave by hiding at once; the compositor fades the last frame out.
 
-// durations in ms, mirrored by the SCSS tokens in styles/_tokens.scss
-export const MOTION = { fast: 110, base: 200, enter: 380, exit: 180, slide: 460, lift: 90, swoop: 260 }
+// durations in ms, mirrored by the SCSS tokens in styles/_tokens.scss; paced to Hyprland's 130–180ms layer/popup fades
+export const MOTION = { fast: 90, base: 160, enter: 260, exit: 140, slide: 320, lift: 70, swoop: 200 }
 
 // how long Hyprland's fade-out keeps a hidden layer on screen: wait this long before a
 // capture so the panel that started it isn't in the shot

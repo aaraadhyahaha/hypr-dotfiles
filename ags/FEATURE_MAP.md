@@ -77,7 +77,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `core.motion` — animation system
 - **Code:** `widget/common/motion.ts`
-  - `MOTION` durations L14 (incl. `lift` 90, `swoop` 260) · `LAYER_GONE` (wait out a layer window's fade before capturing) L18 · `bezier` (unclamped y, so overshoot works)/`EASE` L22–61 (incl. `back`, `lift`, `swoop`) · `Pose` (incl. `rot`, degrees)/`Anim` types L64–80
+  - `MOTION` durations L14 (incl. `lift` 70, `swoop` 200) · `LAYER_GONE` (wait out a layer window's fade before capturing) L18 · `bezier` (unclamped y, so overshoot works)/`EASE` L22–61 (incl. `back`, `lift`, `swoop`) · `Pose` (incl. `rot`, degrees)/`Anim` types L64–80
   - `Motion` GObject class (paint-time transform) L104–194
   - `ENTER` presets L197–218 (incl. `slap`) · `settle`/`LIFT` L221–223 · `LEAVE` L225–234 (incl. `lift`, `swoop`) · `onShow()` L236
 - **Mirror:** SCSS `$dur*`/`$ease*` in `styles/_tokens.scss`. Rules: `DESIGN.md › Motion`.

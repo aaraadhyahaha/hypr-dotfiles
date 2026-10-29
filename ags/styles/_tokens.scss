@@ -49,12 +49,12 @@ $font-size-pomo: 34px;
 $ease: cubic-bezier(0.25, 0.1, 0.25, 1); // state changes
 $ease-out: cubic-bezier(0.16, 1, 0.3, 1); // arrivals: fast, then a long quiet settle
 $ease-in: cubic-bezier(0.4, 0, 1, 1); // departures
-$dur-fast: 110ms; // hover, press, colour
-$dur: 200ms; // routine state change
-$dur-enter: 380ms; // geometry settling in
-$dur-exit: 180ms; // geometry leaving
-$dur-lift: 90ms; // the corner note picked up
-$dur-swoop: 260ms; // the corner note thrown off
+$dur-fast: 90ms; // hover, press, colour
+$dur: 160ms; // routine state change
+$dur-enter: 260ms; // geometry settling in
+$dur-exit: 140ms; // geometry leaving
+$dur-lift: 70ms; // the corner note picked up
+$dur-swoop: 200ms; // the corner note thrown off
 
 // state layers (M3): overlay alpha of on-surface over a container
 $state-hover: 0.08;
