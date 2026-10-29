@@ -25,9 +25,10 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -n1 set 5%- && a
 -- A new AGS layer window needs its namespace added to ags-blur.
 
 -- "shot" is the region selector: it must vanish instantly before grim captures, and stay unblurred.
+-- "bridgenote" is the corner note: AGS draws its slap in and swoop out, a fade on top would blur them.
 hl.layer_rule({
     name    = "ags-no-anim",
-    match   = { namespace = "^shot$" },
+    match   = { namespace = "^(shot|bridgenote)$" },
     no_anim = true,
 })
 
