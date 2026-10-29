@@ -32,3 +32,7 @@ gtk-3.0/settings.ini
 gtk-4.0/settings.ini
 gtk-4.0/assets
 gtk-4.0/gtk-dark.css
+
+# machine state, rewritten by the file manager and qt5ct
+/gtk-3.0/bookmarks
+/qt5ct/qt5ct.conf
