@@ -11,7 +11,7 @@ import { Gtk } from "ags/gtk4"
 // - Surfaces leave by hiding at once; the compositor fades the last frame out.
 
 // durations in ms, mirrored by the SCSS tokens in styles/_tokens.scss
-export const MOTION = { fast: 110, base: 200, enter: 380, exit: 180, slide: 460 }
+export const MOTION = { fast: 110, base: 200, enter: 380, exit: 180, slide: 460, lift: 90, swoop: 260 }
 
 // how long Hyprland's fade-out keeps a hidden layer on screen: wait this long before a
 // capture so the panel that started it isn't in the shot
@@ -19,7 +19,7 @@ export const LAYER_GONE = 250
 
 export type Ease = (t: number) => number
 
-// CSS cubic-bezier(x1, y1, x2, y2) as a function of linear progress
+// CSS cubic-bezier(x1, y1, x2, y2) as a function of linear progress; y isn't clamped, so y1 > 1 overshoots
 function bezier(x1: number, y1: number, x2: number, y2: number): Ease {
   const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx
   const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by
@@ -53,13 +53,26 @@ export const EASE = {
   standard: bezier(0.25, 0.1, 0.25, 1),
   out: bezier(0.16, 1, 0.3, 1), // fast arrival, long quiet settle
   in: bezier(0.4, 0, 1, 1),
+  // the corner note: overshoots past rest, then settles (the one exception to "no bounce")
+  back: bezier(0.34, 1.56, 0.64, 1),
+  lift: bezier(0.2, 0, 0, 1), // a quick pick-up
+  swoop: bezier(0.55, 0, 1, 0.45), // gathers speed until it's gone
 }
 
 // offset from rest: px translation, fx = fraction of own width, scale, opacity;
-// sx/sy stretch one axis on top of scale (a widget morphing between sizes)
-export type Pose = { x?: number; y?: number; fx?: number; scale?: number; sx?: number; sy?: number; opacity?: number }
+// sx/sy stretch one axis on top of scale (a widget morphing between sizes); rot = degrees about the origin
+export type Pose = {
+  x?: number
+  y?: number
+  fx?: number
+  scale?: number
+  sx?: number
+  sy?: number
+  rot?: number
+  opacity?: number
+}
 type Full = Required<Pose>
-const REST: Full = { x: 0, y: 0, fx: 0, scale: 1, sx: 1, sy: 1, opacity: 1 }
+const REST: Full = { x: 0, y: 0, fx: 0, scale: 1, sx: 1, sy: 1, rot: 0, opacity: 1 }
 
 export type Anim = {
   from?: Pose // omitted: start from wherever it is now
@@ -77,14 +90,15 @@ const lerp = (a: Full, b: Full, e: number): Full => ({
   scale: a.scale + (b.scale - a.scale) * e,
   sx: a.sx + (b.sx - a.sx) * e,
   sy: a.sy + (b.sy - a.sy) * e,
+  rot: a.rot + (b.rot - a.rot) * e,
   opacity: a.opacity + (b.opacity - a.opacity) * e,
 })
 const atRest = (p: Full) =>
-  p.x === 0 && p.y === 0 && p.fx === 0 && p.scale === 1 && p.sx === 1 && p.sy === 1 && p.opacity === 1
+  p.x === 0 && p.y === 0 && p.fx === 0 && p.scale === 1 && p.sx === 1 && p.sy === 1 && p.rot === 0 && p.opacity === 1
 
 const animationsOn = () => Gtk.Settings.get_default()?.gtkEnableAnimations ?? true
 
-// A transparent wrapper that paints its children at an animated pose; `origin` is the scale pivot
+// A transparent wrapper that paints its children at an animated pose; `origin` is the scale and rotation pivot
 // (center, top, bottom, or top-left).
 // It is a Box only so JSX can append children; layout is a BinLayout.
 export const Motion = GObject.registerClass(
@@ -166,6 +180,7 @@ export const Motion = GObject.registerClass(
       const py = o === "top" || o === "top-left" ? 0 : o === "bottom" ? h : h / 2
       s.save()
       s.translate(new Graphene.Point({ x: px + p.x + p.fx * w, y: py + p.y }))
+      if (p.rot !== 0) s.rotate(p.rot)
       if (p.scale !== 1 || p.sx !== 1 || p.sy !== 1) s.scale(p.scale * p.sx, p.scale * p.sy)
       s.translate(new Graphene.Point({ x: -px, y: -py }))
       const fade = p.opacity < 1
@@ -198,6 +213,8 @@ export const ENTER = {
   side: { from: { x: -6, opacity: 0 }, duration: MOTION.enter * 0.8, ease: EASE.out },
   // a desktop widget appearing on the grid (added from the gallery)
   add: { from: { scale: 0.9, opacity: 0 }, duration: MOTION.enter, ease: EASE.out },
+  // the corner note: slapped down from past the corner, a little more tilted, overshooting into place
+  slap: { from: { x: 96, y: 96, rot: -3 }, duration: MOTION.enter, ease: EASE.back },
 } satisfies Record<string, Anim>
 
 // a desktop widget dropped into its slot: glide the leftover offset (and lift) back to rest
@@ -210,6 +227,9 @@ export const LEAVE = {
   content: { to: { opacity: 0 }, duration: MOTION.exit * 0.7, ease: EASE.in },
   // a desktop widget removed: shrink and fade where it stands
   remove: { to: { scale: 0.9, opacity: 0 }, duration: MOTION.exit, ease: EASE.in },
+  // the corner note picked up (lift), then thrown off past the corner (swoop, from wherever lift left it)
+  lift: { to: { x: -6, y: -6, rot: -0.5 }, duration: MOTION.lift, ease: EASE.lift },
+  swoop: { to: { x: 240, y: 240 }, duration: MOTION.swoop, ease: EASE.swoop },
 } satisfies Record<string, Anim>
 
 // play `anim` on `m` every time `w` (a popover, a window) is about to show

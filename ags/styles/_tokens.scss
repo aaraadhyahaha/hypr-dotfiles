@@ -53,6 +53,8 @@ $dur-fast: 110ms; // hover, press, colour
 $dur: 200ms; // routine state change
 $dur-enter: 380ms; // geometry settling in
 $dur-exit: 180ms; // geometry leaving
+$dur-lift: 90ms; // the corner note picked up
+$dur-swoop: 260ms; // the corner note thrown off
 
 // state layers (M3): overlay alpha of on-surface over a container
 $state-hover: 0.08;
