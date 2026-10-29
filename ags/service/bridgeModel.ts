@@ -6,7 +6,7 @@ import type { FxStatus } from "./fxModel"
 export type Bridge = {
   taskId: number | null
   title: string
-  text: string // line 1, stem included, exactly as written
+  text: string // line 1, stem included, exactly as written; "" when only the pickup was kept
   pickup: string // the optional half-finished line 2; "" when none
   at: string // ISO time it was written
   kind: "task" | "day"
@@ -98,8 +98,11 @@ export const markSeenIn = (list: Bridge[], b: Bridge) => list.map((x) => (x === 
 
 export const prune = (list: Bridge[], now = new Date()) => list.filter((b) => now.getTime() - time(b) < KEEP_MS)
 
+// a bridge needs line 1 or the pickup line; a skip can keep the pickup alone
 function bridge(v: any): Bridge | null {
-  if (!v || typeof v.text !== "string" || !v.text.trim() || typeof v.at !== "string") return null
+  if (!v || typeof v.text !== "string" || typeof v.at !== "string") return null
+  const pickup = typeof v.pickup === "string" ? v.pickup : ""
+  if (!v.text.trim() && !pickup.trim()) return null
   if (Number.isNaN(new Date(v.at).getTime())) return null
   const kind = v.kind === "day" ? "day" : v.kind === "task" ? "task" : null
   const taskId = Number.isInteger(v.taskId) ? v.taskId : null
@@ -108,7 +111,7 @@ function bridge(v: any): Bridge | null {
     taskId,
     title: typeof v.title === "string" ? v.title : "",
     text: v.text,
-    pickup: typeof v.pickup === "string" ? v.pickup : "",
+    pickup,
     at: v.at,
     kind,
     seen: v.seen === true,

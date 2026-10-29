@@ -216,3 +216,9 @@ test("parseBridges defaults a missing or bad pickup to empty", () => {
   assert.deepEqual(parseBridges(JSON.stringify([old, { ...old, taskId: 2, pickup: 7 }])).map((b) => b.pickup), ["", ""])
   assert.equal(parseBridges(serialize([note({ pickup: "because" })]))[0].pickup, "because")
 })
+
+test("parseBridges keeps a pickup-only bridge, drops one with neither line", () => {
+  const only = note({ text: "", pickup: "the retry loop" })
+  assert.deepEqual(parseBridges(serialize([only])), [only])
+  assert.deepEqual(parseBridges(serialize([note({ text: "", pickup: " " })])), [])
+})
