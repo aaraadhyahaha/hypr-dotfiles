@@ -10,7 +10,10 @@ import {
   put,
   noteFor,
   morningNote,
-  freshest,
+  STEM,
+  written,
+  shown,
+  retire,
   markSeenIn,
   prune,
   parseBridges,
@@ -40,6 +43,7 @@ const note = (over: Partial<Bridge>): Bridge => ({
   taskId: 1,
   title: "task 1",
   text: "next",
+  pickup: "",
   at: "2026-10-29T10:00:00",
   kind: "task",
   seen: false,
@@ -108,13 +112,59 @@ test("morningNote is last night's unseen day note, not today's", () => {
   assert.equal(morningNote([note({ at: "2026-10-28T21:30:00" })], "2026-10-29"), null)
 })
 
-test("freshest is the newest unseen note under the age limit", () => {
-  const now = new Date(2026, 9, 29, 12, 0)
-  const h = 3600 * 1000
-  const a = note({ at: new Date(now.getTime() - 2 * h).toISOString() })
-  const b = note({ taskId: 2, at: new Date(now.getTime() - 13 * h).toISOString() })
-  assert.equal(freshest([a, b], now, 12 * h), a)
-  assert.equal(freshest([{ ...a, seen: true }, b], now, 12 * h), null)
+test("written keeps the whole line, stem included, only when something was added", () => {
+  assert.equal(written("Next, I redo the blurt  ", STEM.task), "Next, I redo the blurt")
+  assert.equal(written(STEM.task, STEM.task), "")
+  assert.equal(written("Next, I", STEM.task), "")
+  // backspaced into the stem: what's left of it is still nothing written
+  assert.equal(written("Next, ", STEM.task), "")
+  assert.equal(written("", STEM.task), "")
+  // rewrote the stem itself
+  assert.equal(written("Next, fix it", STEM.task), "Next, fix it")
+  assert.equal(written("Tomorrow, first I read ch. 4", STEM.day), "Tomorrow, first I read ch. 4")
+})
+
+test("shown is the newest task note, or last night's day note when that's newer", () => {
+  const today = "2026-10-29"
+  const a = note({ taskId: 2, at: "2026-10-29T11:00:00" })
+  const b = note({ at: "2026-10-29T10:00:00" })
+  const night = note({ kind: "day", taskId: null, at: "2026-10-28T21:30:00" })
+  assert.equal(shown([a, b, night], status(undefined), today), a)
+  assert.equal(shown([night, b], status(undefined), today), night)
+  // today's day note waits for tomorrow; the task note under it still shows
+  assert.equal(shown([note({ kind: "day", taskId: null, at: "2026-10-29T21:00:00" }), b], status(undefined), today), b)
+  assert.equal(shown([], status(undefined), today), null)
+  assert.equal(shown([b], null, today), b)
+})
+
+test("shown: a newer pause replaces the older note, even once it's seen", () => {
+  const today = "2026-10-29"
+  const old = note({ taskId: 2, at: "2026-10-29T09:00:00" })
+  assert.equal(shown([note({ seen: true }), old], status(undefined), today), null)
+})
+
+test("shown hides a note while its task is active or done, not while another task runs", () => {
+  const today = "2026-10-29"
+  const b = note({})
+  assert.equal(shown([b], status(1), today), null)
+  assert.equal(shown([b], status(undefined, [task(1, true)]), today), null)
+  assert.equal(shown([b], status(2), today), b)
+})
+
+test("retire marks a note seen when its task turns active or done", () => {
+  const b = note({})
+  const c = note({ taskId: 2 })
+  assert.deepEqual(retire([b, c], status(undefined), status(1)).map((x) => x.seen), [true, false])
+  assert.deepEqual(retire([b, c], status(undefined), status(undefined, [task(1), task(2, true)])).map((x) => x.seen), [false, true])
+  // first status after startup counts as a change
+  assert.deepEqual(retire([b], null, status(1)).map((x) => x.seen), [true])
+})
+
+test("retire leaves the list alone when no task turned", () => {
+  const list = [note({}), note({ kind: "day", taskId: null })]
+  assert.equal(retire(list, status(undefined), status(2)), list)
+  assert.equal(retire(list, status(1), status(1)), list)
+  assert.equal(retire([note({ seen: true })].concat(list.slice(1)), status(undefined), status(1)).length, 2)
 })
 
 test("markSeenIn flags only that note", () => {
@@ -159,4 +209,10 @@ test("parseBridges gives [] for a corrupt file and drops bad entries", () => {
     ]),
   )
   assert.deepEqual(out, [good])
+})
+
+test("parseBridges defaults a missing or bad pickup to empty", () => {
+  const { pickup, ...old } = note({})
+  assert.deepEqual(parseBridges(JSON.stringify([old, { ...old, taskId: 2, pickup: 7 }])).map((b) => b.pickup), ["", ""])
+  assert.equal(parseBridges(serialize([note({ pickup: "because" })]))[0].pickup, "because")
 })

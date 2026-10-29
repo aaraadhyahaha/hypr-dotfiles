@@ -6,13 +6,23 @@ import type { FxStatus } from "./fxModel"
 export type Bridge = {
   taskId: number | null
   title: string
-  text: string
+  text: string // line 1, stem included, exactly as written
+  pickup: string // the optional half-finished line 2; "" when none
   at: string // ISO time it was written
   kind: "task" | "day"
   seen: boolean
 }
 
 const KEEP_MS = 3 * 24 * 3600 * 1000
+
+// what line 1 of the pause sheet starts with; backspace can delete into it
+export const STEM = { task: "Next, I ", day: "Tomorrow, first I " } as const
+
+// line 1 as it's stored: trimmed, or "" when nothing was added to the stem (or what's left of it)
+export function written(line: string, stem: string) {
+  const t = line.trim()
+  return stem.trim().startsWith(t) ? "" : t
+}
 
 // the task that just stopped being focused, unless it stopped because it was marked done, or it's
 // the Shutdown task (that one already asked for tomorrow's question when it started)
@@ -64,9 +74,24 @@ export function morningNote(list: Bridge[], today: string) {
   return list.find((b) => b.kind === "day" && !b.seen && dayOf(new Date(b.at)) < today) ?? null
 }
 
-// the newest unseen note younger than maxMs, for the unlock toast
-export function freshest(list: Bridge[], now: Date, maxMs: number) {
-  return list.find((b) => !b.seen && now.getTime() - time(b) < maxMs) ?? null
+const isActive = (s: FxStatus | null, id: number | null) => id !== null && s?.active?.taskId === id
+const isDone = (s: FxStatus | null, id: number | null) => !!s?.tasks.find((t) => t.id === id)?.done
+
+// the corner note: the newest task note or last night's day note, so a newer pause replaces an
+// older one; hidden once seen, or while its task is active or done
+export function shown(list: Bridge[], status: FxStatus | null, today: string) {
+  const b = list.find((b) => b.kind === "task" || dayOf(new Date(b.at)) < today)
+  if (!b || b.seen) return null
+  return b.kind === "task" && (isActive(status, b.taskId) || isDone(status, b.taskId)) ? null : b
+}
+
+// marks a task's unseen notes seen when that task turns active or done; the same list when nothing changed
+export function retire(list: Bridge[], prev: FxStatus | null, next: FxStatus) {
+  const gone = (b: Bridge) =>
+    b.kind === "task" &&
+    !b.seen &&
+    ((isActive(next, b.taskId) && !isActive(prev, b.taskId)) || (isDone(next, b.taskId) && !isDone(prev, b.taskId)))
+  return list.some(gone) ? list.map((b) => (gone(b) ? { ...b, seen: true } : b)) : list
 }
 
 export const markSeenIn = (list: Bridge[], b: Bridge) => list.map((x) => (x === b ? { ...x, seen: true } : x))
@@ -79,7 +104,15 @@ function bridge(v: any): Bridge | null {
   const kind = v.kind === "day" ? "day" : v.kind === "task" ? "task" : null
   const taskId = Number.isInteger(v.taskId) ? v.taskId : null
   if (!kind || (kind === "task" && taskId === null)) return null
-  return { taskId, title: typeof v.title === "string" ? v.title : "", text: v.text, at: v.at, kind, seen: v.seen === true }
+  return {
+    taskId,
+    title: typeof v.title === "string" ? v.title : "",
+    text: v.text,
+    pickup: typeof v.pickup === "string" ? v.pickup : "",
+    at: v.at,
+    kind,
+    seen: v.seen === true,
+  }
 }
 
 // missing or corrupt: no notes

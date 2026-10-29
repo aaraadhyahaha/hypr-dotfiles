@@ -7,7 +7,6 @@ import {
   type Bridge,
   dayOf,
   dayOver,
-  freshest,
   isShutdown,
   markSeenIn,
   noteFor,
@@ -74,7 +73,7 @@ export const closePrompt = () => setPrompt(null)
 export function saveBridge(p: Prompt, text: string) {
   const t = text.trim()
   if (!t) return
-  commit(put(prune(bridges.get()), { taskId: p.taskId, title: p.title, text: t, at: new Date().toISOString(), kind: p.kind, seen: false }))
+  commit(put(prune(bridges.get()), { taskId: p.taskId, title: p.title, text: t, pickup: "", at: new Date().toISOString(), kind: p.kind, seen: false }))
 }
 
 export function markSeen(b: Bridge) {
@@ -89,7 +88,8 @@ export function resumeBridge(b: Bridge) {
 
 // unlock (hypridle lock_cmd): the newest unseen note, if it's from the last 12h
 export function bridgeBack() {
-  const b = freshest(bridges.get(), new Date(), BACK_MS)
+  const now = Date.now()
+  const b = bridges.get().find((b) => !b.seen && now - new Date(b.at).getTime() < BACK_MS) // inlined until the unlock toast is retired
   if (b) toast(b.kind === "day" ? "Tomorrow's first question" : `Next on ${b.title}`, b.text)
 }
 
