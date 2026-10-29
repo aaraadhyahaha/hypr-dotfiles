@@ -266,7 +266,8 @@ window.Desktop {
 .dw-live-dot {
   color: $primary;
   font-size: 7px;
-  animation: pulse 2s ease-in-out infinite;
+  // no pulse: anything animating on the desktop layer makes Hyprland re-blur every translucent
+  // window above it each frame (measured ~60% iGPU busy while idle)
 }
 
 .dw-streak-glyph {

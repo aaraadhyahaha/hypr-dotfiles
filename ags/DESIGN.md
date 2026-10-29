@@ -138,6 +138,7 @@ Text entries use `@include field`: a translucent `rgba($surface, .5)` fill, so t
 - **Idle cost:** ticking (the clock's sweep) and polling (System) run only while `live` is true, meaning in edit mode or when no tiled or fullscreen window covers the workspace. fx refreshes on changes to `fx.db`, plus once a minute.
 - **Data:** fx widgets read `fx status --json` (`service/fx.ts`); they never write to fx's database.
 - **Gotchas:**
+  - No infinite CSS `animation` on the desktop layer; it ignores `live`. Hyprland then re-blurs every translucent window above the desktop on every frame. The `.dw-live-dot` pulse kept the iGPU about 70% busy while idle (about 15% without it).
   - Put `visible` last on a layer window. Set before `layer`, the surface maps on Astal's default layer (TOP) first.
   - Hidden buttons must not be focusable. An invisible remove badge that has focus will take a stray Space.
   - Never run two `ags run` at once: they share `/run/user/$UID/ags.js`.
