@@ -1,7 +1,8 @@
 import { Gtk } from "ags/gtk4"
 import GLib from "gi://GLib"
 import { onCleanup, type Accessor } from "ags"
-import { bars, canvas, ring, tween } from "./draw"
+import Gsk from "gi://Gsk"
+import { arc, bars, canvas, fill, ring, shade, tween } from "./draw"
 import { isoDay } from "../dates"
 
 // Building blocks shared by desktop widgets. Imperative GTK, so each returns a plain widget.
@@ -29,7 +30,7 @@ export function Ring(opts: { size: number; width: number; frac: Accessor<number>
   let t: ReturnType<typeof tween>
   const area = canvas(
     `dw-ring ${opts.cls ?? ""}`,
-    (cr, w, h, c) => ring(cr, w / 2, h / 2, Math.min(w, h) / 2 - opts.width / 2 - 1, opts.width, t.get(), c),
+    (s, w, h, c) => ring(s, w / 2, h / 2, Math.min(w, h) / 2 - opts.width / 2 - 1, opts.width, t.get(), c),
     { widthRequest: opts.size, heightRequest: opts.size, hexpand: false, vexpand: false },
   )
   t = tween(area, 0)
@@ -52,22 +53,19 @@ export function Meter(frac: Accessor<number>, cls = "") {
   let t: ReturnType<typeof tween>
   const area = canvas(
     `dw-meter ${cls}`,
-    (cr, w, h, c) => {
+    (s, w, h, c) => {
       const r = h / 2
       const path = (x: number, wid: number) => {
-        cr.newPath()
-        cr.arc(x + r, r, r, Math.PI / 2, (3 * Math.PI) / 2)
-        cr.arc(x + wid - r, r, r, -Math.PI / 2, Math.PI / 2)
-        cr.closePath()
+        const b = Gsk.PathBuilder.new()
+        arc(b, x + r, r, r, Math.PI / 2, (3 * Math.PI) / 2, true)
+        arc(b, x + wid - r, r, r, -Math.PI / 2, Math.PI / 2)
+        b.close()
+        return b.to_path()
       }
-      cr.setSourceRGBA(c.red, c.green, c.blue, 0.16)
-      path(0, w)
-      cr.fill()
+      fill(s, path(0, w), shade(c, 0.16))
       const f = Math.max(0, Math.min(1, t.get()))
       if (f <= 0) return
-      cr.setSourceRGBA(c.red, c.green, c.blue, 1)
-      path(0, Math.max(h, w * f))
-      cr.fill()
+      fill(s, path(0, Math.max(h, w * f)), shade(c, 1))
     },
     { heightRequest: 6, vexpand: false, valign: Gtk.Align.CENTER },
   )
@@ -84,9 +82,9 @@ export function Bars(values: Accessor<number[]>, top: (v: number[]) => number, h
   let t: ReturnType<typeof tween>
   const area = canvas(
     `dw-bars ${cls}`,
-    (cr, w, h, c) => {
+    (s, w, h, c) => {
       const v = values.get()
-      bars(cr, w, h, v.map((x) => x * t.get()), top(v), c)
+      bars(s, w, h, v.map((x) => x * t.get()), top(v), c)
     },
     { heightRequest: height, vexpand: false },
   )

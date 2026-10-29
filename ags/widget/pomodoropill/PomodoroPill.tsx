@@ -1,8 +1,8 @@
 import { createState } from "ags"
 import { Gtk } from "ags/gtk4"
 import { Motion, ENTER, onShow } from "../common/motion"
-import cairo from "cairo"
-import type CairoGi from "gi://cairo"
+import Gsk from "gi://Gsk"
+import { arcPath, canvas, shade, stroke, type Paint } from "../desktop/widgets/draw"
 import { pomodoro, type PomodoroState, type Settings } from "../../service/pomodoro"
 import { Heatmap, Streak } from "./PomodoroStats"
 import Icon from "../common/Icon"
@@ -20,48 +20,38 @@ const fmt = (sec: number): string => {
 const PHASE_NAME = { focus: "Focus", short: "Short break", long: "Long break" } as const
 
 const ring =
-  (lineWidth: number) =>
-    (area: Gtk.DrawingArea, ctx: CairoGi.Context, w: number, h: number): void => {
-      const cr = ctx as unknown as cairo.Context
+  (lineWidth: number): Paint =>
+    (s, w, h, c): void => {
       const frac = pomodoro.fraction
-      const c = area.get_color()
       const r = Math.min(w, h) / 2 - lineWidth
       const cx = w / 2
       const cy = h / 2
       const start = -Math.PI / 2
 
-      cr.setLineWidth(lineWidth)
-      cr.setSourceRGBA(c.red, c.green, c.blue, 0.2)
-      cr.arc(cx, cy, r, 0, 2 * Math.PI)
-      cr.stroke()
+      s.append_stroke(arcPath(cx, cy, r, 0, 2 * Math.PI), stroke(lineWidth), shade(c, 0.2))
 
       if (frac > 0) {
-        cr.setLineCap(cairo.LineCap.ROUND)
-        cr.setSourceRGBA(c.red, c.green, c.blue, c.alpha)
-        cr.arc(cx, cy, r, start, start + 2 * Math.PI * frac)
-        cr.stroke()
+        s.append_stroke(arcPath(cx, cy, r, start, start + 2 * Math.PI * frac), stroke(lineWidth, Gsk.LineCap.ROUND), shade(c, c.alpha))
       }
     }
 
 function Ring({ size, line, tick }: { size: number; line: number; tick: boolean }) {
-  return (
-    <Gtk.DrawingArea
-      contentWidth={size}
-      contentHeight={size}
-      halign={Gtk.Align.CENTER}
-      valign={Gtk.Align.CENTER}
-      $={(self: Gtk.DrawingArea) => {
-        self.set_draw_func(ring(line))
-        state.subscribe(() => self.queue_draw())
-        if (tick) {
-          self.add_tick_callback(() => {
-            self.queue_draw()
-            return true
-          })
-        }
-      }}
-    />
-  )
+  const self = canvas("", ring(line), {
+    widthRequest: size,
+    heightRequest: size,
+    hexpand: false,
+    vexpand: false,
+    halign: Gtk.Align.CENTER,
+    valign: Gtk.Align.CENTER,
+  })
+  state.subscribe(() => self.queue_draw())
+  if (tick) {
+    self.add_tick_callback(() => {
+      self.queue_draw()
+      return true
+    })
+  }
+  return self
 }
 
 function Stepper({
