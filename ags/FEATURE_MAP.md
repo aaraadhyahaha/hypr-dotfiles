@@ -52,7 +52,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `overview.*` | Workspace overview with window previews | `widget/overview/Overview.tsx` |
 | `desktop.*` | Desktop widgets, grid, edit mode, gallery | `widget/desktop/*` |
 | `ext.hypr.shell` | AGS IPC keybinds + layer rules (blur, no-anim) | `~/.config/hypr/conf/shell.lua` |
-| `ext.hypr.binds` | Window, workspace, scratchpad, media binds | `~/.config/hypr/conf/binds.lua` |
+| `ext.hypr.binds` | Window, workspace, scratchpad, media binds | `~/.config/hypr/conf/binds.lua`, `conf/float_place.lua` |
 | `ext.hypr.look` | Gaps, decoration, blur, layouts, animations | `~/.config/hypr/conf/look.lua`, `animations.lua` |
 | `ext.hypr.session` | Monitors, env, autostart, input, window rules, idle/lock | `~/.config/hypr/conf/*.lua`, `hypridle.conf` |
 | `ext.hypr.scripts` | Wallpaper + theme scripts | `~/.config/hypr/scripts/*.sh` |
@@ -424,11 +424,11 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 - **Pairs with:** `core.app` (one `if` per IPC command), `core.motion` (AGS moves content, Hyprland fades the layer).
 
 ### `ext.hypr.binds` — window, workspace & media binds
-- **Code:** `conf/binds.lua` (69 lines). Apps/session L7–10 (Super+Q kitty, Super+L lock, Super+M exit via `hyprshutdown`) · Super+C/P/J close/pseudo/togglesplit L12–15.
-- Super+V L17–28 toggles float and gives a newly floating window 60% of the monitor, centered (monitor size is in pixels, window size logical, so it divides by `scale`).
-- Focus Super+arrows L30–33 · Super+Ctrl+arrows L35–40 resize the active window by `step` (40px, repeating) · Super+LMB/RMB drag move/resize L42–44.
-- Workspaces L46–53 (Super+[0-9] / Super+Shift+[0-9], Super+scroll) · scratchpad `special:magic` L55–57 (shown by `bar.workspaces`).
-- Media keys L59–69 (`wpctl`, `playerctl`); the volume OSD comes from `osd` watching WirePlumber, not from these binds.
+- **Code:** `conf/binds.lua` (89 lines). Apps/session L7–10 (Super+Q kitty, Super+L lock, Super+M exit via `hyprshutdown`) · Super+C/P/J close/pseudo/togglesplit L12–15.
+- Super+V L17–48 toggles float and places a newly floating window in free space beside the other floats on its workspace: 60%, shrinking to 45%/33% of the usable area (monitor minus `reserved` and `gaps_out`), else 33% at the least-overlap spot; existing floats never move. Placement is pure logic in `conf/float_place.lua` (`place(area, others, ratios, gap)`), tested by `lua conf/float_place.test.lua` from `~/.config/hypr`. Monitor size is in pixels, window size/position logical, so it divides by `scale`.
+- Focus Super+arrows L50–53 · Super+Ctrl+arrows L55–60 resize the active window by `step` (40px, repeating) · Super+LMB/RMB drag move/resize L62–64.
+- Workspaces L66–73 (Super+[0-9] / Super+Shift+[0-9], Super+scroll) · scratchpad `special:magic` L75–77 (shown by `bar.workspaces`).
+- Media keys L79–89 (`wpctl`, `playerctl`); the volume OSD comes from `osd` watching WirePlumber, not from these binds.
 
 ### `ext.hypr.look` — general, decoration, layouts, animations
 - **Code:** `conf/look.lua` (50 lines) — gaps 6/12, border 0, `resize_on_border` + 15px `extend_border_grab_area` L9–12 (edges are grabbed in the gap), rounding 10, opacity 0.9/0.8, shadow, blur L32–39, dwindle/master/scrolling, misc.

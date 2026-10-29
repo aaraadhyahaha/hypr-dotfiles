@@ -14,17 +14,37 @@ hl.bind(mod .. " + C", hl.dsp.window.close())
 hl.bind(mod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mod .. " + J", hl.dsp.layout("togglesplit")) -- dwindle only
 
--- Toggle float; a window that becomes floating gets a 60% centered size instead of its tiled size.
--- Monitor size is in pixels and window size is logical, hence the divide by scale.
+-- Toggle float; a window that becomes floating is placed in free space beside the other floats on
+-- its workspace (60%, shrinking to 45% / 33% of the usable area; least overlap if nothing fits).
+-- Existing floats never move. Placement logic: conf/float_place.lua.
+-- Monitor size is in pixels and window size/position is logical, hence the divide by scale.
+local float_place = require("conf.float_place")
 hl.bind(mod .. " + V", function()
     hl.dispatch(hl.dsp.window.float({ action = "toggle" }))
-    local win, mon = hl.get_active_window(), hl.get_active_monitor()
-    if not (win and win.floating and mon) then return end
-    hl.dispatch(hl.dsp.window.resize({
-        x = math.floor(mon.width / mon.scale * 0.6),
-        y = math.floor(mon.height / mon.scale * 0.6),
-    }))
-    hl.dispatch(hl.dsp.window.center())
+    local win = hl.get_active_window()
+    if not (win and win.floating) then return end
+    local mon = win.monitor or hl.get_active_monitor()
+    if not mon then return end
+
+    local res, gaps = mon.reserved, hl.get_config("general.gaps_out")
+    local area = {
+        x = mon.x + res.left + gaps.left,
+        y = mon.y + res.top + gaps.top,
+        w = mon.width / mon.scale - res.left - res.right - gaps.left - gaps.right,
+        h = mon.height / mon.scale - res.top - res.bottom - gaps.top - gaps.bottom,
+    }
+
+    local ws, others = win.workspace and win.workspace.id, {}
+    for _, o in ipairs(hl.get_windows({ floating = true })) do
+        if o.address ~= win.address and o.workspace and o.workspace.id == ws
+            and o.mapped and not o.hidden and o.fullscreen == 0 then
+            others[#others + 1] = { x = o.at.x, y = o.at.y, w = o.size.x, h = o.size.y }
+        end
+    end
+
+    local r = float_place.place(area, others, { 0.6, 0.45, 0.33 }, gaps.top)
+    hl.dispatch(hl.dsp.window.resize({ x = r.w, y = r.h }))
+    hl.dispatch(hl.dsp.window.move({ x = r.x, y = r.y }))
 end)
 
 -- Focus
