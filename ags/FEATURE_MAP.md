@@ -49,8 +49,8 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `files` | Fuzzy file search | `widget/files/Files.tsx` |
 | `clipboard` | Clipboard history | `widget/clipboard/Clipboard.tsx` |
 | `wallpapers` | Wallpaper picker | `widget/wallpapers/Wallpapers.tsx` |
-| `bridge.sheet` | Bottom sheet asking for the next step / tomorrow's question | `widget/bridge/BridgeSheet.tsx` |
-| `bridge.note` | Corner sticky note on the desktop: morning question or newest unseen task bridge | `widget/bridge/BridgeNote.tsx` |
+| `bridge.sheet` | Full-screen pause sheet: "Next, I …" plus a half-finished line / tomorrow's question | `widget/bridge/BridgeSheet.tsx`, `sheetModel.ts` |
+| `bridge.note` | Yellow note tilted over the bottom-right corner: newest unseen bridge; slaps in, swoops out | `widget/bridge/BridgeNote.tsx` |
 | `shot.*` | Screenshot session (overlay + toolbar), capture, preview toast | `widget/screenshot/Screenshot.tsx`, `ShotMenu.tsx` |
 | `overview.*` | Workspace overview with window previews | `widget/overview/Overview.tsx` |
 | `desktop.*` | Desktop widgets, grid, edit mode, gallery | `widget/desktop/*` |
@@ -66,7 +66,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `core.app` — startup & IPC
 - **Code:** `app.ts` (70 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` calls `restoreTimers()` (`svc.timer`) and creates every window once (Desktop, BridgeNote (right after Desktop, so it stacks above it), one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview, BridgeSheet) and `startBridge()` (`svc.bridge`).
-- **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-shotmenu`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`, `bridge` (day-mode bridge prompt), `bridge-back` (unlock toast; called by `hypridle.conf` `lock_cmd`).
+- **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-shotmenu`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`, `bridge` (day-mode bridge prompt).
 - **Pattern for a new IPC command:** export `toggleX` from the widget (module-level `let toggleFn`), add one `if` in `app.ts`, bind it in `ext.hypr.shell`.
 - **Also:** `style.scss` (only `@use` lines — add new partials here), `env.d.ts` (module typings), `tsconfig.json`, `package.json` (`npm test`).
 - **Driving the live shell (what works for testing, Hyprland 0.56 Lua):**
@@ -77,9 +77,9 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `core.motion` — animation system
 - **Code:** `widget/common/motion.ts`
-  - `MOTION` durations L14 · `LAYER_GONE` (wait out a layer window's fade before capturing) L18 · `bezier`/`EASE` L20–58 · `Pose`/`Anim` types L60–72
-  - `Motion` GObject class (paint-time transform) L90–179
-  - `ENTER` presets L182–202 · `settle`/`LIFT` L204–206 · `LEAVE` L208–214 · `onShow()` L216
+  - `MOTION` durations L14 (incl. `lift` 90, `swoop` 260) · `LAYER_GONE` (wait out a layer window's fade before capturing) L18 · `bezier` (unclamped y, so overshoot works)/`EASE` L22–61 (incl. `back`, `lift`, `swoop`) · `Pose` (incl. `rot`, degrees)/`Anim` types L64–80
+  - `Motion` GObject class (paint-time transform) L104–194
+  - `ENTER` presets L197–218 (incl. `slap`) · `settle`/`LIFT` L221–223 · `LEAVE` L225–234 (incl. `lift`, `swoop`) · `onShow()` L236
 - **Mirror:** SCSS `$dur*`/`$ease*` in `styles/_tokens.scss`. Rules: `DESIGN.md › Motion`.
 - **Touches:** every popover and layer window.
 
@@ -140,9 +140,9 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Used by:** `bar.privacy`.
 
 ### `svc.bridge` — Hemingway bridges (fx-driven, read-only except `fx focus`)
-- **Code:** `service/bridge.ts` — notes in `~/.local/state/ags/bridges.json` (`load` L34, debounced `commit` L49, 300ms); `bridges`/`prompt` state L44–45; `leaveBridge(kind, taskId, title)` L68 opens the sheet; `saveBridge` L75 (empty text = skip); `markSeen` L81; `resumeBridge` L86 (`fx focus <id>`, else launcher `fx `); `bridgeBack` L92 (unlock toast, newest unseen note < 12h); `nudge` L99 (one `notify-send --wait` per day, action opens day mode); `react(prev, next)` L111; `startBridge` L130 (one `fxStatus` subscription, no timers of its own).
-- **Reactions:** focused task stopped (not done) → task prompt; task with a note refocused → toast; `Shutdown` task focused → day prompt ("Tomorrow's first question?"); `dayOver` first true today → nudge.
-- **Model:** `service/bridgeModel.ts` — `Bridge` type L6, `stoppedTask` L19 (skips done and Shutdown tasks), `isShutdown` L28, `dayOver` L40, `dayOf` L49, `put` L54 (one note per task + one day note), `noteFor` L59, `morningNote` L63, `freshest` L68, `markSeenIn` L72, `prune` L74 (3 days), `parseBridges`/`serialize` L86–100. **Test:** `bridgeModel.test.ts`.
+- **Code:** `service/bridge.ts` — notes in `~/.local/state/ags/bridges.json` (`load` L34, debounced `commit` L49, 300ms); `Prompt` type L32 (`kind`, `taskId`, `title`, `stoppedMin`, `day` label like `Thu 29 Oct`); `bridges`/`prompt` state L44–45; `leaveBridge(kind, taskId, title, stoppedMin)` L67 opens the sheet; `closePrompt` L76; `saveBridge(p, line, pickup)` L79 (stores `written(line, stem)` + trimmed pickup; both empty = skip); `markSeen` L86; `resumeBridge` L91 (unused since the note runs `fx focus` itself); `nudge` L98 (one `notify-send --wait` per day, action opens day mode); `react(prev, next)` L110; `startBridge` L130 (one `fxStatus` subscription, no timers of its own).
+- **Reactions:** focused task stopped (not done) → task prompt with minutes since `active.since`; a note's task turns active or done → `retire` marks it seen (the note swoops out); `Shutdown` task focused → day prompt; `dayOver` first true today → nudge. Starting a different task leaves the note alone. No unlock or resume toast.
+- **Model:** `service/bridgeModel.ts` — `Bridge` type L6 (`text`, `pickup`: old JSON defaults it to `""`), `STEM` L19 (`Next, I ` / `Tomorrow, first I `), `written(line, stem)` L22 (what's typed past the stem), `stoppedTask` L29 (skips done and Shutdown tasks), `isShutdown` L38, `dayOver` L50, `dayOf` L59, `put` L64 (one note per task + one day note), `noteFor` L69, `morningNote` L73, `shown(list, status, today)` L82 (the note to draw, or null), `retire(list, prev, next)` L89, `markSeenIn` L97, `prune` L99 (3 days), `parseBridges`/`serialize` L122–136. **Test:** `bridgeModel.test.ts`.
 - **Used by:** `bridge.sheet`, `bridge.note`, `core.app` IPC.
 
 ---
@@ -324,14 +324,17 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 - **Code:** `widget/wallpapers/Wallpapers.tsx` — source `~/Pictures/Wallpapers`, thumbs cached in `~/.cache/ags-wp` (240×135) L10–17; `listImages`/`texture` L30–64; grid `render()` + idle thumbnail fill L65–112; open/close L113–121; `apply()` → `~/.config/hypr/scripts/wallpaper-set.sh` L122–126; window L150–183.
 - **Style:** `styles/_wallpapers.scss`.
 
-### `bridge.sheet` — the bridge bottom sheet
-- **Code:** `widget/bridge/BridgeSheet.tsx` — follows `svc.bridge` `prompt`; bottom-anchored window (`namespace="bridge"`, `ENTER.rise`) built lazily by `build()` L72 on first `open()` L140; copy per kind (eyebrow, question, sub, placeholder) in `COPY` L22; `submit` L67 (Enter / Save), `close` L162 (Esc / Skip / empty); auto-closes after `IDLE_S` (90s) L19 via a timeout that exists only while open; `BridgeSheet()` L173 (called from `app.ts`).
-- **Keyboard:** opens EXCLUSIVE, `settleKeymode` L50 drops to ON_DEMAND after 80ms; `release` L61 lets go (NONE → ON_DEMAND) when a Hyprland client opens or another AGS window with a keymode shows (screenshot, launcher…). Never leave it EXCLUSIVE: it trapped every other surface.
-- **Style:** `styles/_bridge.scss` (sheet L6–82).
+### `bridge.sheet` — the full-screen pause sheet
+- **Code:** `widget/bridge/BridgeSheet.tsx` — follows `svc.bridge` `prompt`; OVERLAY window anchored on all four edges (`namespace="bridge"`, blurred, scrim `$scrim` 0.86), keymode EXCLUSIVE while open, on the focused monitor; no motion of its own (Hyprland's layer fade) and no idle timeout. Built lazily by `build()` L184 on first `open()` L293; `close()` L323. Copy per kind (stem, gutter labels, context line) in `COPY` L23, hint text per state in `HINTS` L29. Keys: `onKey` L155 → `press` L131 → `sheetModel.step` → `run(effect)` L110; Esc arms for `ARM_MS` (2s); a refused Enter plays `playFlash` L97 (`.flash` class on the line-1 row for `MOTION.fast`, CSS transition). `sheetMonitor()` L335 tells the note where to land; `BridgeSheet()` L340 (called from `app.ts`).
+- **Model:** `widget/bridge/sheetModel.ts` — `step(sheet, key, lines)` L26: Tab swaps lines; Enter saves, or nudges when line 1 is empty or stem-only; Esc arms, Esc Esc closes saving text past the stem (`skip-save`); typing or the 2s timeout disarms. **Test:** `sheetModel.test.ts`.
+- **Keyboard:** opens EXCLUSIVE, `settleKeymode` L58 drops to ON_DEMAND after 80ms; `release` L69 lets go (NONE → ON_DEMAND) when a Hyprland client opens or another AGS window with a keymode shows (screenshot, launcher…). Never leave it EXCLUSIVE: it trapped every other surface.
+- **Style:** `styles/_bridge.scss` (sheet L6–124).
 
-### `bridge.note` — the corner sticky note
-- **Code:** `widget/bridge/BridgeNote.tsx` — own layer window (`namespace="bridgenote"`, `Layer.BOTTOM`, TOP|RIGHT, top margin `surfaceTop()`, keymode NONE, exclusivity IGNORE), created in `app.ts` right after `Desktop()` so it maps above the desktop layer; `pick` L15 = `morningNote(list, today)` ?? newest unseen task note; `render` L73 hides the window when there's none, `ENTER.card` only when it goes from hidden to shown; a `GestureClick` L35 anywhere → `markSeen` (no fx action), Hyprland fades the layer out. Subscribes to `bridges` only (L88): no timers, so a day note becomes the morning note on the next change to the notes (or restart).
-- **Style:** `styles/_bridge.scss` L84–end — opaque `$primary-container` paper (so not in `ags-blur`), `rotate(-1.5deg)`, margins give the tilt and shadow room inside the layer; `.note-text` ruled with a `repeating-linear-gradient` whose 24px rhythm matches its line-height.
+### `bridge.note` — the corner note
+- **Code:** `widget/bridge/BridgeNote.tsx` — own layer window (`namespace="bridgenote"`, `Layer.BOTTOM`, BOTTOM|RIGHT, margins 0, keymode NONE, exclusivity IGNORE, `no_anim` in Hyprland), created in `app.ts` right after `Desktop()` so it maps above the desktop layer. 500px note tilted `DEG` (-4°) L22, overhanging both edges by `OVER` (72px) L23 with no negative margins: the surface is just the on-screen part.
+  - `quad` L32 (the rotated note's corners) · `region` L46 (input region = the yellow only, in `STRIP` 2px strips) · `NoteCorner` widget L73: `vfunc_measure` = visible bounding box, `vfunc_size_allocate` places the child with a `Gsk.Transform` (rotate about its centre) and calls `applyRegion` (`set_input_region` + `queue_draw`, since GDK only sends it on a commit). Also re-applied on map; the window size is reset (`set_default_size(-1, -1)`) so it shrinks for a shorter note.
+  - `eyebrowFor` L140 (`<title> · paused HH:MM`, or `Tomorrow's first question · Thu 29 Oct`). `BridgeNote()` L150: `leave` L170 plays `LEAVE.lift` then `LEAVE.swoop` and hides; `click` L187 → `fx focus <id>` + `markSeen`, then `openFx()` after the swoop (a day note only opens fx); `show` L263 lands on `sheetMonitor()` and plays `ENTER.slap`; `render` L282 follows `shown(...)` over `bridges` and `fxStatus`, so resuming or finishing the task swoops it out and pausing another swaps the text and replays the slap. After a `prompt` closes it waits `LAYER_GONE` (L294) so the slap starts after the sheet's fade.
+- **Style:** `styles/_bridge.scss` L125–end — opaque `$note-paper` with `$on-note-paper` ink (tokens in `_tokens.scss`; not in `ags-blur`), radius on the top-left corner only, no shadow, border or rules; eyebrow at 0.70, lines in mono 15/24, `.note-pickup` at 0.75.
 
 ---
 
@@ -444,9 +447,9 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 `hyprland.lua` is only `require("conf.<name>")` lines; each module is `~/.config/hypr/conf/<name>.lua` (Hyprland puts `~/.config/hypr/?.lua` on `package.path`). Apply with `hyprctl reload`, check `hyprctl configerrors`. A new module needs a `require` line in `hyprland.lua`.
 
 ### `ext.hypr.shell` — AGS keybinds & layer rules
-- **Code:** `conf/shell.lua` (44 lines). `ags(cmd)` helper L5 → `ags request <cmd>`.
+- **Code:** `conf/shell.lua` (55 lines). `ags(cmd)` helper L5 → `ags request <cmd>`.
 - **Keybinds → IPC, L7–21:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Super+B `bridge` (tomorrow's first question, now) · Print → `toggle-shotmenu` (screenshot session) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
-- **Layer rules L23–54:** `ags-no-anim` (`shot`, so it vanishes before grim captures) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu|bridge` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
+- **Layer rules L23–55:** `ags-no-anim` (`shot`, so it vanishes before grim captures; `bridgenote`, whose slap and swoop AGS draws) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu|bridge` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
 - **Pairs with:** `core.app` (one `if` per IPC command), `core.motion` (AGS moves content, Hyprland fades the layer).
 
 ### `ext.hypr.binds` — window, workspace & media binds
@@ -466,7 +469,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 - `conf/autostart.lua` — `hyprland.start`: `ags run` L5 (the `~/.local/bin/ags` wrapper also sets `GDK_WAYLAND_DISABLE`), cursor, `hypridle`, nm-applet, polkit agent, cliphist watchers (feed `clipboard`), `wallpaper-init.sh`.
 - `conf/input.lua` — keyboard, touchpad, 3-finger workspace swipe.
 - `conf/rules.lua` — window rules: suppress maximize, XWayland drag fix, float+center pavucontrol/blueman/nm-connection-editor, `hyprland-run` placement.
-- `hypridle.conf` — dim 150s, lock 300s, suspend 600s; `lock_cmd` L2 runs `ags request bridge-back` after hyprlock exits (`svc.bridge`). `bar.caffeine` kills/starts `hypridle`.
+- `hypridle.conf` — dim 150s, lock 300s, suspend 600s; `lock_cmd` L2 is just `hyprlock` (no AGS call after unlock). `bar.caffeine` kills/starts `hypridle`.
 - `hyprlock.conf` — **generated by matugen**; edit `~/.config/matugen/templates/hyprlock.conf`.
 
 ### `ext.hypr.scripts`

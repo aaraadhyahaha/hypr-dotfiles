@@ -79,7 +79,7 @@ Every bar item is `$bar-item-h` (24px) tall and shares `interactive($radius-sm)`
 
 One split, everywhere: **Hyprland owns opacity, AGS owns geometry.**
 
-- Hyprland fades every AGS layer and popup (`fadeLayersIn/Out`, `fadePopupsIn/Out`, curve `glassIn`), so the blur behind a panel fades with its tint. An opacity fade drawn by AGS can't do that: with `ignore_alpha` the blur snaps on and off at the threshold, which is a flicker. Only `shot` (the region selector) keeps `no_anim`.
+- Hyprland fades every AGS layer and popup (`fadeLayersIn/Out`, `fadePopupsIn/Out`, curve `glassIn`), so the blur behind a panel fades with its tint. An opacity fade drawn by AGS can't do that: with `ignore_alpha` the blur snaps on and off at the threshold, which is a flicker. Only `shot` (the region selector) and `bridgenote` (the corner note) keep `no_anim`.
 - AGS moves content with `<Motion>` (`widget/common/motion.ts`), a wrapper that transforms its children at paint time on the frame clock. There's no relayout and no CSS-animation start race; the first frame paints the start pose, it can be interrupted, and it honours GTK's animations setting.
 - Surfaces leave by hiding at once (`win.visible = false`, popover popdown); the compositor fades the last frame out. There are no exit timers.
 - Never animate the size of a popover or other surface: a popup or layer that resizes every frame jitters. Content inside an open panel takes its space at once and settles in (`ENTER.content`).
@@ -94,7 +94,9 @@ One split, everywhere: **Hyprland owns opacity, AGS owns geometry.**
 | — | `slide` 460ms | toasts arriving from the screen edge |
 | — | `settle(from)` (`enter`) | a desktop widget gliding into its slot after a drop, reflow or gallery drag |
 
-Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.16,1,.3,1)` (fast arrival, then a long quiet settle) and `$ease-in` is `(.4,0,1,1)`. `EASE.*` in TS uses the same curves. No springs, no bounce.
+Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.16,1,.3,1)` (fast arrival, then a long quiet settle) and `$ease-in` is `(.4,0,1,1)`. `EASE.*` in TS uses the same curves. No springs, no bounce, with one exception below.
+
+**The corner note is the one exception** (`bridge.note`). It's opaque paper, not glass, so there's no blur to keep in step: Hyprland doesn't fade it (`no_anim`) and AGS drives both its entry and its exits. `ENTER.slap` (`MOTION.enter`, `EASE.back` = `(.34,1.56,.64,1)`) overshoots about 10px and 0.3° before settling, the only overshoot in the shell. It leaves with `LEAVE.lift` (`$dur-lift` 90ms, `EASE.lift`) then `LEAVE.swoop` (`$dur-swoop` 260ms, `EASE.swoop`), off past the corner, and hides only after the swoop. `Pose.rot` (degrees) exists for it; the `<Motion>` sits inside the -4° rotation, so x/y run along the note's own tilted axes.
 
 `ENTER` presets (call `motion.animate(preset)` *before* showing; `onShow(popover, motion, preset)` wires a popover):
 
