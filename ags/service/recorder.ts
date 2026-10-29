@@ -27,7 +27,8 @@ const finish = () => {
 export function startRecording({ geometry, audio = false }: { geometry?: string; audio?: boolean } = {}) {
   if (proc) return
   GLib.mkdir_with_parents(DIR, 0o755)
-  const args = ["wf-recorder", "-f", `${DIR}/rec_${stamp()}.mp4`]
+  // VA-API on the iGPU: wf-recorder's default libx264 eats ~2.5 cores and drops frames
+  const args = ["wf-recorder", "-c", "h264_vaapi", "-d", "/dev/dri/renderD128", "-f", `${DIR}/rec_${stamp()}.mp4`]
   if (geometry) args.push("-g", geometry)
   if (audio) args.push("-a")
   try {
