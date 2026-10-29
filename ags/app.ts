@@ -16,7 +16,7 @@ import Desktop, { toggleEditWidgets } from "./widget/desktop/Desktop"
 import { restoreTimers } from "./service/timer"
 import BridgeSheet from "./widget/bridge/BridgeSheet"
 import BridgeNote from "./widget/bridge/BridgeNote"
-import { startBridge, leaveBridge, bridgeBack } from "./service/bridge"
+import { startBridge, leaveBridge } from "./service/bridge"
 
 app.start({
   css: style,
@@ -46,7 +46,6 @@ app.start({
     if (argv[0] === "toggle-cc") { toggleCC(); return response("ok") }
     if (argv[0] === "toggle-widgets") { toggleEditWidgets(); return response("ok") }
     if (argv[0] === "bridge") { leaveBridge("day"); return response("ok") }
-    if (argv[0] === "bridge-back") { bridgeBack(); return response("ok") }
     response("unknown request")
   },
   main() {

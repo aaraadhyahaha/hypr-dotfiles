@@ -65,7 +65,7 @@ function release() {
 }
 
 const submit = () => {
-  if (current && sheet) saveBridge(current, sheet.entry.text)
+  if (current && sheet) saveBridge(current, sheet.entry.text, "")
   closePrompt()
 }
 

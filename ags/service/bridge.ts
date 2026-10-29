@@ -2,32 +2,34 @@ import GLib from "gi://GLib"
 import { createState } from "ags"
 import { execAsync } from "ags/process"
 import { fxRun, fxStatus, openFx, useFx } from "./fx"
-import type { FxStatus } from "./fxModel"
+import { type FxStatus, sinceMinutes } from "./fxModel"
 import {
   type Bridge,
   dayOf,
   dayOver,
   isShutdown,
   markSeenIn,
-  noteFor,
   parseBridges,
   prune,
   put,
+  retire,
   serialize,
+  STEM,
   stoppedTask,
+  written,
 } from "./bridgeModel"
 
 // Hemingway bridges: stopping an fx task asks for the very next step, and focusing it again
-// shows that step. Reacts only to fxStatus changes (svc.fx); no timers or processes of its own.
+// shows that step on the corner note. Reacts only to fxStatus changes (svc.fx); no timers or processes of its own.
 // Notes live in ~/.local/state/ags/bridges.json, saved debounced (file_set_contents is atomic).
 
 const DIR = `${GLib.get_user_state_dir()}/ags`
 const FILE = `${DIR}/bridges.json`
 const SAVE_MS = 300
-const BACK_MS = 12 * 3600 * 1000
 
-// what the sheet (widget/bridge/BridgeSheet.tsx) should ask; null while it's closed
-export type Prompt = { kind: "task" | "day"; taskId: number | null; title: string }
+// what the sheet (widget/bridge/BridgeSheet.tsx) should ask; null while it's closed.
+// stoppedMin: how long the task had been focused; day: today as "Thu 29 Oct"
+export type Prompt = { kind: "task" | "day"; taskId: number | null; title: string; stoppedMin: number; day: string }
 
 function load(): Bridge[] {
   try {
@@ -59,21 +61,26 @@ function commit(list: Bridge[]) {
   })
 }
 
-const toast = (summary: string, body: string) =>
-  execAsync(["notify-send", "-a", "Bridge", summary, body]).catch(console.error)
+const today = () => GLib.DateTime.new_now_local().format("%a %-d %b") ?? ""
 
 // opens the sheet; a task prompt without an id falls back to the day question
-export function leaveBridge(kind: "task" | "day", taskId: number | null = null, title = "") {
-  setPrompt(kind === "task" && taskId !== null ? { kind, taskId, title } : { kind: "day", taskId: null, title: "" })
+export function leaveBridge(kind: "task" | "day", taskId: number | null = null, title = "", stoppedMin = 0) {
+  const day = today()
+  setPrompt(
+    kind === "task" && taskId !== null
+      ? { kind, taskId, title, stoppedMin, day }
+      : { kind: "day", taskId: null, title: "", stoppedMin: 0, day },
+  )
 }
 
 export const closePrompt = () => setPrompt(null)
 
-// empty text: skipped, nothing stored
-export function saveBridge(p: Prompt, text: string) {
-  const t = text.trim()
-  if (!t) return
-  commit(put(prune(bridges.get()), { taskId: p.taskId, title: p.title, text: t, pickup: "", at: new Date().toISOString(), kind: p.kind, seen: false }))
+// line 1 with nothing past its stem and an empty pickup: skipped, nothing stored
+export function saveBridge(p: Prompt, line: string, pickup: string) {
+  const text = written(line, STEM[p.kind])
+  const half = pickup.trim()
+  if (!text && !half) return
+  commit(put(prune(bridges.get()), { taskId: p.taskId, title: p.title, text, pickup: half, at: new Date().toISOString(), kind: p.kind, seen: false }))
 }
 
 export function markSeen(b: Bridge) {
@@ -84,13 +91,6 @@ export function markSeen(b: Bridge) {
 export function resumeBridge(b: Bridge) {
   if (b.taskId !== null) fxRun("focus", String(b.taskId))
   openFx()
-}
-
-// unlock (hypridle lock_cmd): the newest unseen note, if it's from the last 12h
-export function bridgeBack() {
-  const now = Date.now()
-  const b = bridges.get().find((b) => !b.seen && now - new Date(b.at).getTime() < BACK_MS) // inlined until the unlock toast is retired
-  if (b) toast(b.kind === "day" ? "Tomorrow's first question" : `Next on ${b.title}`, b.text)
 }
 
 let nudged = "" // the day the end-of-day nudge was shown
@@ -109,15 +109,16 @@ function nudge(today: string) {
 
 function react(prev: FxStatus | null, next: FxStatus) {
   const stopped = stoppedTask(prev, next)
-  if (stopped) leaveBridge("task", stopped.id, stopped.title)
+  if (stopped) leaveBridge("task", stopped.id, stopped.title, sinceMinutes(prev!.active!.since))
+
+  // its task resumed or finished: the corner note goes
+  const list = bridges.get()
+  const kept = retire(list, prev, next)
+  if (kept !== list) commit(kept)
 
   const id = next.active?.taskId ?? null
   const started = prev !== null && id !== null && prev.active?.taskId !== id
   if (started && isShutdown(next.active?.title)) leaveBridge("day")
-  else if (started) {
-    const b = noteFor(bridges.get(), id)
-    if (b) toast(`Next on ${b.title}`, b.text)
-  }
 
   const today = dayOf(new Date())
   if (nudged !== today && dayOver(next)) nudge(today)
