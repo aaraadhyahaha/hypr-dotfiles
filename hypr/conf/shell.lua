@@ -30,6 +30,15 @@ hl.layer_rule({
     no_anim = true,
 })
 
+-- the screenshot session's toolbar stays above the "shot" overlay on the same layer, so its
+-- mode buttons take the pointer (map order alone doesn't hold). Hyprland sorts layers by order
+-- descending: a LOWER order is nearer the top.
+hl.layer_rule({
+    name  = "ags-shotmenu-top",
+    match = { namespace = "^shotmenu$" },
+    order = -1,
+})
+
 hl.layer_rule({
     name         = "ags-blur",
     match        = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu)$" },
