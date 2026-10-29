@@ -66,6 +66,11 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-shotmenu`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`.
 - **Pattern for a new IPC command:** export `toggleX` from the widget (module-level `let toggleFn`), add one `if` in `app.ts`, bind it in `ext.hypr.shell`.
 - **Also:** `style.scss` (only `@use` lines — add new partials here), `env.d.ts` (module typings), `tsconfig.json`, `package.json` (`npm test`).
+- **Driving the live shell (what works for testing, Hyprland 0.56 Lua):**
+  - **Open/close:** `ags request <cmd>`; **stacking:** `hyprctl layers -j` lists each level bottom → top, after `order` sorting.
+  - **Keys:** `wtype -k Escape` (any keysym) reaches the focused surface, so focus and key handling can be checked.
+  - **Pointer:** `hyprctl dispatch 'hl.dsp.cursor.move({x=640,y=670})'` (logical px; the old `dispatch movecursor X Y` is a Lua syntax error) moves it, but a warp sends GTK no motion/enter events, so it can't show which layer takes the pointer.
+  - **Clicks:** none. `ydotool` needs `ydotoold`, which needs `/dev/uinput` (`root:input`); this user isn't in `input`, so the service dies (`start-limit-hit`). Pointer input (clicks, drags, hover) is a manual check.
 
 ### `core.motion` — animation system
 - **Code:** `widget/common/motion.ts`
@@ -320,6 +325,7 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 - **Overlay drawing:** `Selection` L58–126 — dim + outline + handles + size label as GPU render nodes (`vfunc_snapshot`, `append_color`/`append_layout`); never a cairo `DrawingArea` (a full-screen CPU surface per drag frame stutters).
 - **Exports:** `openShot`, `closeShot`, `shotTarget`, `screenshotRegion` (opens in region mode), `screenshotFull`, `screenshotGeometry` L28–47.
 - **Style:** `styles/_screenshot.scss` (`window.Shot`).
+- **Verify:** `ags request toggle-shotmenu` then `hyprctl layers -j` must list `shot` before `shotmenu` (toolbar on top); `wtype -k Escape` must close it (keyboard on `shot`). Clicking the toolbar can only be checked by hand (see `core.app`, driving the live shell).
 
 ### `shot.preview` — post-capture toast
 - **Code:** `Screenshot.tsx` `ShotPreview()` L129–234 — thumbnail, Copy / Edit (`satty` if installed) / Open actions, slides in from the edge (`namespace="shotpreview"`).

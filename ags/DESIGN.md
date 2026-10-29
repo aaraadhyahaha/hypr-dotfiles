@@ -141,3 +141,4 @@ Text entries use `@include field`: a translucent `rgba($surface, .5)` fill, so t
   - Never run two `ags run` at once: they share `/run/user/$UID/ags.js`.
   - Map order doesn't decide which of two OVERLAY layers is on top (a surface GTK already created keeps its place). Use Hyprland's `order` layer rule, where a *lower* order is nearer the top: `shotmenu` has `order = -1` so the screenshot toolbar stays above `shot`.
   - A layer with keymode EXCLUSIVE takes the pointer from every other layer, whatever their order. A full-screen overlay that sits under another clickable layer (`shot`) uses ON_DEMAND, which still takes focus when it maps.
+  - Layer input can't be fully checked from a script: `hyprctl layers -j` shows the stacking and `wtype` the keyboard, but there are no synthetic clicks (`ydotool` needs the `input` group) and a cursor warp sends no motion events. Click-through between layers is a manual check (FEATURE_MAP `core.app`).
