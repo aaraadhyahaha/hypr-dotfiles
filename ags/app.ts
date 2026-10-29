@@ -14,6 +14,8 @@ import { toggleDateMenu } from "./widget/bar/modules/DateMenu"
 import { toggleCC } from "./widget/bar/quicksettings/cc"
 import Desktop, { toggleEditWidgets } from "./widget/desktop/Desktop"
 import { restoreTimers } from "./service/timer"
+import BridgeSheet from "./widget/bridge/BridgeSheet"
+import { startBridge, leaveBridge, bridgeBack } from "./service/bridge"
 
 app.start({
   css: style,
@@ -42,6 +44,8 @@ app.start({
     if (argv[0] === "toggle-datemenu") { toggleDateMenu(); return response("ok") }
     if (argv[0] === "toggle-cc") { toggleCC(); return response("ok") }
     if (argv[0] === "toggle-widgets") { toggleEditWidgets(); return response("ok") }
+    if (argv[0] === "bridge") { leaveBridge("day"); return response("ok") }
+    if (argv[0] === "bridge-back") { bridgeBack(); return response("ok") }
     response("unknown request")
   },
   main() {
@@ -58,5 +62,7 @@ app.start({
     ShotMenu()
     Clipboard()
     Overview()
+    BridgeSheet()
+    startBridge()
   },
 })

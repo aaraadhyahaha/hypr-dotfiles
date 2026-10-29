@@ -1,0 +1,81 @@
+@use "../colors" as *;
+@use "tokens" as *;
+@use "mixins" as *;
+
+// the bridge sheet (widget/bridge/BridgeSheet.tsx): a bottom sheet in the widget gallery's
+// language. Near-opaque, so the question reads over anything; the blur is ags-blur in hypr.
+
+window.Bridge {
+  background: transparent;
+
+  .sheet {
+    @include panel($spacing-6);
+    min-width: 560px;
+    margin-bottom: $spacing-7;
+    border-radius: $radius-xl + 4px;
+    background: rgba($surface-container, 0.92);
+    border-color: $glass-hairline;
+    // a layer's shadow room would blur into a halo (same as .lnch)
+    box-shadow: none;
+  }
+}
+
+.bridge-eyebrow {
+  color: $primary;
+  font-size: $font-size-base;
+  font-weight: 600;
+  margin-bottom: $spacing-3;
+}
+
+.bridge-question {
+  font-size: $font-size-7xl;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: $text;
+}
+
+.bridge-sub {
+  margin-top: $spacing-1;
+  font-size: $font-size-xl;
+  color: $text-muted;
+}
+
+entry.bridge-entry {
+  @include field;
+  margin-top: $spacing-5;
+  min-height: 48px;
+  padding: 0 $spacing-4;
+  font-size: $font-size-4xl;
+  background: rgba($surface, 0.7);
+
+  &:focus-within {
+    background: $surface;
+    box-shadow: inset 0 0 0 2px $primary;
+  }
+}
+
+.bridge-actions {
+  margin-top: $spacing-4;
+}
+
+.bridge-hint {
+  font-size: $font-size-sm;
+  color: $text-faint;
+}
+
+button.bridge-skip,
+button.bridge-save {
+  @include interactive($radius-full);
+  min-height: 36px;
+  padding: 0 $spacing-5;
+  font-weight: 600;
+}
+
+button.bridge-save {
+  background-color: $on-bg;
+  color: $on-fg;
+
+  &:hover {
+    background-color: rgba($on-bg, 0.88);
+  }
+}

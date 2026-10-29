@@ -401,6 +401,27 @@ window.Desktop {
   font-size: $font-size-xl;
 }
 
+// the bridge (widgets/Bridge.tsx): a sticky note in the primary container colour, slightly askew
+.dw-card.dw-bridge {
+  background-color: rgba($primary-container, 0.72);
+  color: $on-primary-container;
+  border-color: rgba($primary, 0.25);
+  transform: rotate(-1deg);
+
+  .dw-eyebrow,
+  .dw-empty-glyph,
+  .dw-empty-sub,
+  .dw-streak-text {
+    color: rgba($on-primary-container, 0.7);
+  }
+}
+
+.dw-bridge-text {
+  font-size: $font-size-xl;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
 // ── vision ──────────────────────────────────────────────────────────────────
 
 .dw-card.dw-goal {

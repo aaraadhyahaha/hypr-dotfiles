@@ -44,6 +44,14 @@ export const CATALOG: Entry[] = [
     defaultSize: "l",
   },
   {
+    kind: "bridge",
+    name: "Bridge",
+    description: "The next step you left when you stopped, or last night's first question.",
+    category: "focus",
+    sizes: ["s", "m"],
+    defaultSize: "s",
+  },
+  {
     kind: "clock",
     name: "Clock",
     description: "An analog face, or the time and date.",

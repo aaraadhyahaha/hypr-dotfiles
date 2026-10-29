@@ -13,7 +13,7 @@ import type { WidgetProps } from "./types"
 const FLAME = ""
 const STREAK_CLASS = { clean: "clean", bent: "bent", reset: "reset" } as const
 
-function Streak() {
+export function Streak() {
   const l = label(fxStatus.as((s) => `${s?.streak.days ?? 0}-day streak`), "dw-sub dw-streak-text")
   const g = label(FLAME, "glyph dw-streak-glyph")
   const row = box("dw-streak", false, 6, [g, l])
