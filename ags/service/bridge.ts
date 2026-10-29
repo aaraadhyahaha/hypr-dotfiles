@@ -1,7 +1,7 @@
 import GLib from "gi://GLib"
 import { createState } from "ags"
 import { execAsync } from "ags/process"
-import { fxRun, fxStatus, openFx, useFx } from "./fx"
+import { fxStatus, useFx } from "./fx"
 import { type FxStatus, sinceMinutes } from "./fxModel"
 import {
   type Bridge,
@@ -85,12 +85,6 @@ export function saveBridge(p: Prompt, line: string, pickup: string) {
 
 export function markSeen(b: Bridge) {
   commit(markSeenIn(bridges.get(), b))
-}
-
-// back into the work: focus the note's task (a day note has none), then raise fx's terminal or start one
-export function resumeBridge(b: Bridge) {
-  if (b.taskId !== null) fxRun("focus", String(b.taskId))
-  openFx()
 }
 
 let nudged = "" // the day the end-of-day nudge was shown
