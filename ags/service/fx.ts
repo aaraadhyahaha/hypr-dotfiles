@@ -104,9 +104,12 @@ export function fxRun(...args: string[]): Promise<string | null> {
 
 const hypr = Hyprland.get_default()
 
-// Focuses fx's kitty window if one is open, otherwise starts one
+// fx run from a shell: fish titles the window "<command> <cwd>", e.g. "fx ~"
+const FX_TITLE = /^fx(\s|$)/
+
+// Focuses fx's kitty window if one is open (ours, or one where fx was typed), otherwise starts one
 export function openFx() {
-  const win = hypr.clients.find((c) => c.class === "fx" || (c.class === "kitty" && c.title === "fx"))
+  const win = hypr.clients.find((c) => c.class === "fx" || (c.class === "kitty" && FX_TITLE.test(c.title)))
   if (win) {
     const a = win.address.startsWith("0x") ? win.address : `0x${win.address}`
     return hyprDispatch(`hl.dsp.focus({ window = "address:${a}" })`, ["focuswindow", `address:${a}`])

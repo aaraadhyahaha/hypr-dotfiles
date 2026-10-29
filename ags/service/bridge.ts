@@ -1,7 +1,7 @@
 import GLib from "gi://GLib"
 import { createState } from "ags"
 import { execAsync } from "ags/process"
-import { fxRun, fxStatus, useFx } from "./fx"
+import { fxRun, fxStatus, openFx, useFx } from "./fx"
 import type { FxStatus } from "./fxModel"
 import {
   type Bridge,
@@ -17,7 +17,6 @@ import {
   serialize,
   stoppedTask,
 } from "./bridgeModel"
-import { toggleLauncher } from "../widget/launcher/Launcher"
 
 // Hemingway bridges: stopping an fx task asks for the very next step, and focusing it again
 // shows that step. Reacts only to fxStatus changes (svc.fx); no timers or processes of its own.
@@ -82,10 +81,10 @@ export function markSeen(b: Bridge) {
   commit(markSeenIn(bridges.get(), b))
 }
 
-// back into the task the note was about; a day note has none, so open fx's launcher mode
+// back into the work: focus the note's task (a day note has none), then raise fx's terminal or start one
 export function resumeBridge(b: Bridge) {
   if (b.taskId !== null) fxRun("focus", String(b.taskId))
-  else toggleLauncher("fx ")
+  openFx()
 }
 
 // unlock (hypridle lock_cmd): the newest unseen note, if it's from the last 12h

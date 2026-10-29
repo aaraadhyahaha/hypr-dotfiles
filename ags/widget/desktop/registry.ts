@@ -1,7 +1,6 @@
 import { Gtk } from "ags/gtk4"
 import { entry } from "./catalog"
 import type { Config, WidgetProps } from "./widgets/types"
-import Bridge from "./widgets/Bridge"
 import Calendar from "./widgets/Calendar"
 import Clock from "./widgets/Clock"
 import Countdown, { editCountdown } from "./widgets/Countdown"
@@ -19,7 +18,6 @@ type Editor = (anchor: Gtk.Widget, config: Config, set: (c: Config) => void) => 
 const RENDER: Record<string, Render> = {
   "fx-today": FxToday,
   "fx-tasks": FxTasks,
-  bridge: Bridge,
   clock: Clock,
   calendar: Calendar,
   system: System,

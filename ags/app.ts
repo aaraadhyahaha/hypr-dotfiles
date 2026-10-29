@@ -15,6 +15,7 @@ import { toggleCC } from "./widget/bar/quicksettings/cc"
 import Desktop, { toggleEditWidgets } from "./widget/desktop/Desktop"
 import { restoreTimers } from "./service/timer"
 import BridgeSheet from "./widget/bridge/BridgeSheet"
+import BridgeNote from "./widget/bridge/BridgeNote"
 import { startBridge, leaveBridge, bridgeBack } from "./service/bridge"
 
 app.start({
@@ -51,6 +52,7 @@ app.start({
   main() {
     restoreTimers()
     Desktop()
+    BridgeNote()
     app.get_monitors().map(Bar)
     Toasts()
     Launcher()

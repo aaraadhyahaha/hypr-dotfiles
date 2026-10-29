@@ -25,7 +25,7 @@ test("every kind belongs to a listed category", () => {
 })
 
 test("the plan's v1 widgets are all there", () => {
-  for (const k of ["fx-today", "fx-tasks", "clock", "calendar", "system", "note", "goal", "countdown", "bridge"])
+  for (const k of ["fx-today", "fx-tasks", "clock", "calendar", "system", "note", "goal", "countdown"])
     assert.ok(entry(k), k)
 })
 

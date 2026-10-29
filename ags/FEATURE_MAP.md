@@ -50,6 +50,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `clipboard` | Clipboard history | `widget/clipboard/Clipboard.tsx` |
 | `wallpapers` | Wallpaper picker | `widget/wallpapers/Wallpapers.tsx` |
 | `bridge.sheet` | Bottom sheet asking for the next step / tomorrow's question | `widget/bridge/BridgeSheet.tsx` |
+| `bridge.note` | Corner sticky note on the desktop: morning question or newest unseen task bridge | `widget/bridge/BridgeNote.tsx` |
 | `shot.*` | Screenshot session (overlay + toolbar), capture, preview toast | `widget/screenshot/Screenshot.tsx`, `ShotMenu.tsx` |
 | `overview.*` | Workspace overview with window previews | `widget/overview/Overview.tsx` |
 | `desktop.*` | Desktop widgets, grid, edit mode, gallery | `widget/desktop/*` |
@@ -64,7 +65,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 ## 1. Core
 
 ### `core.app` — startup & IPC
-- **Code:** `app.ts` (68 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` calls `restoreTimers()` (`svc.timer`) and creates every window once (Desktop, one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview, BridgeSheet) and `startBridge()` (`svc.bridge`).
+- **Code:** `app.ts` (70 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` calls `restoreTimers()` (`svc.timer`) and creates every window once (Desktop, BridgeNote (right after Desktop, so it stacks above it), one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview, BridgeSheet) and `startBridge()` (`svc.bridge`).
 - **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-shotmenu`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`, `bridge` (day-mode bridge prompt), `bridge-back` (unlock toast; called by `hypridle.conf` `lock_cmd`).
 - **Pattern for a new IPC command:** export `toggleX` from the widget (module-level `let toggleFn`), add one `if` in `app.ts`, bind it in `ext.hypr.shell`.
 - **Also:** `style.scss` (only `@use` lines — add new partials here), `env.d.ts` (module typings), `tsconfig.json`, `package.json` (`npm test`).
@@ -118,10 +119,10 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Used by:** `bar.pomodoro`, `launcher` (`pomo`/`focus` actions, fx Alt+Enter).
 
 ### `svc.fx` — fx focus tracker (fx owns every DB write)
-- **Code:** `service/fx.ts` — `fxStatus`, `fxProblem` state; `refreshFx()` L29 runs `~/.local/bin/fx status --json` (or `fx` on PATH); `useFx()` L61 starts a 60s refresh + `Gio.FileMonitor` on `~/.local/share/fx/fx.db*`; `fxRun(...args)` L91 runs an fx verb (failure → notification, resolves null); `openFx()` L108 focuses fx's kitty window via `svc.hypr`, else starts `kitty --class fx fx`.
+- **Code:** `service/fx.ts` — `fxStatus`, `fxProblem` state; `refreshFx()` L29 runs `~/.local/bin/fx status --json` (or `fx` on PATH); `useFx()` L61 starts a 60s refresh + `Gio.FileMonitor` on `~/.local/share/fx/fx.db*`; `fxRun(...args)` L91 runs an fx verb (failure → notification, resolves null); `openFx()` L111 focuses fx's kitty window via `svc.hypr` (class `fx`, or a kitty titled `fx …`: fx typed in fish, `FX_TITLE` L108), else starts `kitty --class fx fx`.
 - **fx CLI verbs** (`~/Projects/fx/src/fx/cli.py` `main()` L103): `status`, `add TITLE [-s 1-5] [-e MIN]`, `focus [ID]` (TUI space toggle; no id stops/starts untasked), `stop`, `done ID` (toggles; ends the session if that task is in focus, then Notion push). All take `--json`. Never write fx.db from ags.
 - **Model:** `service/fxModel.ts` — `parseStatus`, `hm`, `padTimes`, `sinceMinutes`. **Test:** `fxModel.test.ts`.
-- **Used by:** `desktop.w.fxtoday`, `desktop.w.fxtasks`, `desktop.w.bridge`, `svc.bridge`, `launcher` fx mode.
+- **Used by:** `desktop.w.fxtoday`, `desktop.w.fxtasks`, `svc.bridge`, `launcher` fx mode.
 
 ### `svc.timer` — countdown timers
 - **Code:** `service/timer.ts` — `timers` state L14; wall-clock ends persisted to `~/.local/share/ags/timers.json` (`save`/`load` L18–36), so they survive restarts and suspend; `ring` (notify-send + paplay `complete.oga`, "late" if it ended while ags was down) L46; `addTimer(secs, label)` L70; `cancelTimer(id)` L78; `restoreTimers()` L83 (called in `app.ts`).
@@ -142,7 +143,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Code:** `service/bridge.ts` — notes in `~/.local/state/ags/bridges.json` (`load` L34, debounced `commit` L49, 300ms); `bridges`/`prompt` state L44–45; `leaveBridge(kind, taskId, title)` L68 opens the sheet; `saveBridge` L75 (empty text = skip); `markSeen` L81; `resumeBridge` L86 (`fx focus <id>`, else launcher `fx `); `bridgeBack` L92 (unlock toast, newest unseen note < 12h); `nudge` L99 (one `notify-send --wait` per day, action opens day mode); `react(prev, next)` L111; `startBridge` L130 (one `fxStatus` subscription, no timers of its own).
 - **Reactions:** focused task stopped (not done) → task prompt; task with a note refocused → toast; `Shutdown` task focused → day prompt ("Tomorrow's first question?"); `dayOver` first true today → nudge.
 - **Model:** `service/bridgeModel.ts` — `Bridge` type L6, `stoppedTask` L19 (skips done and Shutdown tasks), `isShutdown` L28, `dayOver` L40, `dayOf` L49, `put` L54 (one note per task + one day note), `noteFor` L59, `morningNote` L63, `freshest` L68, `markSeenIn` L72, `prune` L74 (3 days), `parseBridges`/`serialize` L86–100. **Test:** `bridgeModel.test.ts`.
-- **Used by:** `bridge.sheet`, `desktop.w.bridge`, `core.app` IPC.
+- **Used by:** `bridge.sheet`, `bridge.note`, `core.app` IPC.
 
 ---
 
@@ -326,7 +327,11 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 ### `bridge.sheet` — the bridge bottom sheet
 - **Code:** `widget/bridge/BridgeSheet.tsx` — follows `svc.bridge` `prompt`; bottom-anchored window (`namespace="bridge"`, `ENTER.rise`) built lazily by `build()` L72 on first `open()` L140; copy per kind (eyebrow, question, sub, placeholder) in `COPY` L22; `submit` L67 (Enter / Save), `close` L162 (Esc / Skip / empty); auto-closes after `IDLE_S` (90s) L19 via a timeout that exists only while open; `BridgeSheet()` L173 (called from `app.ts`).
 - **Keyboard:** opens EXCLUSIVE, `settleKeymode` L50 drops to ON_DEMAND after 80ms; `release` L61 lets go (NONE → ON_DEMAND) when a Hyprland client opens or another AGS window with a keymode shows (screenshot, launcher…). Never leave it EXCLUSIVE: it trapped every other surface.
-- **Style:** `styles/_bridge.scss`.
+- **Style:** `styles/_bridge.scss` (sheet L6–82).
+
+### `bridge.note` — the corner sticky note
+- **Code:** `widget/bridge/BridgeNote.tsx` — own layer window (`namespace="bridgenote"`, `Layer.BOTTOM`, TOP|RIGHT, top margin `surfaceTop()`, keymode NONE, exclusivity IGNORE), created in `app.ts` right after `Desktop()` so it maps above the desktop layer; `pick` L15 = `morningNote(list, today)` ?? newest unseen task note; `render` L73 hides the window when there's none, `ENTER.card` only when it goes from hidden to shown; a `GestureClick` L35 anywhere → `markSeen` (no fx action), Hyprland fades the layer out. Subscribes to `bridges` only (L88): no timers, so a day note becomes the morning note on the next change to the notes (or restart).
+- **Style:** `styles/_bridge.scss` L84–end — opaque `$primary-container` paper (so not in `ags-blur`), `rotate(-1.5deg)`, margins give the tilt and shadow room inside the layer; `.note-text` ruled with a `repeating-linear-gradient` whose 24px rhythm matches its line-height.
 
 ---
 
@@ -387,7 +392,7 @@ Architecture & rules: `DESIGN.md › Desktop widgets`. Style: `styles/_desktop.s
 - **Test:** `layout.test.ts`.
 
 ### `desktop.catalog` — widget kinds (pure)
-- **Code:** `catalog.ts` — `CATEGORIES` L21–28; `CATALOG` (fx-today, fx-tasks, bridge, clock, calendar, system, note, goal, countdown: name, category, sizes, default) L29–112; `entry`/`sizesOf`/`search` L113–121; `SIZE_NAMES`; `DEFAULT_LAYOUT` L126.
+- **Code:** `catalog.ts` — `CATEGORIES` L21–28; `CATALOG` (fx-today, fx-tasks, clock, calendar, system, note, goal, countdown: name, category, sizes, default) L29–103; `entry`/`sizesOf`/`search` L106–112; `SIZE_NAMES`; `DEFAULT_LAYOUT` L118.
 - **Test:** `catalog.test.ts`.
 - **Adding a widget kind:** entry in `catalog.ts` + render (and optional editor) in `registry.ts` + file in `widgets/` + styles in `_desktop.scss`.
 
@@ -399,7 +404,7 @@ Architecture & rules: `DESIGN.md › Desktop widgets`. Style: `styles/_desktop.s
 
 ### `desktop.window` — the desktop layer
 - **Code:** `Desktop.tsx` — `toggleEditWidgets` L20; `DesktopFixed` (measures surface → `setGrid`) L22–43; ghost slot L45–86; right-click desktop menu L87–116; frame sync with store L117–156; click on empty desktop L157–177; gallery drag-out proxy & drop L178–258; window (BOTTOM ↔ TOP in edit mode, keymode switch) L259–295.
-- **Style:** `_desktop.scss` L1–18 (window/scrim), ghost L86–103, menus L104–123, proxy L608–end.
+- **Style:** `_desktop.scss` L1–18 (window/scrim), ghost L86–103, menus L104–123, proxy L587–end.
 
 ### `desktop.frame` — one widget card
 - **Code:** `Frame.tsx` — types/`BLEED`/`THRESHOLD` L17–31; `blocksDrag` L33–46; content build per size L76–103; `place` L104–108
@@ -413,7 +418,7 @@ Architecture & rules: `DESIGN.md › Desktop widgets`. Style: `styles/_desktop.s
 
 ### `desktop.gallery` — widget gallery sheet
 - **Code:** `Gallery.tsx` — `Scaled` miniature L20–58; `sampleConfig` L59–65; tiles per kind with size picker, click-to-add & drag L83–192; `refresh` (filter) L193–217; sidebar search + categories L218–291; fade while dragging L292–297.
-- **Style:** `_desktop.scss` L524–607.
+- **Style:** `_desktop.scss` L503–586.
 
 ### Widgets (`widget/desktop/widgets/`)
 Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring`, `Meter`, `Bars`, `EmptyState`, `SeverityDot`, `onNewDay`), `draw.ts` (cairo `roundRect`/`ring`/`bars`, `canvas`, `tickWhile`, `tween`), `editor.ts` (`editorPopover`, `field`). Shared styles `_desktop.scss` L124–137, L163–237.
@@ -424,12 +429,11 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 | `desktop.w.calendar` | `Calendar.tsx` | S date tile, L month grid (uses `dates.ts`) | L302–348 |
 | `desktop.w.system` | `System.tsx` (+ `bar/quicksettings/Stat.tsx`, `_stat.scss`) | S four rings, M sparklines; polls only while `live` | L349–378 |
 | `desktop.w.note` | `Note.tsx` | Sticky note, debounced save into config | L379–403 |
-| `desktop.w.goal` | `Goal.tsx` | Vision image + title/caption; async cover decode; editor with file chooser | L425–487 |
-| `desktop.w.countdown` | `Countdown.tsx` | Days until a date, ring; editor | L425–487 |
+| `desktop.w.goal` | `Goal.tsx` | Vision image + title/caption; async cover decode; editor with file chooser | L404–466 |
+| `desktop.w.countdown` | `Countdown.tsx` | Days until a date, ring; editor | L404–466 |
 | `desktop.w.fxtoday` | `FxToday.tsx` | fx score ring, focus vs target, streak, hourly, up next; `openFx` (kitty) | L238–301 |
 | `desktop.w.fxtasks` | `FxTasks.tsx` | fx task list by severity | L238–301 |
-| `desktop.w.bridge` | `Bridge.tsx` | Sticky note: last night's question, else newest task note; M adds task + fx streak (`Streak` from `FxToday.tsx`); click → `markSeen` + `resumeBridge` (`svc.bridge`) | L404–424 |
-| `desktop.editor` | `editor.ts` | "Edit Widget…" popover | L488–523 |
+| `desktop.editor` | `editor.ts` | "Edit Widget…" popover | L467–502 |
 
 - **Dates model:** `widget/desktop/dates.ts` (`isoDay`, `daysUntil`, `countdownLabel`, `progressBetween`, `monthGrid`). **Test:** `dates.test.ts`. Also used by `bar.datemenu`.
 
