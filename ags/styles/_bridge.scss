@@ -3,82 +3,123 @@
 @use "tokens" as *;
 @use "mixins" as *;
 
-// the bridge sheet (widget/bridge/BridgeSheet.tsx): a bottom sheet in the widget gallery's
-// language. Near-opaque, so the question reads over anything; the blur is ags-blur in hypr.
+// the pause sheet (widget/bridge/BridgeSheet.tsx): full screen and typewriter-quiet. A scrim over
+// the ags-blur of namespace `bridge`; no boxes, borders or icons, the caret is the one accent.
+// Grid: a 176px gutter of right-aligned labels, a 24px gap, so the text starts at x=200.
+
+$bridge-gutter: 176px;
+$bridge-gap: $spacing-6;
+$bridge-line1: 36px; // line 1's row; the text view centres in it
+$bridge-line2: 28px;
 
 window.Bridge {
-  background: transparent;
-
-  .sheet {
-    @include panel($spacing-6);
-    min-width: 560px;
-    margin-bottom: $spacing-7;
-    border-radius: $radius-xl + 4px;
-    background: rgba($surface-container, 0.92);
-    border-color: $glass-hairline;
-    // a layer's shadow room would blur into a halo (same as .lnch)
-    box-shadow: none;
-  }
-}
-
-.bridge-eyebrow {
-  color: $primary;
-  font-size: $font-size-base;
-  font-weight: 600;
-  margin-bottom: $spacing-3;
-}
-
-.bridge-question {
-  font-size: $font-size-7xl;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  background-color: rgba($scrim, 0.86);
   color: $text;
 }
 
-.bridge-sub {
-  margin-top: $spacing-1;
-  font-size: $font-size-xl;
-  color: $text-muted;
+.bridge-block {
+  // pinned from the top, so the lines never re-centre as they wrap
+  margin-top: 248px;
 }
 
-entry.bridge-entry {
-  @include field;
-  margin-top: $spacing-5;
-  min-height: 48px;
-  padding: 0 $spacing-4;
-  font-size: $font-size-4xl;
-  background: rgba($surface, 0.7);
-
-  &:focus-within {
-    background: $surface;
-    box-shadow: inset 0 0 0 2px $primary;
-  }
+.bridge-row {
+  border-spacing: $bridge-gap;
 }
 
-.bridge-actions {
-  margin-top: $spacing-4;
-}
-
-.bridge-hint {
+.bridge-gutter {
+  min-width: $bridge-gutter;
   font-size: $font-size-sm;
   color: $text-faint;
 }
 
-button.bridge-skip,
-button.bridge-save {
-  @include interactive($radius-full);
-  min-height: 36px;
-  padding: 0 $spacing-5;
-  font-weight: 600;
+.bridge-context {
+  margin-bottom: $spacing-5;
+  font-size: $font-size-lg;
+  color: $text-muted;
 }
 
-button.bridge-save {
-  background-color: $on-bg;
-  color: $on-fg;
+.bridge-time {
+  font-family: $font-mono;
+  font-size: $font-size-base;
+}
 
-  &:hover {
-    background-color: rgba($on-bg, 0.88);
+textview.bridge-line1,
+entry.bridge-line2 {
+  font-family: $font-mono;
+  color: $text-muted;
+  caret-color: $primary;
+}
+
+.focused textview.bridge-line1,
+.focused entry.bridge-line2 {
+  color: $text;
+}
+
+textview.bridge-line1 {
+  font-size: $font-size-6xl;
+
+  &,
+  > text {
+    background: none;
   }
+}
+
+.bridge-row1 {
+  min-height: $bridge-line1;
+  transition: background-color $dur-enter $ease-in;
+
+  .bridge-gutter {
+    // a label has no baseline in common with a text view: put its baseline on line 1's first one
+    margin-top: 16px;
+    transition: color $dur-enter $ease-in;
+  }
+
+  // the nudge: a quiet band behind line 1, no red, no shake
+  &.flash {
+    background-color: $surface-container-high;
+    transition: background-color $dur-fast $ease-out;
+
+    .bridge-gutter {
+      color: $text;
+      transition: color $dur-fast $ease-out;
+    }
+  }
+}
+
+.bridge-row2 {
+  margin-top: $spacing-2;
+}
+
+entry.bridge-line2 {
+  min-height: $bridge-line2;
+  padding: 0;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  background: none;
+  font-size: $font-size-4xl;
+
+  > text > placeholder {
+    color: $text-faint;
+  }
+}
+
+.bridge-hint {
+  margin: 0 0 $spacing-7 ($bridge-gutter + $bridge-gap);
+  font-size: $font-size-sm;
+
+  .hint-idle {
+    color: $text-faint;
+  }
+
+  .hint-armed,
+  .hint-nudge {
+    color: $text;
+  }
+}
+
+.bridge-key {
+  font-family: $font-mono;
 }
 
 // the bridge note (widget/bridge/BridgeNote.tsx): an opaque paper sticky note on the desktop,

@@ -88,6 +88,14 @@ $panel-shadow: 0 16px 48px rgba($shadow, 0.28);
 // desktop edit mode: dims (and, through Hyprland's blur, softens) everything behind
 $edit-scrim: rgba($scrim, 0.35);
 
+// the corner note (widget/bridge/BridgeNote.tsx): fixed yellow paper, whatever the wallpaper
+$note-paper: #ffe066;
+// dark ink on it in both modes: the dark theme's surface, the light theme's on-surface
+$on-note-paper: $on-surface;
+@if $is-dark {
+  $on-note-paper: $surface;
+}
+
 // semantic text
 $text: $on-surface;
 $text-muted: $on-surface-variant;
