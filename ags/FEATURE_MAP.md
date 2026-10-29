@@ -461,7 +461,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 
 ### `ext.hypr.look` — general, decoration, layouts, animations
 - **Code:** `conf/look.lua` (50 lines) — gaps 6/12, border 0, `resize_on_border` + 15px `extend_border_grab_area` L9–12 (edges are grabbed in the gap), rounding 10, opacity 0.9/0.8, shadow, blur L32–39, dwindle/master/scrolling, misc.
-- `conf/animations.lua` (25 lines) — curves L5–11 (`glassIn` is the AGS glass fade-in), per-leaf animations L13–25 (`fadeLayers*`/`fadePopups*` drive AGS layer opacity).
+- `conf/animations.lua` (27 lines) — curves L5–13 (`glassIn` is the AGS glass fade-in; `smoothOut`/`softInOut` drive the cinematic windows/workspaces), per-leaf animations L15–27 (`fadeLayers*`/`fadePopups*` drive AGS layer opacity).
 
 ### `ext.hypr.session` — monitors, env, autostart, input, window rules
 - `conf/monitors.lua` — one catch-all monitor at scale 1.25.
