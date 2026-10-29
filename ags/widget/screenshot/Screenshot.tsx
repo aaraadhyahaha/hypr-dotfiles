@@ -5,6 +5,9 @@ import { Motion, ENTER, LEAVE } from "../common/motion"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import GdkPixbuf from "gi://GdkPixbuf"
+import GObject from "gi://GObject"
+import Graphene from "gi://Graphene"
+import Pango from "gi://Pango"
 
 const HOME = GLib.get_home_dir()
 const DIR = `${HOME}/Pictures/Screenshots`
@@ -26,6 +29,80 @@ export const screenshotFull = () => shootFn()
 export const screenshotGeometry = (geometry?: string) => shootFn(geometry)
 // the region picker on its own: a geometry, undefined for Enter (full screen), null for Esc
 export const pickRegion = () => pickFn()
+
+const rgba = (red: number, green: number, blue: number, alpha: number) =>
+    new Gdk.RGBA({ red, green, blue, alpha })
+const DIM = rgba(0, 0, 0, 0.4)
+const EDGE = rgba(0.663, 0.722, 1, 1)
+const HINT = rgba(1, 1, 1, 0.9)
+const HINT_TEXT = "Drag to select  ·  Enter: full screen  ·  Esc: cancel"
+
+// The region picker's dim + selection, painted as GPU render nodes. A cairo DrawingArea
+// rasterised a monitor-sized surface on the CPU every drag frame (and GJS held each one
+// until GC), which stuttered under memory pressure.
+const Selection = GObject.registerClass(
+    { GTypeName: "AgsShotSelection" },
+    class Selection extends Gtk.Widget {
+        declare _sel: [number, number, number, number] | null
+        declare _hint: Pango.Layout
+        declare _size: Pango.Layout
+
+        constructor() {
+            super({ hexpand: true, vexpand: true })
+            this._sel = null
+            this._hint = this.create_pango_layout(HINT_TEXT)
+            this._hint.set_font_description(Pango.FontDescription.from_string("SF Pro Text 14px"))
+            this._size = this.create_pango_layout("")
+            this._size.set_font_description(Pango.FontDescription.from_string("SF Pro Text Bold 13px"))
+        }
+
+        // null: no selection yet (full dim + hint)
+        select(sel: [number, number, number, number] | null) {
+            this._sel = sel
+            this.queue_draw()
+        }
+
+        vfunc_snapshot(s: Gtk.Snapshot) {
+            const w = this.get_width()
+            const h = this.get_height()
+            const fill = (c: Gdk.RGBA, x: number, y: number, rw: number, rh: number) => {
+                if (rw > 0 && rh > 0) s.append_color(c, new Graphene.Rect().init(x, y, rw, rh))
+            }
+            const text = (layout: Pango.Layout, c: Gdk.RGBA, x: number, y: number) => {
+                s.save()
+                s.translate(new Graphene.Point({ x, y }))
+                s.append_layout(layout, c)
+                s.restore()
+            }
+
+            const sel = this._sel
+            if (!sel) {
+                fill(DIM, 0, 0, w, h)
+                const [tw] = this._hint.get_pixel_size()
+                text(this._hint, HINT, (w - tw) / 2, 34)
+                return
+            }
+
+            const [x, y, rw, rh] = sel
+            fill(DIM, 0, 0, w, y)
+            fill(DIM, 0, y + rh, w, h - y - rh)
+            fill(DIM, 0, y, x, rh)
+            fill(DIM, x + rw, y, w - x - rw, rh)
+
+            // a 2px outline just inside the selection
+            const b = Math.min(2, rw / 2, rh / 2)
+            fill(EDGE, x, y, rw, b)
+            fill(EDGE, x, y + rh - b, rw, b)
+            fill(EDGE, x, y + b, b, rh - 2 * b)
+            fill(EDGE, x + rw - b, y + b, b, rh - 2 * b)
+
+            this._size.set_text(`${Math.round(rw)} × ${Math.round(rh)}`, -1)
+            const [, th] = this._size.get_pixel_size()
+            text(this._size, EDGE, x, y > 22 ? y - 6 - th : y + rh + 6)
+        }
+    },
+)
+type Selection = InstanceType<typeof Selection>
 
 export function ShotPreview() {
     let win: Astal.Window
@@ -138,8 +215,7 @@ export default function Screenshot() {
     const mon = app.get_monitors()[0]
     const geo = mon.get_geometry()
     let win: Astal.Window
-    let area: Gtk.DrawingArea
-    let active = false
+    let area: Selection
     let busy = false
     let sx = 0, sy = 0, ex = 0, ey = 0
     // set while pickRegion() waits: the picker hands its result back instead of capturing
@@ -186,52 +262,17 @@ export default function Screenshot() {
         }
     }
 
-    const draw = (_a: Gtk.DrawingArea, cr: any, w: number, h: number) => {
-        cr.setSourceRGBA(0, 0, 0, 0.4)
-        if (!active) {
-            cr.rectangle(0, 0, w, h)
-            cr.fill()
-        } else {
-            const [x, y, rw, rh] = rect()
-            cr.rectangle(0, 0, w, y); cr.fill()
-            cr.rectangle(0, y + rh, w, h - y - rh); cr.fill()
-            cr.rectangle(0, y, x, rh); cr.fill()
-            cr.rectangle(x + rw, y, w - x - rw, rh); cr.fill()
-
-            cr.setSourceRGBA(0.663, 0.722, 1, 1)
-            cr.setLineWidth(2)
-            cr.rectangle(x + 1, y + 1, Math.max(0, rw - 2), Math.max(0, rh - 2))
-            cr.stroke()
-
-            cr.selectFontFace("SF Pro Text", 0, 1)
-            cr.setFontSize(13)
-            cr.moveTo(x, y > 22 ? y - 8 : y + rh + 18)
-            cr.showText(`${Math.round(rw)} × ${Math.round(rh)}`)
-        }
-        if (!active) {
-            const text = "Drag to select  ·  Enter: full screen  ·  Esc: cancel"
-            cr.setSourceRGBA(1, 1, 1, 0.9)
-            cr.selectFontFace("SF Pro Text", 0, 0)
-            cr.setFontSize(14)
-            const ext = cr.textExtents(text)
-            cr.moveTo((w - ext.width) / 2, 48)
-            cr.showText(text)
-        }
-    }
-
     regionFn = () => {
         if (busy) return
         if (win.visible) { done(null); return }
-        active = false
-        area.queue_draw()
+        area.select(null)
         win.visible = true
     }
     shootFn = (geometry) => { capture(geometry) }
     pickFn = () => new Promise((resolve) => {
         picked?.(null)
         picked = resolve
-        active = false
-        area.queue_draw()
+        area.select(null)
         win.visible = true
     })
 
@@ -262,38 +303,33 @@ export default function Screenshot() {
             }
             application={app}
         >
-            <Gtk.DrawingArea
-                $={(self) => {
+            <Selection
+                $={(self: Selection) => {
                     area = self
-                    self.set_draw_func(draw)
                     self.set_cursor_from_name("crosshair")
                     const drag = new Gtk.GestureDrag()
                     drag.connect("drag-begin", (_, x, y) => {
-                        active = true
                         sx = ex = x
                         sy = ey = y
-                        area.queue_draw()
+                        area.select(rect())
                     })
                     drag.connect("drag-update", (_, dx, dy) => {
                         ex = sx + dx
                         ey = sy + dy
-                        area.queue_draw()
+                        area.select(rect())
                     })
                     drag.connect("drag-end", (_, dx, dy) => {
                         ex = sx + dx
                         ey = sy + dy
                         const r = rect()
                         if (r[2] < 6 || r[3] < 6) {
-                            active = false
-                            area.queue_draw()
+                            area.select(null)
                             return
                         }
                         done(global(r))
                     })
                     self.add_controller(drag)
                 }}
-                hexpand
-                vexpand
             />
         </window>
     )

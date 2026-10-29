@@ -315,12 +315,13 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 ## 8. Screenshot (`widget/screenshot/`)
 
 ### `shot.capture` — region selector & capture
-- **Code:** `Screenshot.tsx` `Screenshot()` L137–299 — region picker overlay (`namespace="shot"`, no anim, no blur), `pickRegion()` hand-back mode L145–160, capture with `grim` → `~/Pictures/Screenshots`, copy with `wl-copy`, then preview L160–190; window L250–299.
-- **Exports:** `screenshotRegion`, `screenshotFull`, `screenshotGeometry`, `pickRegion` L19–28.
+- **Code:** `Screenshot.tsx` `Screenshot()` L214–end — region picker overlay (`namespace="shot"`, no anim, no blur), `pickRegion()` hand-back mode L222–239, capture with `grim` → `~/Pictures/Screenshots`, copy with `wl-copy`, then preview L240–263; window L279–end.
+- **Overlay drawing:** `Selection` L33–105 — dim + outline + size label as GPU render nodes (`vfunc_snapshot`, `append_color`/`append_layout`); never a cairo `DrawingArea` (a full-screen CPU surface per drag frame stutters).
+- **Exports:** `screenshotRegion`, `screenshotFull`, `screenshotGeometry`, `pickRegion` L22–31.
 - **Style:** `styles/_screenshot.scss` (`window.Shot`).
 
 ### `shot.preview` — post-capture toast
-- **Code:** `Screenshot.tsx` `ShotPreview()` L30–136 — thumbnail, Copy / Edit (`satty` if installed) / Open actions, slides in from the edge (`namespace="shotpreview"`).
+- **Code:** `Screenshot.tsx` `ShotPreview()` L107–213 — thumbnail, Copy / Edit (`satty` if installed) / Open actions, slides in from the edge (`namespace="shotpreview"`).
 - **Style:** `_screenshot.scss` (`.shot-toast`, `.shot-thumb`).
 
 ### `shot.toolbar` → see `bar.screenshot`.
