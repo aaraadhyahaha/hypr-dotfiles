@@ -11,6 +11,10 @@ const stamp = () => GLib.DateTime.new_now_local().format("%Y%m%d_%H%M%S")!
 
 export const [recording, setRecording] = createState(false)
 export const [elapsed, setElapsed] = createState(0) // seconds
+// constant frame rate for the next recording; 0 = wf-recorder's default (damage-driven, variable)
+export const [fps, setFps] = createState(0)
+// the rate the running recording was started with (shown on the bar pill)
+export const [recFps, setRecFps] = createState(0)
 
 let proc: Process | null = null
 let tick: ReturnType<typeof interval> | null = null
@@ -31,6 +35,8 @@ export function startRecording({ geometry, audio = false }: { geometry?: string;
   const args = ["wf-recorder", "-c", "h264_vaapi", "-d", "/dev/dri/renderD128", "-f", `${DIR}/rec_${stamp()}.mp4`]
   if (geometry) args.push("-g", geometry)
   if (audio) args.push("-a")
+  const rate = fps.get()
+  if (rate) args.push("-r", String(rate))
   try {
     proc = subprocess(args, () => {}, () => {})
   } catch (e) {
@@ -40,6 +46,7 @@ export function startRecording({ geometry, audio = false }: { geometry?: string;
   proc.connect("exit", finish)
   const t0 = GLib.get_monotonic_time()
   setElapsed(0)
+  setRecFps(rate)
   setRecording(true)
   tick = interval(1000, () => setElapsed(Math.floor((GLib.get_monotonic_time() - t0) / 1e6)))
 }

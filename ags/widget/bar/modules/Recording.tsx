@@ -1,5 +1,6 @@
 import { Gtk } from "ags/gtk4"
-import { recording, elapsed, stopRecording, fmtElapsed } from "../../../service/recorder"
+import { recording, elapsed, recFps, stopRecording, fmtElapsed } from "../../../service/recorder"
+import { fpsLabel } from "../../screenshot/model"
 
 // Only exists while wf-recorder runs; click stops it.
 export default function Recording() {
@@ -7,7 +8,7 @@ export default function Recording() {
     <button
       class="recording"
       visible={recording}
-      tooltipText="Stop recording"
+      tooltipText={recFps.as((f) => `Stop recording · ${fpsLabel(f)}`)}
       onClicked={() => stopRecording()}
     >
       <box spacing={6}>

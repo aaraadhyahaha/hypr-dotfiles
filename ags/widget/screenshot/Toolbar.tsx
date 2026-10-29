@@ -3,8 +3,8 @@ import { type Accessor, createState } from "ags"
 import { timeout } from "ags/time"
 import Icon from "../common/Icon"
 import { closeShot, screenshotGeometry, shotTarget } from "./Screenshot"
-import { type Mode, nextTimer, timerLabel } from "./model"
-import { recording, startRecording, stopRecording } from "../../service/recorder"
+import { type Mode, nextTimer, timerLabel, nextFps, fpsLabel } from "./model"
+import { recording, fps, setFps, startRecording, stopRecording } from "../../service/recorder"
 
 type Kind = "photo" | "video"
 
@@ -53,7 +53,7 @@ function Seg({ on, pick, icon, label, tip }: {
   )
 }
 
-// screenshot / record toolbar (the session's ShotMenu.tsx): mode · photo / video · mic · timer · Capture
+// screenshot / record toolbar (the session's ShotMenu.tsx): mode · photo / video · mic · fps · timer · Capture
 export default function Toolbar() {
   return (
     <box class="tb" spacing={6}>
@@ -74,6 +74,17 @@ export default function Toolbar() {
         onClicked={() => setMic(!mic.get())}
       >
         <Icon name={mic.as((m) => (m ? "mic" : "mic_off"))} />
+      </button>
+      <button
+        class="tb-btn timer"
+        tooltipText="Frame rate"
+        sensitive={kind.as((k) => k === "video")}
+        onClicked={() => setFps(nextFps(fps.get()))}
+      >
+        <box spacing={6}>
+          <Icon name="speed" />
+          <label label={fps.as(fpsLabel)} />
+        </box>
       </button>
       <button class="tb-btn timer" tooltipText="Delay" onClicked={() => setDelay(nextTimer(delay.get()))}>
         <box spacing={6}>

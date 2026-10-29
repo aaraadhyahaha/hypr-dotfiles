@@ -106,7 +106,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Used by:** `bar.sysmini`, `cc.stats`, `desktop.w.system`.
 
 ### `svc.recorder` — screen recording
-- **Code:** `service/recorder.ts` — `recording`/`elapsed` state, `startRecording({geometry, audio})`, `stopRecording` (SIGINT), `toggleRecording`, `fmtElapsed`. Output: `~/Videos/Recordings/rec_<stamp>.mp4`.
+- **Code:** `service/recorder.ts` — `recording`/`elapsed` state, `fps` (next recording's constant rate, 0 = wf-recorder's variable default → `-r`) / `recFps` (running one's), `startRecording({geometry, audio})`, `stopRecording` (SIGINT), `toggleRecording`, `fmtElapsed`. Output: `~/Videos/Recordings/rec_<stamp>.mp4`.
 - **Used by:** `bar.recording`, `cc.tiles` (Record), `bar.screenshot` toolbar (video mode).
 
 ### `svc.pomodoro` — timer engine
@@ -183,7 +183,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Touches:** `bar.recording` (wf-recorder is ignored here so they don't double up).
 
 ### `bar.recording`
-- **Code:** `bar/modules/Recording.tsx` — visible only while `svc.recorder` records; click stops. **Style:** `_bar.scss` L175–200 (shape shared with `bar.privacy`).
+- **Code:** `bar/modules/Recording.tsx` — visible only while `svc.recorder` records; click stops; tooltip shows the recording's fps. **Style:** `_bar.scss` L175–200 (shape shared with `bar.privacy`).
 
 ### `bar.sysmini` — CPU/RAM readout + System popover
 - **Code:**
@@ -193,8 +193,8 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Style:** `_popovers.scss` L330–end (`.sys*`); readout `_bar.scss` L168–174.
 
 ### `bar.screenshot` — screenshot button + session toolbar
-- **Code:** `bar/modules/ScreenshotBtn.tsx` — plain button → `openShot()` (stops a running recording instead). `widget/screenshot/Toolbar.tsx`: mode (region/window/screen, exported `mode`/`setMode` state the overlay redraws on), photo/video, mic, timer, Capture. `capture()` L26–37: `shotTarget()` → `closeShot()` → delay → `screenshotGeometry` / `startRecording`.
-- **Model:** `widget/screenshot/model.ts` (`TIMERS`, `nextTimer`, `timerLabel`, `windowGeometry`, plus the session geometry: `hitTest`, `dragRect`, `CURSOR`, `defaultRect`, `geometry`, `windowAt`). **Test:** `model.test.ts`.
+- **Code:** `bar/modules/ScreenshotBtn.tsx` — plain button → `openShot()` (stops a running recording instead). `widget/screenshot/Toolbar.tsx`: mode (region/window/screen, exported `mode`/`setMode` state the overlay redraws on), photo/video, mic, fps (video only), timer, Capture. `capture()` L26–37: `shotTarget()` → `closeShot()` → delay → `screenshotGeometry` / `startRecording`.
+- **Model:** `widget/screenshot/model.ts` (`TIMERS`, `nextTimer`, `timerLabel`, `FPS`, `nextFps`, `fpsLabel`, `windowGeometry`, plus the session geometry: `hitTest`, `dragRect`, `CURSOR`, `defaultRect`, `geometry`, `windowAt`). **Test:** `model.test.ts`.
 - **Calls into:** `shot.capture` (photo), `svc.recorder` (video).
 - **Style:** `styles/_screenshot.scss` (`.tb*`, `.mode`, `.kind`).
 

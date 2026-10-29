@@ -1,7 +1,7 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import {
-  TIMERS, nextTimer, timerLabel, windowGeometry,
+  TIMERS, nextTimer, timerLabel, FPS, nextFps, fpsLabel, windowGeometry,
   type Client, type Rect, defaultRect, dragRect, geometry, hitTest, windowAt,
 } from "./model.ts"
 
@@ -14,6 +14,17 @@ test("nextTimer cycles through the delays and wraps", () => {
 test("timerLabel", () => {
   assert.equal(timerLabel(3), "3s")
   assert.equal(timerLabel(0), "Off")
+})
+
+test("nextFps cycles through the frame rates and wraps", () => {
+  assert.equal(nextFps(0), 15)
+  assert.equal(nextFps(FPS[FPS.length - 1]), 0)
+  assert.equal(nextFps(45), 0) // unknown value starts over
+})
+
+test("fpsLabel", () => {
+  assert.equal(fpsLabel(30), "30 fps")
+  assert.equal(fpsLabel(0), "Auto")
 })
 
 test("windowGeometry reads hyprctl activewindow -j as grim's x,y wxh", () => {

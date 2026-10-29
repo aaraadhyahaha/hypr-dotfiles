@@ -6,6 +6,13 @@ export const nextTimer = (s: number): number => TIMERS[(TIMERS.indexOf(s) + 1) %
 
 export const timerLabel = (s: number): string => (s ? `${s}s` : "Off")
 
+// recording frame rates; 0 = wf-recorder's default (a frame per screen update, variable rate)
+export const FPS = [0, 15, 24, 30, 60]
+
+export const nextFps = (f: number): number => FPS[(FPS.indexOf(f) + 1) % FPS.length]
+
+export const fpsLabel = (f: number): string => (f ? `${f} fps` : "Auto")
+
 // `hyprctl activewindow -j` → "x,y wxh" for grim / wf-recorder; null without a window
 export function windowGeometry(json: string): string | null {
   try {
