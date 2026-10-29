@@ -331,6 +331,9 @@ function close() {
   sheet.win.keymode = Astal.Keymode.NONE
 }
 
+// the monitor the sheet was last shown on (the corner note follows it); null before the first prompt
+export const sheetMonitor = () => sheet?.win.gdkmonitor ?? null
+
 let started = false
 
 // called once from app.ts; costs one subscription until the first prompt
