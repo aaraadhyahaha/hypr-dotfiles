@@ -41,7 +41,7 @@ hl.layer_rule({
 
 hl.layer_rule({
     name         = "ags-blur",
-    match        = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu)$" },
+    match        = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu|bridge)$" },
     blur         = true,
     ignore_alpha = 0.1,
 })
