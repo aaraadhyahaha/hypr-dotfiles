@@ -1,13 +1,11 @@
 import { Gtk } from "ags/gtk4"
 import { type Accessor, createState } from "ags"
-import { execAsync } from "ags/process"
 import { timeout } from "ags/time"
 import Icon from "../common/Icon"
-import { pickRegion, screenshotGeometry } from "./Screenshot"
-import { nextTimer, timerLabel, windowGeometry } from "./model"
+import { closeShot, screenshotGeometry, shotTarget } from "./Screenshot"
+import { type Mode, nextTimer, timerLabel } from "./model"
 import { recording, startRecording, stopRecording } from "../../service/recorder"
 
-type Mode = "region" | "window" | "screen"
 type Kind = "photo" | "video"
 
 const MODES: { id: Mode; icon: string; label: string }[] = [
@@ -16,29 +14,22 @@ const MODES: { id: Mode; icon: string; label: string }[] = [
   { id: "screen", icon: "desktop_windows", label: "Screen" },
 ]
 
-const [mode, setMode] = createState<Mode>("region")
+// read by the session overlay (Screenshot.tsx), which redraws when it changes
+export const [mode, setMode] = createState<Mode>("region")
 const [kind, setKind] = createState<Kind>("photo")
 const [mic, setMic] = createState(false)
 const [delay, setDelay] = createState(0)
 
 const wait = (s: number) => new Promise<void>((r) => (s ? timeout(s * 1000, () => r()) : r()))
 
-// where to capture: a geometry, undefined for every output, null when the pick was cancelled
-async function target(): Promise<string | null | undefined> {
-  switch (mode.get()) {
-    case "region":
-      return pickRegion()
-    case "window":
-      return windowGeometry(await execAsync(["hyprctl", "activewindow", "-j"]).catch(() => ""))
-    default:
-      return undefined
+// hide the session, then the delay, then grim / wf-recorder on the session's selection
+export async function capture() {
+  if (recording.get()) {
+    closeShot()
+    return stopRecording()
   }
-}
-
-async function capture(close: () => void) {
-  close()
-  if (recording.get()) return stopRecording()
-  const geometry = await target()
+  const geometry = shotTarget()
+  closeShot()
   if (geometry === null) return
   await wait(delay.get())
   if (kind.get() === "photo") screenshotGeometry(geometry)
@@ -62,8 +53,8 @@ function Seg({ on, pick, icon, label, tip }: {
   )
 }
 
-// screenshot / record toolbar (ScreenshotBtn.tsx): mode · photo / video · mic · timer · Capture
-export default function Toolbar({ close }: { close: () => void }) {
+// screenshot / record toolbar (the session's ShotMenu.tsx): mode · photo / video · mic · timer · Capture
+export default function Toolbar() {
   return (
     <box class="tb" spacing={6}>
       <box class="tb-group mode">
@@ -90,7 +81,7 @@ export default function Toolbar({ close }: { close: () => void }) {
           <label label={delay.as(timerLabel)} />
         </box>
       </button>
-      <button class="tb-capture" onClicked={() => capture(close)}>
+      <button class="tb-capture" onClicked={() => capture()}>
         <label label={recording.as((r) => (r ? "Stop" : "Capture"))} />
       </button>
     </box>

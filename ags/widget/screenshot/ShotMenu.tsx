@@ -1,48 +1,34 @@
 import app from "ags/gtk4/app"
-import { Astal, Gtk, Gdk } from "ags/gtk4"
+import { Astal } from "ags/gtk4"
 import { Motion, ENTER } from "../common/motion"
+import { closeShot, openShot } from "./Screenshot"
 import Toolbar from "./Toolbar"
 
-let toggleFn = () => {}
-export const toggleShotMenu = () => toggleFn()
+// opens / closes the whole session (the `toggle-shotmenu` IPC, the Print bind, the launcher)
+export const toggleShotMenu = () => (app.get_window("shot")?.visible ? closeShot() : openShot())
 
-// the capture toolbar as a centered layer window, for the Print key
+// the session's toolbar: its own layer so Hyprland blurs it (`shot` must stay unblurred).
+// It stacks above `shot` through Hyprland's `order` layer rule (hypr/conf/shell.lua); map order
+// doesn't hold. `shot` has the keyboard (ON_DEMAND), so this takes none and a click here
+// leaves the focus on `shot`.
 export default function ShotMenu() {
-  let win: Astal.Window
   let motion: Motion
-
-  // instant, so the region picker / grim never see it
-  const close = () => (win.visible = false)
-
-  const open = () => {
-    motion.animate(ENTER.card)
-    win.visible = true
-  }
-
-  toggleFn = () => (win.visible ? close() : open())
 
   return (
     <window
-      $={(self) => {
-        win = self
-        const key = new Gtk.EventControllerKey()
-        key.connect("key-pressed", (_, keyval) => {
-          if (keyval === Gdk.KEY_Escape) { close(); return true }
-          return false
-        })
-        self.add_controller(key)
-      }}
+      $={(self: Astal.Window) => self.connect("notify::visible", () => self.visible && motion.animate(ENTER.card))}
       visible={false}
       name="shotmenu"
       namespace="shotmenu"
       class="ShotMenu"
       layer={Astal.Layer.OVERLAY}
-      keymode={Astal.Keymode.EXCLUSIVE}
+      anchor={Astal.WindowAnchor.BOTTOM}
+      keymode={Astal.Keymode.NONE}
       exclusivity={Astal.Exclusivity.IGNORE}
       application={app}
     >
       <Motion $={(self) => (motion = self)}>
-        <Toolbar close={close} />
+        <Toolbar />
       </Motion>
     </window>
   )

@@ -1,28 +1,11 @@
-import { Gtk } from "ags/gtk4"
 import Icon from "../../common/Icon"
-import { Motion, ENTER, onShow } from "../../common/motion"
-import Toolbar from "../../screenshot/Toolbar"
+import { openShot } from "../../screenshot/Screenshot"
 
-// Opens the screenshot / record toolbar
+// Opens the screenshot session (or stops a running recording: openShot() handles both)
 export default function ScreenshotBtn() {
-  let motion: Motion
-  let pop: Gtk.Popover
-
   return (
-    <menubutton class="shot-btn" tooltipText="Screenshot">
+    <button class="icon-btn shot-btn" tooltipText="Screenshot" onClicked={() => openShot()}>
       <Icon name="screenshot_region" class="lg" />
-      <popover
-        class="qs-pop"
-        hasArrow={false}
-        $={(self: Gtk.Popover) => {
-          pop = self
-          onShow(self, motion, ENTER.popover)
-        }}
-      >
-        <Motion origin="top" $={(self) => (motion = self)}>
-          <Toolbar close={() => pop.popdown()} />
-        </Motion>
-      </popover>
-    </menubutton>
+    </button>
   )
 }

@@ -282,7 +282,7 @@ export function actionItems(intent: Intent): Item[] {
     case "screenshot":
       return [{
         name: "Screenshot",
-        description: "Shift+Enter: capture a region now",
+        description: "Shift+Enter: open in region mode",
         symbol: "screenshot_region",
         hint: "Open",
         launch: () => toggleShotMenu(),

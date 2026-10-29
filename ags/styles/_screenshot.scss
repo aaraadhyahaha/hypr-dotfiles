@@ -7,6 +7,11 @@ window.ShotMenu {
   background: transparent;
 }
 
+// the session's toolbar sits bottom-centre over the dimmed screen
+window.ShotMenu > * {
+  margin-bottom: $spacing-8;
+}
+
 .shot-toast {
   margin: 0 $spacing-3 $spacing-4 0;
 }

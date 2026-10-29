@@ -34,7 +34,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `bar.privacy` | Mic/camera/screen-in-use pill + popover | `bar/modules/Privacy.tsx` |
 | `bar.recording` | Recording indicator | `bar/modules/Recording.tsx` |
 | `bar.sysmini` | CPU/RAM readout + System popover | `bar/modules/SysMini.tsx`, `SysPanel.tsx` |
-| `bar.screenshot` | Screenshot button + capture toolbar | `bar/modules/ScreenshotBtn.tsx`, `screenshot/Toolbar.tsx` |
+| `bar.screenshot` | Screenshot button + session toolbar | `bar/modules/ScreenshotBtn.tsx`, `screenshot/Toolbar.tsx` |
 | `bar.battery` | Battery item + battery popover | `bar/modules/Battery.tsx`, `BatteryPanel.tsx` |
 | `bar.pomodoro` | Pomodoro pill + popover + heatmap | `widget/pomodoropill/*` |
 | `bar.tray` | System tray | `bar/modules/Tray.tsx` |
@@ -48,7 +48,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `files` | Fuzzy file search | `widget/files/Files.tsx` |
 | `clipboard` | Clipboard history | `widget/clipboard/Clipboard.tsx` |
 | `wallpapers` | Wallpaper picker | `widget/wallpapers/Wallpapers.tsx` |
-| `shot.*` | Region selector, capture, preview toast | `widget/screenshot/Screenshot.tsx` |
+| `shot.*` | Screenshot session (overlay + toolbar), capture, preview toast | `widget/screenshot/Screenshot.tsx`, `ShotMenu.tsx` |
 | `overview.*` | Workspace overview with window previews | `widget/overview/Overview.tsx` |
 | `desktop.*` | Desktop widgets, grid, edit mode, gallery | `widget/desktop/*` |
 | `ext.hypr.shell` | AGS IPC keybinds + layer rules (blur, no-anim) | `~/.config/hypr/conf/shell.lua` |
@@ -178,9 +178,9 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Model:** `service/systemModel.ts`.
 - **Style:** `_popovers.scss` L330–end (`.sys*`); readout `_bar.scss` L168–174.
 
-### `bar.screenshot` — screenshot / record toolbar
-- **Code:** `bar/modules/ScreenshotBtn.tsx` (menubutton + popover) → `widget/screenshot/Toolbar.tsx`: mode (region/window/screen), photo/video, mic, timer, Capture. `target()` L26–46 resolves geometry (region via `pickRegion`, window via `hyprctl activewindow -j`).
-- **Model:** `widget/screenshot/model.ts` (`TIMERS`, `nextTimer`, `timerLabel`, `windowGeometry`). **Test:** `model.test.ts`.
+### `bar.screenshot` — screenshot button + session toolbar
+- **Code:** `bar/modules/ScreenshotBtn.tsx` — plain button → `openShot()` (stops a running recording instead). `widget/screenshot/Toolbar.tsx`: mode (region/window/screen, exported `mode`/`setMode` state the overlay redraws on), photo/video, mic, timer, Capture. `capture()` L26–37: `shotTarget()` → `closeShot()` → delay → `screenshotGeometry` / `startRecording`.
+- **Model:** `widget/screenshot/model.ts` (`TIMERS`, `nextTimer`, `timerLabel`, `windowGeometry`, plus the session geometry: `hitTest`, `dragRect`, `CURSOR`, `defaultRect`, `geometry`, `windowAt`). **Test:** `model.test.ts`.
 - **Calls into:** `shot.capture` (photo), `svc.recorder` (video).
 - **Style:** `styles/_screenshot.scss` (`.tb*`, `.mode`, `.kind`).
 
@@ -314,20 +314,21 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 
 ## 8. Screenshot (`widget/screenshot/`)
 
-### `shot.capture` — region selector & capture
-- **Code:** `Screenshot.tsx` `Screenshot()` L214–end — region picker overlay (`namespace="shot"`, no anim, no blur), `pickRegion()` hand-back mode L222–239, capture with `grim` → `~/Pictures/Screenshots`, copy with `wl-copy`, then preview L240–263; window L279–end.
-- **Overlay drawing:** `Selection` L33–105 — dim + outline + size label as GPU render nodes (`vfunc_snapshot`, `append_color`/`append_layout`); never a cairo `DrawingArea` (a full-screen CPU surface per drag frame stutters).
-- **Exports:** `screenshotRegion`, `screenshotFull`, `screenshotGeometry`, `pickRegion` L22–31.
+### `shot.capture` — the screenshot session & capture
+- **Behaviour:** GNOME-style. The dimmed overlay and the toolbar open together; nothing is captured until Capture / Enter / Space (Esc closes). Region: an editable rect (8 handles resize with flip-through, inside moves, outside redraws; a drag under 6px restores the previous rect), kept for the ags session. Window: the window under the pointer (starts on the focused one), a click locks it. Screen: outline only.
+- **Code:** `Screenshot.tsx` `Screenshot()` L236–end — overlay `namespace="shot"` (no anim, no blur, keymode ON_DEMAND: EXCLUSIVE would take the pointer from the toolbar); window-mode `hyprctl clients/monitors -j` once per session (`loadWindows` L267); capture with `grim` → `~/Pictures/Screenshots`, copy with `wl-copy`, then preview (`capture` L296); `openFn`/`closeFn`/`targetFn` L321–345; keys + motion/drag gestures L346–end.
+- **Overlay drawing:** `Selection` L58–126 — dim + outline + handles + size label as GPU render nodes (`vfunc_snapshot`, `append_color`/`append_layout`); never a cairo `DrawingArea` (a full-screen CPU surface per drag frame stutters).
+- **Exports:** `openShot`, `closeShot`, `shotTarget`, `screenshotRegion` (opens in region mode), `screenshotFull`, `screenshotGeometry` L28–47.
 - **Style:** `styles/_screenshot.scss` (`window.Shot`).
 
 ### `shot.preview` — post-capture toast
-- **Code:** `Screenshot.tsx` `ShotPreview()` L107–213 — thumbnail, Copy / Edit (`satty` if installed) / Open actions, slides in from the edge (`namespace="shotpreview"`).
+- **Code:** `Screenshot.tsx` `ShotPreview()` L129–234 — thumbnail, Copy / Edit (`satty` if installed) / Open actions, slides in from the edge (`namespace="shotpreview"`).
 - **Style:** `_screenshot.scss` (`.shot-toast`, `.shot-thumb`).
 
 ### `shot.toolbar` → see `bar.screenshot`.
 
-### `shot.menu` — centered toolbar window (Print key)
-- **Code:** `widget/screenshot/ShotMenu.tsx` — `<Toolbar>` in an unanchored (centered) overlay layer, `namespace="shotmenu"`, Escape closes; `toggleShotMenu` ← IPC `toggle-shotmenu` in `app.ts`.
+### `shot.menu` — the session's toolbar window (Print key)
+- **Code:** `widget/screenshot/ShotMenu.tsx` — `<Toolbar>` in a bottom-anchored overlay layer, `namespace="shotmenu"` (blurred), keymode NONE (`shot` has the keyboard). It stays above `shot` through the `order = -1` layer rule (lower = nearer the top) in `hypr/conf/shell.lua`. `toggleShotMenu` opens / closes the whole session ← IPC `toggle-shotmenu` in `app.ts`.
 - **Style:** `_screenshot.scss` (`window.ShotMenu`).
 
 ---
@@ -420,7 +421,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 
 ### `ext.hypr.shell` — AGS keybinds & layer rules
 - **Code:** `conf/shell.lua` (44 lines). `ags(cmd)` helper L5 → `ags request <cmd>`.
-- **Keybinds → IPC, L7–20:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Print → `toggle-shotmenu` (centered toolbar) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
+- **Keybinds → IPC, L7–20:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Print → `toggle-shotmenu` (screenshot session) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
 - **Layer rules L22–44:** `ags-no-anim` (`shot`, so it vanishes before grim captures) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
 - **Pairs with:** `core.app` (one `if` per IPC command), `core.motion` (AGS moves content, Hyprland fades the layer).
 

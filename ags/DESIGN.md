@@ -139,3 +139,5 @@ Text entries use `@include field`: a translucent `rgba($surface, .5)` fill, so t
   - Put `visible` last on a layer window. Set before `layer`, the surface maps on Astal's default layer (TOP) first.
   - Hidden buttons must not be focusable. An invisible remove badge that has focus will take a stray Space.
   - Never run two `ags run` at once: they share `/run/user/$UID/ags.js`.
+  - Map order doesn't decide which of two OVERLAY layers is on top (a surface GTK already created keeps its place). Use Hyprland's `order` layer rule, where a *lower* order is nearer the top: `shotmenu` has `order = -1` so the screenshot toolbar stays above `shot`.
+  - A layer with keymode EXCLUSIVE takes the pointer from every other layer, whatever their order. A full-screen overlay that sits under another clickable layer (`shot`) uses ON_DEMAND, which still takes focus when it maps.
