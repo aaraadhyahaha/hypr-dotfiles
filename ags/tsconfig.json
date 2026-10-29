@@ -6,6 +6,9 @@
     "target": "ES2020",
     "lib": ["ES2023"],
     "moduleResolution": "Bundler",
+    // node --test runs the *Model.ts files directly, so a model importing another needs the .ts
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     // "checkJs": true,
     // "allowJs": true,
     "jsx": "react-jsx",

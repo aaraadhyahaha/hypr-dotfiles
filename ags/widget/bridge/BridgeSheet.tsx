@@ -257,7 +257,7 @@ function build(): Sheet {
             <entry
               $={(self) => {
                 line2 = self as Gtk.Entry
-                follow(self, 2)
+                follow(line2, 2)
               }}
               class="bridge-line2"
               placeholderText="half a sentence, if you have one"
