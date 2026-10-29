@@ -79,8 +79,8 @@ export function Heatmap() {
       }
     },
     {
-      widthRequest: WIDTH,
-      heightRequest: Math.round(HEAT_ROWS * heatCell(WIDTH) + (HEAT_ROWS - 1) * GAP),
+      contentWidth: WIDTH,
+      contentHeight: Math.round(HEAT_ROWS * heatCell(WIDTH) + (HEAT_ROWS - 1) * GAP),
       hexpand: true,
       vexpand: false,
     },

@@ -89,6 +89,13 @@ const Canvas = GObject.registerClass(
   { GTypeName: "AgsCanvas" },
   class Canvas extends Gtk.Widget {
     declare _paint: Paint | null
+    _content = [0, 0]
+
+    // like DrawingArea's content-width/height: the content box, so CSS margin/padding add to it
+    vfunc_measure(orientation: Gtk.Orientation): [number, number, number, number] {
+      const n = this._content[orientation === Gtk.Orientation.HORIZONTAL ? 0 : 1]
+      return [n, n, -1, -1]
+    }
 
     vfunc_snapshot(s: Gtk.Snapshot) {
       const w = this.get_width()
@@ -102,9 +109,12 @@ const Canvas = GObject.registerClass(
 )
 
 // a widget that redraws with `draw` on queue_draw and whose colour is its CSS classes' `color`
-export function canvas(cls: string, draw: Paint, props: Partial<Gtk.Widget.ConstructorProps> = {}) {
+type CanvasProps = Partial<Gtk.Widget.ConstructorProps> & { contentWidth?: number; contentHeight?: number }
+
+export function canvas(cls: string, draw: Paint, { contentWidth = 0, contentHeight = 0, ...props }: CanvasProps = {}) {
   const area = new Canvas({ hexpand: true, vexpand: true, ...props })
   area._paint = draw
+  area._content = [contentWidth, contentHeight]
   for (const c of cls.split(" ").filter(Boolean)) area.add_css_class(c)
   return area
 }

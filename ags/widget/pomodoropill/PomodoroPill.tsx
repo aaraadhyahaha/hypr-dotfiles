@@ -37,8 +37,8 @@ const ring =
 
 function Ring({ size, line, tick }: { size: number; line: number; tick: boolean }) {
   const self = canvas("", ring(line), {
-    widthRequest: size,
-    heightRequest: size,
+    contentWidth: size,
+    contentHeight: size,
     hexpand: false,
     vexpand: false,
     halign: Gtk.Align.CENTER,
