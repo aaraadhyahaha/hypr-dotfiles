@@ -154,7 +154,7 @@ class Pomodoro {
         if (this.state.running) return
         this.endAt = GLib.get_monotonic_time() + this.state.remaining * 1_000_000
         this.state.running = true
-        this.source = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 250, () => this.tick())
+        this.schedule()
         this.persist()
         this.emit()
     }
@@ -260,10 +260,17 @@ class Pomodoro {
         this.state.remaining = minutes * 60
     }
 
+    // wake just after the shown second turns over, instead of polling several times a second
+    private schedule(): void {
+        const us = this.endAt - GLib.get_monotonic_time()
+        const ms = Math.ceil((us % 1_000_000 || 1_000_000) / 1000) + 5
+        this.source = GLib.timeout_add(GLib.PRIORITY_DEFAULT, ms, () => this.tick())
+    }
+
     private tick(): boolean {
+        this.source = 0
         const left = Math.max(0, Math.ceil((this.endAt - GLib.get_monotonic_time()) / 1_000_000))
         if (left === 0) {
-            this.source = 0
             this.state.running = false
             this.advance(true)
             this.emit()
@@ -273,7 +280,9 @@ class Pomodoro {
             this.state.remaining = left
             this.emit()
         }
-        return GLib.SOURCE_CONTINUE
+        // a listener may have paused it during emit
+        if (this.state.running) this.schedule()
+        return GLib.SOURCE_REMOVE
     }
 
     private advance(finished: boolean): void {
