@@ -48,8 +48,12 @@ hl.layer_rule({
     ignore_alpha = 0.1,
 })
 
+-- bar and desktop only ever sit over the wallpaper (bar has an exclusive zone, desktop is on the
+-- bottom layer), so xray costs nothing visually: their blur comes from Hyprland's cached wallpaper
+-- blur instead of being recomputed each time the clock, timer or a widget redraws.
 hl.layer_rule({
     name        = "bar-blur-popups",
     match       = { namespace = "^(bar|desktop)$" },
     blur_popups = true,
+    xray        = true,
 })

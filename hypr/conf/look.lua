@@ -43,8 +43,13 @@ hl.config({
     master    = { new_status = "master" },
     scrolling = { fullscreen_on_one_column = true },
 
+    -- direct scanout for games only (2): fullscreen game frames skip compositing
+    render = { direct_scanout = 2 },
+
     misc = {
-        force_default_wallpaper = -1,
-        disable_hyprland_logo   = false,
+        -- awww paints the wallpaper; don't sample Hyprland's own logo texture beneath it
+        force_default_wallpaper  = 0,
+        disable_hyprland_logo    = true,
+        disable_splash_rendering = true,
     },
 })
