@@ -217,7 +217,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Code:** `bar/modules/Tray.tsx` — AstalTray items, hides nm-applet/network/blueman (`HIDDEN` L6), left-click activate, right-click menu. **Style:** `_bar.scss` (`.tray`), menus `_popovers.scss` L26–36.
 
 ### `bar.caffeine`
-- **Code:** `bar/modules/Caffeine.tsx` — `caffeineOn()` L6 (`pgrep hypridle`) and `setCaffeine(awake)` L11 (kill/start hypridle) are exported for the launcher; the button polls and toggles with them. **Style:** `_bar.scss` L222–226.
+- **Code:** `bar/modules/Caffeine.tsx` — module-level `awake` state L7, shared with the launcher through the exported `caffeineOn()` L10 (`pgrep hypridle`, updates the state) and `setCaffeine(awake)` L19 (sets the state at once, kills/starts hypridle). The button re-checks every 30s (`watch` L26) to catch hypridle changed elsewhere; no per-second poll. **Style:** `_bar.scss` L222–226.
 
 ### `bar.power` — power menu
 - **Code:** `bar/modules/Power.tsx` — `POWER` (Lock/Suspend/Log out/Restart/Shut down: icon, text, menu key, cmd, danger) L12–18 and `runPower(op)` L20, shared with the launcher; `openPowerMenu` export (used by CC header) L9; live key shortcuts in the menu below. **Style:** `_popovers.scss` L37–75.

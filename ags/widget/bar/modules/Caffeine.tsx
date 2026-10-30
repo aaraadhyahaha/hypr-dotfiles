@@ -1,23 +1,40 @@
-import { createPoll } from "ags/time"
+import GLib from "gi://GLib"
+import { createState } from "ags"
 import { execAsync } from "ags/process"
 import Icon from "../../common/Icon"
 
-// awake = hypridle stopped, so the screen never idles off
-export const caffeineOn = () =>
-  execAsync(["sh", "-c", "pgrep -x hypridle >/dev/null && echo 1 || echo 0"])
-    .then((s) => s.trim() === "0")
-    .catch(() => false)
+// awake = hypridle stopped, so the screen never idles off. Shared with the launcher's toggle.
+const [awake, setAwake] = createState(false)
 
-export const setCaffeine = (awake: boolean) =>
-  execAsync(["sh", "-c", awake ? "pkill -x hypridle" : "setsid hypridle >/dev/null 2>&1 &"]).catch(console.error)
+// pgrep exits non-zero when hypridle isn't running
+export const caffeineOn = () =>
+  execAsync(["pgrep", "-x", "hypridle"]).then(
+    () => false,
+    () => true,
+  ).then((a) => {
+    setAwake(a)
+    return a
+  })
+
+export const setCaffeine = (on: boolean) => {
+  setAwake(on)
+  return execAsync(["sh", "-c", on ? "pkill -x hypridle" : "setsid hypridle >/dev/null 2>&1 &"]).catch(console.error)
+}
+
+// clicks update the state directly; a slow check catches hypridle started or killed elsewhere
+let watching = false
+function watch() {
+  if (watching) return
+  watching = true
+  caffeineOn()
+  GLib.timeout_add_seconds(GLib.PRIORITY_LOW, 30, () => {
+    caffeineOn()
+    return GLib.SOURCE_CONTINUE
+  })
+}
 
 export default function Caffeine() {
-  // "1" while hypridle is running; stopping it = staying awake
-  const state = createPoll("1", 1000, [
-    "sh", "-c", "pgrep -x hypridle >/dev/null && echo 1 || echo 0",
-  ])
-  const awake = state.as((s) => s.trim() === "0")
-
+  watch()
   return (
     <button
       class={awake.as((a) => (a ? "icon-btn on" : "icon-btn"))}
