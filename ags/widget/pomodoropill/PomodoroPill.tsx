@@ -35,7 +35,9 @@ const ring =
       }
     }
 
-function Ring({ size, line, tick }: { size: number; line: number; tick: boolean }) {
+// redrawn on each state change: the timer emits once a second, and at these sizes the arc moves
+// well under a pixel per second, so per-frame redraws would look the same
+function Ring({ size, line }: { size: number; line: number }) {
   const self = canvas("", ring(line), {
     contentWidth: size,
     contentHeight: size,
@@ -45,12 +47,6 @@ function Ring({ size, line, tick }: { size: number; line: number; tick: boolean 
     valign: Gtk.Align.CENTER,
   })
   state.subscribe(() => self.queue_draw())
-  if (tick) {
-    self.add_tick_callback(() => {
-      self.queue_draw()
-      return true
-    })
-  }
   return self
 }
 
@@ -103,7 +99,7 @@ export default function PomodoroPill() {
       }}
     >
       <box spacing={6}>
-        <Ring size={16} line={2.5} tick={false} />
+        <Ring size={16} line={2.5} />
         <label class="pomo-time" label={state.as((s) => fmt(s.remaining))} />
       </box>
 
@@ -135,7 +131,7 @@ export default function PomodoroPill() {
             </box>
 
             <overlay halign={Gtk.Align.CENTER}>
-              <Ring size={150} line={7} tick={true} />
+              <Ring size={150} line={7} />
               <label
                 $type="overlay"
                 class="pomo-big"
