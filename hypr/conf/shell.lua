@@ -14,7 +14,7 @@ hl.bind(mod .. " + TAB",         ags("toggle-overview"))
 hl.bind(mod .. " + B",           ags("bridge")) -- leave tomorrow's first question now
 hl.bind("Print",                 ags("toggle-shotmenu"))
 hl.bind("SHIFT + Print",         ags("screenshot-full"))
-hl.bind(mod .. " + SHIFT + R",   hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; cd ~/.config/ags && setsid ags run'"))
+hl.bind(mod .. " + SHIFT + R",   hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; setsid ~/.config/hypr/scripts/ags-run.sh'"))
 
 -- Brightness keys drive the OSD
 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -n1 set 5%+ && ags request osd-brightness"), { locked = true, repeating = true })
