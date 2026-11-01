@@ -7,6 +7,7 @@ local terminal = "kitty"
 -- Apps & session
 hl.bind(mod .. " + Q", hl.dsp.exec_cmd(terminal))
 hl.bind(mod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
+hl.bind(mod .. " + T", hl.dsp.exec_cmd("slate toggle")) -- slate todo overlay (daemon: systemd slate.service)
 hl.bind(mod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 
 -- Window state
