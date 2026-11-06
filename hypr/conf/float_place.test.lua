@@ -1,8 +1,9 @@
 -- Tests for conf/float_place.lua. Run from ~/.config/hypr: lua conf/float_place.test.lua
 
-local place = dofile("conf/float_place.lua").place
+local float_place = dofile("conf/float_place.lua")
+local place, restore = float_place.place, float_place.restore
 
-local RATIOS, GAP = { 0.6, 0.45, 0.33 }, 12
+local RATIOS, GAP = { 0.75, 0.6, 0.45, 0.33 }, 12
 -- Usable area of eDP-1 at scale 1.5 (1280x720 logical) minus the 48px bar and 12px gaps.
 local AREA = { x = 12, y = 60, w = 1256, h = 648 }
 
@@ -25,9 +26,9 @@ local function test(name, fn)
     if not ok then os.exit(1) end
 end
 
-test("empty workspace -> centered at 60%", function()
+test("empty workspace -> centered at 75%", function()
     local r = place(AREA, {}, RATIOS, GAP)
-    local w, h = size_of(0.6)
+    local w, h = size_of(0.75)
     assert(r.w == w and r.h == h, "size " .. r.w .. "x" .. r.h)
     assert(r.x == math.floor(AREA.x + (AREA.w - w) / 2), "x " .. r.x)
     assert(r.y == math.floor(AREA.y + (AREA.h - h) / 2), "y " .. r.y)
@@ -42,8 +43,8 @@ test("one float on the left -> new one clear of it, inside the area", function()
     assert(r.w >= w, "shrunk although a 45% spot was free")
 end)
 
-test("one centered 60% float -> clear of it or the 33% fallback, inside the area", function()
-    local w, h = size_of(0.6)
+test("one centered 75% float -> clear of it or the 33% fallback, inside the area", function()
+    local w, h = size_of(0.75)
     local other = { x = math.floor(AREA.x + (AREA.w - w) / 2), y = math.floor(AREA.y + (AREA.h - h) / 2), w = w, h = h }
     local r = place(AREA, { other }, RATIOS, GAP)
     assert(inside(r, AREA), "outside area")
@@ -75,4 +76,34 @@ test("fully covered area -> 33% size at least-overlap position, inside the area"
     local w, h = size_of(0.33)
     assert(r.w == w and r.h == h, "size " .. r.w .. "x" .. r.h)
     assert(inside(r, AREA), "outside area")
+end)
+
+test("restore: nothing in the way -> exactly the saved rect", function()
+    local saved = { x = 300, y = 200, w = 700, h = 400 }
+    local r = restore(AREA, {}, saved, GAP)
+    assert(r.x == 300 and r.y == 200 and r.w == 700 and r.h == 400, "got " .. r.x .. "," .. r.y)
+end)
+
+test("restore: saved spot taken -> same size, clear of it, inside the area", function()
+    local saved = { x = AREA.x, y = AREA.y, w = 500, h = 400 }
+    local r = restore(AREA, { saved }, saved, GAP)
+    assert(r.w == 500 and r.h == 400, "size changed")
+    assert(inside(r, AREA), "outside area")
+    assert(clear(r, saved, GAP), "overlaps the other float")
+end)
+
+test("restore: saved rect off the area -> pulled back inside at the same size", function()
+    local r = restore(AREA, {}, { x = 5000, y = -50, w = 500, h = 400 }, GAP)
+    assert(r.w == 500 and r.h == 400, "size changed")
+    assert(inside(r, AREA), "outside area")
+end)
+
+test("restore: bigger than the area -> shrunk to fit", function()
+    local r = restore(AREA, {}, { x = 0, y = 0, w = 5000, h = 5000 }, GAP)
+    assert(r.w == AREA.w and r.h == AREA.h and r.x == AREA.x and r.y == AREA.y, "got " .. r.w .. "x" .. r.h)
+end)
+
+test("restore: no clear spot at the saved size -> nil", function()
+    local big = { x = AREA.x, y = AREA.y, w = AREA.w, h = AREA.h }
+    assert(restore(AREA, { big }, { x = 100, y = 100, w = 500, h = 400 }, GAP) == nil)
 end)

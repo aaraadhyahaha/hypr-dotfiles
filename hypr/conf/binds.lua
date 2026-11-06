@@ -15,37 +15,92 @@ hl.bind(mod .. " + C", hl.dsp.window.close())
 hl.bind(mod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mod .. " + J", hl.dsp.layout("togglesplit")) -- dwindle only
 
--- Toggle float; a window that becomes floating is placed in free space beside the other floats on
--- its workspace (60%, shrinking to 45% / 33% of the usable area; least overlap if nothing fits).
--- Existing floats never move. Placement logic: conf/float_place.lua.
+-- Toggle float. A window that becomes floating gets the size and spot remembered for its class, or
+-- else is placed in free space beside the other floats on its workspace (75%, shrinking to 60% / 45%
+-- / 33% of the usable area; least overlap if nothing fits). Existing floats never move.
+-- Placement logic: conf/float_place.lua. Memory format: conf/float_memory.lua.
 -- Monitor size is in pixels and window size/position is logical, hence the divide by scale.
-local float_place = require("conf.float_place")
+local float_place  = require("conf.float_place")
+local float_memory = require("conf.float_memory")
+
+local memory_path = os.getenv("HOME") .. "/.local/state/hypr-float-memory.tsv"
+local memory      = float_memory.load(memory_path)
+-- Only Super+V floats are remembered: dialogs float on their own and share their app's class.
+-- A tag, since it outlives a config reload, which wipes this file's locals.
+local memory_tag  = "float-memory"
+local placed      = {} -- address -> rect it last had, so only real changes reach the memory
+local float_ratios = { 0.75, 0.6, 0.45, 0.33 }
+
+local function usable_area(mon)
+    local res, gaps = mon.reserved, hl.get_config("general.gaps_out")
+    return {
+        x = mon.x + res.left + gaps.left,
+        y = mon.y + res.top + gaps.top,
+        w = mon.width / mon.scale - res.left - res.right - gaps.left - gaps.right,
+        h = mon.height / mon.scale - res.top - res.bottom - gaps.top - gaps.bottom,
+    }
+end
+
+local function rect_of(win)
+    return { x = win.at.x, y = win.at.y, w = win.size.x, h = win.size.y }
+end
+
+local function same_rect(a, b)
+    return math.abs(a.x - b.x) <= 1 and math.abs(a.y - b.y) <= 1
+        and math.abs(a.w - b.w) <= 1 and math.abs(a.h - b.h) <= 1
+end
+
+local function has_memory_tag(win)
+    for _, tag in ipairs(win.tags) do
+        if tag == memory_tag then return true end
+    end
+    return false
+end
+
+local function remember(win)
+    if not (win and win.floating and win.fullscreen == 0 and win.class ~= "" and has_memory_tag(win)) then return end
+    local mon, rect = win.monitor, rect_of(win)
+    if not mon or (placed[win.address] and same_rect(placed[win.address], rect)) then return end
+    placed[win.address] = rect
+    memory[win.class] = float_memory.to_entry(usable_area(mon), rect)
+    float_memory.save(memory_path, memory)
+end
+
 hl.bind(mod .. " + V", function()
+    remember(hl.get_active_window()) -- about to tile: its floating rect is gone after the toggle
     hl.dispatch(hl.dsp.window.float({ action = "toggle" }))
     local win = hl.get_active_window()
     if not (win and win.floating) then return end
     local mon = win.monitor or hl.get_active_monitor()
     if not mon then return end
 
-    local res, gaps = mon.reserved, hl.get_config("general.gaps_out")
-    local area = {
-        x = mon.x + res.left + gaps.left,
-        y = mon.y + res.top + gaps.top,
-        w = mon.width / mon.scale - res.left - res.right - gaps.left - gaps.right,
-        h = mon.height / mon.scale - res.top - res.bottom - gaps.top - gaps.bottom,
-    }
-
+    local area, gap = usable_area(mon), hl.get_config("general.gaps_out").top
     local ws, others = win.workspace and win.workspace.id, {}
     for _, o in ipairs(hl.get_windows({ floating = true })) do
         if o.address ~= win.address and o.workspace and o.workspace.id == ws
             and o.mapped and not o.hidden and o.fullscreen == 0 then
-            others[#others + 1] = { x = o.at.x, y = o.at.y, w = o.size.x, h = o.size.y }
+            others[#others + 1] = rect_of(o)
         end
     end
 
-    local r = float_place.place(area, others, { 0.6, 0.45, 0.33 }, gaps.top)
+    local entry = memory[win.class]
+    local r = entry and float_place.restore(area, others, float_memory.to_rect(area, entry), gap)
+        or float_place.place(area, others, float_ratios, gap)
     hl.dispatch(hl.dsp.window.resize({ x = r.w, y = r.h }))
     hl.dispatch(hl.dsp.window.move({ x = r.x, y = r.y }))
+    hl.dispatch(hl.dsp.window.tag({ tag = "+" .. memory_tag }))
+    placed[win.address] = r
+end)
+
+-- Moves and resizes have no event, so a float is saved when it loses focus or closes.
+local focused
+hl.on("window.active", function(win)
+    if focused then remember(hl.get_window("address:" .. focused)) end
+    focused = win and win.address
+end)
+hl.on("window.close", function(win)
+    remember(win)
+    placed[win.address] = nil
 end)
 
 -- Focus

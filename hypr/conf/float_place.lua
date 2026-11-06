@@ -58,22 +58,29 @@ local function center_dist(area, r)
     return dx * dx + dy * dy
 end
 
+-- The rect clear of every other rect that scores lowest on dist, or nil if none is clear.
+local function nearest_clear(rects, others, gap, dist)
+    local best, best_dist
+    for _, r in ipairs(rects) do
+        local clear = true
+        for _, o in ipairs(others) do
+            if intersects(r, o, gap) then clear = false break end
+        end
+        if clear then
+            local d = dist(r)
+            if not best or d < best_dist then best, best_dist = r, d end
+        end
+    end
+    return best
+end
+
 -- Clear spot nearest the area center for the largest ratio that has one;
 -- otherwise the smallest ratio at the position with the least total overlap.
 local function place(area, others, ratios, gap)
+    local function from_center(r) return center_dist(area, r) end
     for _, ratio in ipairs(ratios) do
         local w, h = math.floor(area.w * ratio), math.floor(area.h * ratio)
-        local best, best_dist
-        for _, r in ipairs(candidates(area, others, w, h, gap)) do
-            local clear = true
-            for _, o in ipairs(others) do
-                if intersects(r, o, gap) then clear = false break end
-            end
-            if clear then
-                local d = center_dist(area, r)
-                if not best or d < best_dist then best, best_dist = r, d end
-            end
-        end
+        local best = nearest_clear(candidates(area, others, w, h, gap), others, gap, from_center)
         if best then return best end
     end
 
@@ -91,4 +98,18 @@ local function place(area, others, ratios, gap)
     return best
 end
 
-return { place = place }
+-- A remembered rect at its own spot, or the clear spot nearest it at the same size, kept inside the
+-- area. nil if the size has no clear spot, so the caller falls back to place().
+local function restore(area, others, saved, gap)
+    local w, h = math.min(saved.w, math.floor(area.w)), math.min(saved.h, math.floor(area.h))
+    local x = math.floor(clamp(saved.x, area.x, area.x + area.w - w))
+    local y = math.floor(clamp(saved.y, area.y, area.y + area.h - h))
+    local rects = candidates(area, others, w, h, gap)
+    table.insert(rects, 1, { x = x, y = y, w = w, h = h })
+    return nearest_clear(rects, others, gap, function(r)
+        local dx, dy = r.x - x, r.y - y
+        return dx * dx + dy * dy
+    end)
+end
+
+return { place = place, restore = restore }
