@@ -1,7 +1,8 @@
 {
   "type": "module",
   "scripts": {
-    "test": "node --test 'widget/**/*.test.ts' 'service/**/*.test.ts'"
+    "test": "node --test 'widget/**/*.test.ts' 'service/**/*.test.ts'",
+    "motion": "node scripts/motion.ts"
   },
   "dependencies": {
     "ags": "*",

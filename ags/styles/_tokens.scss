@@ -1,5 +1,7 @@
 @use "sass:color";
 @use "../colors" as *;
+// motion ($ease-*, $dur-*): generated from widget/common/motionTokens.ts by `npm run motion`
+@forward "motion";
 
 // fonts
 $font: "SF Pro Text", sans-serif;
@@ -43,18 +45,9 @@ $font-size-7xl: 32px;
 $font-size-date: 22px;
 $font-size-pomo: 34px;
 
-// motion — mirrored in widget/common/motion.ts (MOTION, EASE).
-// Hyprland fades every AGS layer and popup (blur and tint together); AGS moves content.
-// CSS here only covers state: hover, press, colour, the workspace pip, window title.
-$ease: cubic-bezier(0.25, 0.1, 0.25, 1); // state changes
-$ease-out: cubic-bezier(0.16, 1, 0.3, 1); // arrivals: fast, then a long quiet settle
-$ease-in: cubic-bezier(0.4, 0, 1, 1); // departures
-$dur-fast: 90ms; // hover, press, colour
-$dur: 160ms; // routine state change
-$dur-enter: 260ms; // geometry settling in
-$dur-exit: 140ms; // geometry leaving
-$dur-lift: 70ms; // the corner note picked up
-$dur-swoop: 200ms; // the corner note thrown off
+// motion: $ease, $ease-out, $ease-in, $dur-fast, $dur, $dur-enter, $dur-exit, … come from the
+// generated _motion.scss (forwarded above). Hyprland fades every AGS layer and popup (blur and tint
+// together); AGS moves content. CSS only covers state: hover, press, colour, the workspace pip, window title.
 
 // state layers (M3): overlay alpha of on-surface over a container
 $state-hover: 0.08;

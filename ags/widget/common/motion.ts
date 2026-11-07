@@ -2,6 +2,7 @@ import GObject from "gi://GObject"
 import GLib from "gi://GLib"
 import Graphene from "gi://Graphene"
 import { Gtk } from "ags/gtk4"
+import { CURVES, DURATIONS } from "./motionTokens"
 
 // Motion model (see DESIGN.md › Motion):
 // - Hyprland owns opacity of every AGS layer and popup, so the blur behind a panel
@@ -10,8 +11,9 @@ import { Gtk } from "ags/gtk4"
 //   driven by the frame clock. No relayout, no CSS-animation start races, interruptible.
 // - Surfaces leave by hiding at once; the compositor fades the last frame out.
 
-// durations in ms, mirrored by the SCSS tokens in styles/_tokens.scss; paced to Hyprland's 130–180ms layer/popup fades
-export const MOTION = { fast: 90, base: 160, enter: 260, exit: 140, slide: 320, lift: 70, swoop: 200 }
+// durations in ms. Defined once in motionTokens.ts, which also generates the SCSS $dur-* tokens
+// and Hyprland's layer and popup fades (`npm run motion`)
+export const MOTION = DURATIONS
 
 // how long Hyprland's fade-out keeps a hidden layer on screen: wait this long before a
 // capture so the panel that started it isn't in the shot
@@ -48,15 +50,16 @@ function bezier(x1: number, y1: number, x2: number, y2: number): Ease {
   }
 }
 
-// same curves as $ease / $ease-out / $ease-in
+// the same curves as $ease / $ease-out / $ease-in / … and Hyprland's (all from motionTokens.ts)
+const curve = (c: readonly [number, number, number, number]) => bezier(...c)
 export const EASE = {
-  standard: bezier(0.25, 0.1, 0.25, 1),
-  out: bezier(0.16, 1, 0.3, 1), // fast arrival, long quiet settle
-  in: bezier(0.4, 0, 1, 1),
+  standard: curve(CURVES.standard),
+  out: curve(CURVES.out), // fast arrival, long quiet settle
+  in: curve(CURVES.in),
   // the corner note: overshoots past rest, then settles (the one exception to "no bounce")
-  back: bezier(0.34, 1.56, 0.64, 1),
-  lift: bezier(0.2, 0, 0, 1), // a quick pick-up
-  swoop: bezier(0.55, 0, 1, 0.45), // gathers speed until it's gone
+  back: curve(CURVES.back),
+  lift: curve(CURVES.lift), // a quick pick-up
+  swoop: curve(CURVES.swoop), // gathers speed until it's gone
 }
 
 // offset from rest: px translation, fx = fraction of own width, scale, opacity;
@@ -197,8 +200,9 @@ export type Motion = InstanceType<typeof Motion>
 export const ENTER = {
   // centred cards: settle from slightly small
   card: { from: { scale: 0.96 }, duration: MOTION.enter, ease: EASE.out },
-  // bar popovers: grow down out of the bar
-  popover: { from: { y: -4, scale: 0.97 }, duration: MOTION.enter, ease: EASE.out },
+  // bar popovers: drop out of the bar. No scale: re-rasterizing their icon glyphs and text at a
+  // new fractional scale every frame cost 20–55ms per frame in the Control Center (about 33fps)
+  popover: { from: { y: -4 }, duration: MOTION.enter, ease: EASE.out },
   // OSD: rise from below
   rise: { from: { y: 14, scale: 0.97 }, duration: MOTION.enter, ease: EASE.out },
   // overview: zoom out from the desktop
