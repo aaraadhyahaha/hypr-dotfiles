@@ -15,6 +15,8 @@ hl.config({
             natural_scroll       = true,
             disable_while_typing = true,
             clickfinger_behavior = true,
+            -- Baseline for every app; per-app scroll_touchpad rules in rules.lua scale from this.
+            scroll_factor        = 1.0,
         },
     },
 })

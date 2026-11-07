@@ -34,3 +34,20 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
+
+-- Per-app scroll: each app has its own scroll physics, so the same swipe moves a different
+-- distance. These multiply input.touchpad.scroll_factor to even out distance per swipe
+-- (not momentum). Starting values; tune by feel. Mouse wheels are left alone.
+local scroll_touchpad = {
+    { name = "scroll-zen",      class = "^(zen)$",                                     factor = 0.75 },
+    { name = "scroll-electron", class = "^(com\\.microsoft\\.VSCode|md\\.obsidian\\.Obsidian)$", factor = 1.25 },
+    { name = "scroll-kitty",    class = "^(kitty)$",                                   factor = 0.6 },
+}
+
+for _, r in ipairs(scroll_touchpad) do
+    hl.window_rule({
+        name            = r.name,
+        match           = { class = r.class },
+        scroll_touchpad = r.factor,
+    })
+end
