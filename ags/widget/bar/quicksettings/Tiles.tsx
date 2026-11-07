@@ -4,7 +4,7 @@ import { Accessor, createBinding, createComputed, onCleanup } from "ags"
 import { timeout } from "ags/time"
 import AstalWp from "gi://AstalWp?version=0.1"
 import AstalNotifd from "gi://AstalNotifd?version=0.1"
-import { open, closeCC, NIGHT_K, nightOn, checkNight, toggleNight, planeOn, checkPlane, setPlane } from "./cc"
+import { open, afterOpen, closeCC, NIGHT_K, nightOn, checkNight, toggleNight, planeOn, checkPlane, setPlane } from "./cc"
 import { recording, elapsed, toggleRecording, fmtElapsed } from "../../../service/recorder"
 import { screenshotRegion } from "../../screenshot/Screenshot"
 import { LAYER_GONE } from "../../common/motion"
@@ -45,14 +45,9 @@ export default function Tiles() {
   const mic = AstalWp.get_default()!.audio.defaultMicrophone
   const micMuted = createBinding(mic, "mute")
 
-  // airplane state is re-checked on open
-  onCleanup(
-    open.subscribe(() => {
-      if (!open.get()) return
-      checkPlane()
-      checkNight()
-    }),
-  )
+  // re-checked on open: airplane from sysfs at once, night light (a pgrep) after the open motion
+  onCleanup(open.subscribe(() => open.get() && checkPlane()))
+  onCleanup(afterOpen(checkNight))
 
   const canRecord = GLib.find_program_in_path("wf-recorder") !== null
 

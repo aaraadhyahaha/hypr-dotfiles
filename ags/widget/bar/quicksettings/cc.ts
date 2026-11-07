@@ -1,6 +1,9 @@
+import GLib from "gi://GLib"
 import { Gtk } from "ags/gtk4"
 import { createState } from "ags"
 import { execAsync } from "ags/process"
+import { timeout } from "ags/time"
+import { MOTION } from "../../common/motion"
 
 // Control Center state shared by its parts and the bar pill.
 
@@ -11,6 +14,35 @@ let pop: Gtk.Popover | null = null
 export const setPopover = (p: Gtk.Popover) => (pop = p)
 export const closeCC = () => pop?.popdown()
 export const toggleCC = () => (pop?.visible ? pop.popdown() : pop?.popup())
+
+// refresh on open, but only once the open motion has played: spawning a process from this
+// 250MB process blocks for ~3ms each, and four of them before the first frame cost ~12ms.
+// Use it for state that rarely changes behind our back; read sysfs directly for the rest.
+export const afterOpen = (fn: () => void) =>
+  open.subscribe(() => open.get() && timeout(MOTION.enter, fn))
+
+// a sysfs/procfs file, trimmed; null when it can't be read
+export function readSys(path: string): string | null {
+  try {
+    const [ok, bytes] = GLib.file_get_contents(path)
+    return ok ? new TextDecoder().decode(bytes).trim() : null
+  } catch {
+    return null
+  }
+}
+
+// entries of a directory, sorted; [] when it doesn't exist
+export function listDir(path: string): string[] {
+  try {
+    const dir = GLib.Dir.open(path, 0)
+    const names: string[] = []
+    for (let n = dir.read_name(); n !== null; n = dir.read_name()) names.push(n)
+    dir.close()
+    return names.sort()
+  } catch {
+    return []
+  }
+}
 
 // the popover shows the Control Center or one of its panels (a chevron swaps them);
 // closing always returns to the Control Center
@@ -46,13 +78,11 @@ export const toggleNight = () => setNight(!nightOn.get())
 
 checkNight()
 
-// airplane = every radio soft-blocked
+// airplane = every radio soft-blocked (read from sysfs: cheap enough to run as the CC opens)
 export const [planeOn, setPlaneOn] = createState(false)
 
 export const checkPlane = () =>
-  run(["sh", "-c", "rfkill list | grep -q 'Soft blocked: no' && echo 0 || echo 1"]).then((o) =>
-    setPlaneOn(o.trim() === "1"),
-  )
+  setPlaneOn(listDir("/sys/class/rfkill").every((d) => readSys(`/sys/class/rfkill/${d}/soft`) !== "0"))
 
 export function setPlane(on: boolean) {
   setPlaneOn(on)

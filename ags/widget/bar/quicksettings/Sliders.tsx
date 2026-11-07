@@ -1,7 +1,8 @@
+import GLib from "gi://GLib"
 import { Gtk } from "ags/gtk4"
 import { Accessor, createBinding, createState, onCleanup } from "ags"
 import AstalWp from "gi://AstalWp?version=0.1"
-import { open, run, setPage } from "./cc"
+import { open, run, setPage, readSys, listDir } from "./cc"
 import Icon from "../../common/Icon"
 import { volumeIcon } from "../../common/icons"
 
@@ -60,12 +61,16 @@ function Volume() {
   )
 }
 
-// backlight level 0..100, or null without a backlight (or brightnessctl)
-export const readBrightness = () =>
-  run(["sh", "-c", "brightnessctl -m -c backlight | cut -d, -f4 | tr -d %"]).then((o) => {
-    const n = Number(o.trim())
-    return o.trim() !== "" && Number.isFinite(n) ? n : null
-  })
+// backlight level 0..100, or null without a backlight (or brightnessctl, which sets it).
+// Read from sysfs, as brightnessctl does, so the CC can read it as it opens without spawning.
+const hasBrightnessctl = GLib.find_program_in_path("brightnessctl") !== null
+export const readBrightness = async (): Promise<number | null> => {
+  const dev = listDir("/sys/class/backlight")[0]
+  if (!hasBrightnessctl || !dev) return null
+  const cur = Number(readSys(`/sys/class/backlight/${dev}/brightness`))
+  const max = Number(readSys(`/sys/class/backlight/${dev}/max_brightness`))
+  return max > 0 && Number.isFinite(cur) ? Math.round((cur * 100) / max) : null
+}
 
 // never 0: a black screen can't be turned back up by eye
 export const setBrightness = (pct: number) =>
