@@ -117,11 +117,34 @@ const LIST_H = 380
 const RECENT_MAX = 200
 // a row's identity across re-renders (two files can share a name)
 const idOf = (a?: Item) => a?.preview ?? a?.name
+// call `changed` (debounced) when a .desktop file is added, removed or edited in any XDG
+// applications dir; the monitors live as long as the shell, so they're kept here from GC
+const appMonitors: Gio.FileMonitor[] = []
+function watchApps(changed: () => void) {
+    let pending: ReturnType<typeof timeout> | null = null
+    const dirs = [GLib.get_user_data_dir(), ...GLib.get_system_data_dirs()].map((d) => `${d}/applications`)
+    for (const dir of new Set(dirs)) {
+        if (!GLib.file_test(dir, GLib.FileTest.IS_DIR)) continue
+        const mon = Gio.File.new_for_path(dir).monitor_directory(Gio.FileMonitorFlags.WATCH_MOVES, null)
+        mon.connect("changed", () => {
+            // an install touches many files at once: rescan once it settles
+            pending?.cancel()
+            pending = timeout(500, () => { pending = null; changed() })
+        })
+        appMonitors.push(mon)
+    }
+}
+
 let toggleFn = (_prefill?: string) => { }
 export const toggleLauncher = (prefill?: string) => toggleFn(prefill)
 
 export default function Launcher() {
     const apps = new Apps.Apps()
+    // rescan .desktop files only when one changes, not on every open (~5ms before the first frame)
+    watchApps(() => {
+        apps.reload()
+        if (win?.visible && mode === "apps") search(idOf(results[sel]) ?? "")
+    })
     let win: Astal.Window
     let motion: Motion
     let list: Gtk.Box
@@ -191,8 +214,17 @@ export default function Launcher() {
         }
     }
 
+    // work after the open motion (see `open`); cancelled if the launcher closes first.
+    // Read the quick actions' state once now, so the first open has it too
+    let settle: ReturnType<typeof timeout> | null = null
+    refreshActions()
+
     // hiding is instant; Hyprland fades the last frame out
-    const close = () => (win.visible = false)
+    const close = () => {
+        settle?.cancel()
+        settle = null
+        win.visible = false
+    }
 
     const setSel = (i: number) => {
         if (!rows.length) return
@@ -490,12 +522,17 @@ export default function Launcher() {
         fxFetched = false
         recent = null
         indexed = false
-        apps.reload()
-        refreshActions()
         setQuery(prefill, false)
         motion.animate(ENTER.card)
         win.visible = true
         entry.grab_focus()
+        // refreshing the quick actions' state spawns processes (~10ms), which the first frame
+        // doesn't need: it waits out the open motion, and until then rows use the last state
+        settle?.cancel()
+        settle = timeout(MOTION.enter, () => {
+            settle = null
+            refreshActions()
+        })
     }
 
     toggleFn = (prefill) => (win.visible ? close() : open(prefill))
