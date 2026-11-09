@@ -65,5 +65,20 @@
     "id": "H",
     "label": "H · A + SF Pro Display from 20 px",
     "display_from": 20
+  },
+  {
+    "id": "I",
+    "label": "I · H + the font's own tracking (trak)",
+    "display_from": 20,
+    "tracking": "trak"
+  },
+  {
+    "id": "J",
+    "label": "J · I with unhinted metrics",
+    "display_from": 20,
+    "tracking": "trak",
+    "gtk": {
+      "hint_metrics": false
+    }
   }
 ]

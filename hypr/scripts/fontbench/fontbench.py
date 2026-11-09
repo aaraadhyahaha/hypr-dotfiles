@@ -51,9 +51,47 @@ STRIP = ("light", 12, 400, "sans", "Dark on light: The quick brown fox jumps ove
 FAMILIES = {"sans": "SF Pro Text", "mono": "JetBrainsMono Nerd Font"}
 # config "display_from": N switches sans lines of N px and up to the Display cut (macOS: 20 pt)
 DISPLAY = "SF Pro Display"
+# config "tracking": "trak" applies the font's own size-dependent tracking (see trak_spacing)
+FC_WEIGHT = {400: "regular", 500: "medium", 600: "semibold", 700: "bold"}
+WIDTH_LINES = ("row", "body", "caption", "date")
 ZOOM_LINES = ("body", "caption")
 ZOOM_W, ZOOM_X = 120, 6  # first 120 device px of each zoom line, at 6x
 GAP = 16
+
+
+def trak_spacing(family, weight, px):
+    """Letter-spacing (px) that CoreText adds at this size: the normal track of the font's
+    AAT `trak` table, linearly interpolated between its sizes. SF Pro carries one, but
+    Pango/HarfBuzz ignore `trak` in OpenType fonts, so on Linux it never applies."""
+    import struct
+
+    file = subprocess.check_output(["fc-match", "-f", "%{file}", f"{family}:{FC_WEIGHT.get(weight, 'regular')}"], text=True)
+    b = Path(file).read_bytes()
+    tables = {b[12 + 16 * i : 16 + 16 * i]: struct.unpack(">I", b[20 + 16 * i : 24 + 16 * i])[0]
+              for i in range(struct.unpack(">H", b[4:6])[0])}
+    if b"trak" not in tables:
+        return 0.0
+    upem = struct.unpack(">H", b[tables[b"head"] + 18 : tables[b"head"] + 20])[0]
+    o = tables[b"trak"]
+    h = o + struct.unpack(">H", b[o + 6 : o + 8])[0]
+    ntracks, nsizes, size_off = struct.unpack(">HHI", b[h : h + 8])
+    sizes = [struct.unpack(">i", b[o + size_off + 4 * i : o + size_off + 4 * i + 4])[0] / 65536 for i in range(nsizes)]
+    for i in range(ntracks):
+        track, _, off = struct.unpack(">iHH", b[h + 8 + 8 * i : h + 16 + 8 * i])
+        if track == 0:
+            vals = [struct.unpack(">h", b[o + off + 2 * j : o + off + 2 * j + 2])[0] for j in range(nsizes)]
+            break
+    else:
+        return 0.0
+    if px <= sizes[0]:
+        v = vals[0]
+    elif px >= sizes[-1]:
+        v = vals[-1]
+    else:
+        j = next(j for j in range(1, nsizes) if sizes[j] >= px)
+        f = (px - sizes[j - 1]) / (sizes[j] - sizes[j - 1])
+        v = vals[j - 1] + f * (vals[j] - vals[j - 1])
+    return v / upem * px
 
 
 def theme_colors():
@@ -97,7 +135,11 @@ def probe(spec):
     display_from = spec.get("display_from", float("inf"))
     for sid, px, weight, fam, _ in SAMPLES + [STRIP]:
         family = DISPLAY if fam == "sans" and px * k >= display_from else FAMILIES[fam]
-        css.append(f".s-{sid} {{ font-family: '{family}'; font-size: {px * k:g}px; font-weight: {weight}; }}")
+        track = trak_spacing(family, weight, px * k) if spec.get("tracking") == "trak" and fam == "sans" else 0
+        css.append(
+            f".s-{sid} {{ font-family: '{family}'; font-size: {px * k:g}px; font-weight: {weight}; "
+            f"letter-spacing: {track:.3f}px; }}"
+        )
     provider = Gtk.CssProvider()
     provider.load_from_string("\n".join(css))
     win = Gtk.Window(decorated=False)
@@ -117,7 +159,8 @@ def probe(spec):
             LS.set_monitor(win, monitors.get_item(i))
 
     def label(text, cls):
-        lbl = Gtk.Label(label=text, xalign=0)
+        # START, not fill: the bounds are the text's own width, which the report measures
+        lbl = Gtk.Label(label=text, xalign=0, halign=Gtk.Align.START)
         lbl.add_css_class(cls)
         return lbl
 
@@ -189,6 +232,18 @@ def probe(spec):
 # ---------------------------------------------------------------- runner
 
 
+def login_env():
+    """Variables from ~/.config/environment.d, as a fresh login has them: card A must show
+    the system default even when the bench runs from a shell older than those files."""
+    env = {}
+    for conf in sorted((Path.home() / ".config/environment.d").glob("*.conf")):
+        for line in conf.read_text().splitlines():
+            m = re.match(r"\s*([A-Za-z_]\w*)=(.*)", line)
+            if m:
+                env[m[1]] = m[2].strip().strip('"').strip("'")
+    return env
+
+
 def focused_monitor():
     mons = json.loads(subprocess.check_output(["hyprctl", "monitors", "-j"]))
     return next((m for m in mons if m.get("focused")), mons[0])
@@ -258,7 +313,7 @@ def run(args):
     try:
         for i, cfg in enumerate(configs):
             x, y = GAP + (i % cols) * (w + GAP), GAP + (i // cols) * (h + GAP)
-            env = dict(os.environ, **cfg.get("env", {}))
+            env = {**os.environ, **login_env(), **cfg.get("env", {})}
             env["LD_PRELOAD"] = ":".join(filter(None, [LAYER_SHELL_LIB, env.get("LD_PRELOAD")]))
             if cfg.get("fc", {}).get("autohint"):
                 conf = tmp / f"fonts-{cfg['id']}.conf"
@@ -302,7 +357,8 @@ def run(args):
                 f"    gtk: {info['renderer']}, {info['font_rendering']}, {info['hintstyle']}, "
                 f"hint_metrics={info['hint_metrics']}\n"
                 f"    fontconfig: {fc_settings(env)}   FREETYPE_PROPERTIES={env.get('FREETYPE_PROPERTIES', '-')}\n"
-                f"    soft-edge ink {grey:6.1%}  (lower = crisper)   ink weight {ink / base_ink:5.2f}x of first card"
+                f"    soft-edge ink {grey:6.1%}  (lower = crisper)   ink weight {ink / base_ink:5.2f}x of first card\n"
+                f"    line widths: " + "  ".join(f"{sid} {info['lines'][sid][2]}" for sid in WIDTH_LINES)
             )
 
         bg, fg = colors["surface"], colors["on-surface"]
