@@ -11,6 +11,7 @@
 !/qt5ct/
 !/qt6ct/
 !/environment.d/
+!/fontconfig/
 node_modules/
 .claude/
 
