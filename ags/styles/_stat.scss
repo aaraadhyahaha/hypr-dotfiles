@@ -12,7 +12,7 @@
 }
 
 .qs-stat-name {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 600;
   color: $text-muted;
 }

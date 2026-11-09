@@ -28,7 +28,7 @@ window.Overview {
 
     label {
       color: $text-muted;
-      font-size: $font-size-base;
+      @include text-size($font-size-base);
     }
 
     &:hover {
@@ -57,7 +57,7 @@ window.Overview {
 
   .win-empty {
     color: $text-faint;
-    font-size: $font-size-lg;
+    @include text-size($font-size-lg);
   }
 
   .win {
@@ -80,7 +80,7 @@ window.Overview {
 
   .win-head {
     padding: $spacing-1 $spacing-2 $spacing-1 $spacing-3;
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     background-color: $surface-container-high;
   }
 

@@ -9,13 +9,13 @@
 }
 
 .clip-title {
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
   font-weight: 700;
   color: $text;
 }
 
 .clip-count {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   color: $text-muted;
 }
 

@@ -11,7 +11,7 @@ for screen space (they moved off 1.5). Memory: `font-crispness-goal`.
 Brainstorm, four layers:
 - **L1 rasterizer:** done.
 - **L4 assets:** done (SF Pro Display).
-- **L2 type model:** in progress (tracking measured; x-height snapping not started).
+- **L2 type model:** in progress (tracking shipped in AGS; x-height snapping not started).
 - **L3 live sync on monitor change:** not started.
 
 ## Done
@@ -29,6 +29,15 @@ Brainstorm, four layers:
   - Labels are `halign START`.
   - The bench loads `environment.d` so card A = what a fresh login gets.
   - Configs G (E without the GTK change), H (Display), I (H + trak), J (I, unhinted metrics).
+- Commit "ags(type): SF Pro's trak tracking on every text size": **trak tracking in AGS (config I):**
+  - `npm run tracking` (`ags/scripts/tracking.ts` → `widget/common/trackingModel.ts`, 7 tests in `trackingModel.test.ts`) parses the installed SF Pro `trak` tables and writes `ags/styles/_tracking.scss`: `$tracking-text`/`$tracking-display`, whole px 6–64 → letter-spacing. trak is identical at every weight, so Regular stands for each cut.
+  - `text-size()` (`_mixins.scss`) adds `letter-spacing` from the map for its cut; `@error`s outside 6–64px.
+  - 119 text `font-size:` sites across all 18 partials now use `@include text-size()`. Each partial's compiled-CSS diff added only `letter-spacing` lines (0 other changes).
+  - Left as bare `font-size`: every `.icon`/`.glyph`/`*-icon`/`.symbol`/`.pnl-row-check`/`.cc-cover-fallback`/`.dw-live-dot` rule and mono text (bridge lines, `.code`, accelerators, `.menu-key`). `.dw-count-big.glyph` restates `letter-spacing: 0`.
+  - Explicit `letter-spacing` overrides (uppercase eyebrows 0.06–0.08em, desktop clock −0.02em) come after the include and still win.
+  - Checked: Material Symbols ligatures survive letter-spacing (pango-view: the icon stays one glyph even at +2pt), so inherited tracking can't break icons.
+  - AGS restarted with it (one gjs, `FREETYPE_PROPERTIES` present, no CSS warnings). `npm test` 247/247.
+  - Docs: `ags/DESIGN.md` → "Spacing, radii, type" (rule: always `text-size()`), FEATURE_MAP `core.styles`.
 - Outside git (documented under Cleanup):
   - `~/.local/bin/ags` wrapper exports `FREETYPE_PROPERTIES`.
   - `gtk-4.0/settings.ini` has `gtk-font-rendering=manual`, `gtk-hint-font-metrics=1`, `gtk-xft-hinting=1`, `gtk-xft-hintstyle=hintslight` (file is gitignored as theme output).
@@ -42,19 +51,15 @@ Brainstorm, four layers:
 - Display without trak (what AGS ships now) is **tighter than macOS**: the date crowds at "Monday, 9". The cut assumes CoreText adds trak.
 
 ## Open bugs
-- None known.
+- None known from this work. The AGS log after restart showed one `Json-CRITICAL: json_object_get_int_member: assertion 'node != NULL'` (Json-GLib, so not CSS). Not investigated; may predate this branch.
 - Display in the desktop widgets and popovers has **not been checked by eye**: no screenshot was taken, to avoid disturbing the user's workspace.
 
 ## Remaining (in order)
-1. **Waiting on the user:** roll config I (trak tracking) into AGS. Proposed:
-   1. A generator script (like `npm run motion`) reads the `trak` tables and writes `ags/styles/_tracking.scss` (size → letter-spacing for Text and Display).
-   2. `text-size()` adds `letter-spacing` from that map.
-   3. Convert the ~150 text `font-size:` sites to `@include text-size()`, **one partial at a time**. Skip icon glyphs (`.icon`, `.symbol`, `*-glyph`, `$font-icon`, `$font-symbols`, mono). After each partial, diff compiled CSS (`sass --no-source-map style.scss`) and check on the bench.
-2. User's eye check of Display: desktop clock/calendar (Super+G), pomodoro, battery %, notification date.
-3. **L2:** `service/typeModel.ts` + test: physical PPI → per-role px sizes snapped so the x-height lands on whole device px, plus tracking and opsz. Optional: install the variable `SF-Pro.ttf` (has an `opsz` axis) and compare on the bench.
-4. **L3:** a Hyprland event listener (`monitoraddedv2`/`monitorremoved`/`configreloaded`). It re-applies AGS CSS, sets `gsettings text-scaling-factor`, and writes `Xft.dpi` (xrdb) for XWayland. Qt/Electron only pick it up on restart.
-5. Check non-GTK apps under the global autohint: Zen/Firefox, Electron (VSCode, Obsidian), Qt. Add per-font or per-app fontconfig exceptions if anything looks worse.
-6. Merging `fonts/crisp` → `main` is the user's call.
+1. **User's eye check** of Display + tracking: desktop clock/calendar (Super+G), pomodoro, battery %, notification date, and small text (bar 13px, captions 11px). Tracking is committed; revert that commit if it reads wrong.
+2. **L2:** `service/typeModel.ts` + test: physical PPI → per-role px sizes snapped so the x-height lands on whole device px, plus tracking and opsz. Optional: install the variable `SF-Pro.ttf` (has an `opsz` axis) and compare on the bench.
+3. **L3:** a Hyprland event listener (`monitoraddedv2`/`monitorremoved`/`configreloaded`). It re-applies AGS CSS, sets `gsettings text-scaling-factor`, and writes `Xft.dpi` (xrdb) for XWayland. Qt/Electron only pick it up on restart.
+4. Check non-GTK apps under the global autohint: Zen/Firefox, Electron (VSCode, Obsidian), Qt. Add per-font or per-app fontconfig exceptions if anything looks worse.
+5. Merging `fonts/crisp` → `main` is the user's call.
 
 ## How to verify
 - Bench, all configs: `~/.config/hypr/scripts/fontbench/fontbench.py`
@@ -62,7 +67,8 @@ Brainstorm, four layers:
 - Leave the cards up to judge by eye (click to close): `... --hold`
 - Output goes to `~/Pictures/fontbench/<ts>/`. Pass `--out <dir>` for scratch runs.
 - SCSS compiles: `cd ~/.config/ags && sass --no-source-map style.scss >/dev/null`
-- AGS tests (no TS changed this session): `cd ~/.config/ags && npm test`
+- AGS tests: `cd ~/.config/ags && npm test`; tracking only: `node --test widget/common/trackingModel.test.ts`
+- Regenerate tracking after a font change: `npm run tracking`, then diff compiled CSS
 - Rendering in effect:
   - `fc-match -v "SF Pro Text" | grep -E "autohint|hintstyle"` → `autohint: True`
   - `gsettings get org.gnome.desktop.interface font-rendering` → `'manual'`
@@ -70,7 +76,7 @@ Brainstorm, four layers:
 
 ## Cleanup / state
 - No temporary system state. No bench processes left running. AGS was restarted once via the Super+Shift+R command and runs a single instance.
-- Uncommitted: nothing after this commit.
+- Uncommitted: nothing. AGS log of the current instance: `$XDG_RUNTIME_DIR/ags-tracking.log`.
 - The SF Pro download lived in the session scratchpad and is gone. To re-get the variable `SF-Pro.ttf`:
   `mkdir d && cd d && curl -sSfLO https://devimages-cdn.apple.com/design/resources/download/SF-Pro.dmg && 7z x -odmg SF-Pro.dmg && 7z x -opkg dmg/SFProFonts.pkg && mkdir p && cd p && 7z x -so ../pkg/SFProFontsPackage.pkg/Payload | cpio -id` → fonts in `Library/Fonts/`.
   Apple's licence only covers Apple-platform mockups; the user knows.

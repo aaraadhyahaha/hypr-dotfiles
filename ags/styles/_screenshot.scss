@@ -25,7 +25,7 @@ window.ShotMenu > * {
 .tb {
   @include glass-panel(6px);
   border-radius: $radius-lg;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a popup's shadow room would blur into a halo
   box-shadow: none;
@@ -110,6 +110,6 @@ button.tb-capture {
   min-height: 40px;
   padding: 0 $spacing-4;
   border-radius: $radius-md;
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
   font-weight: 700;
 }

@@ -28,7 +28,7 @@ popover.dw-menu-pop>contents {
 popover.menu>contents {
   @include glass-panel($spacing-2);
   min-width: 200px - 2 * $spacing-2 - 2px;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a popup's shadow room would blur into a halo
   box-shadow: none;
@@ -76,7 +76,7 @@ popover.menu modelbutton {
 box.menu {
   @include glass-panel($spacing-2);
   min-width: 200px - 2 * $spacing-2 - 2px;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a popup's shadow room would blur into a halo
   box-shadow: none;
@@ -148,7 +148,7 @@ button.switch {
   @include glass-panel($spacing-4);
   min-width: 340px - 2 * $spacing-4 - 2px;
   // the mock's 13px body, not the 11pt system font
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // SF Pro's line box is taller than the mock's (Figtree at line-height normal ≈ 1.2):
   // pin it so rows land at the mock's height
@@ -169,12 +169,12 @@ button.switch {
 }
 
 .pnl-title {
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
   font-weight: 700;
 }
 
 .pnl-section {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 600;
   color: $text-muted;
   padding: 10px $spacing-1 $spacing-1;
@@ -197,12 +197,12 @@ button.pnl-row {
   }
 
   .pnl-row-sub {
-    font-size: $font-size-sm;
+    @include text-size($font-size-sm);
     opacity: 0.75;
   }
 
   .pnl-row-end {
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     opacity: 0.8;
   }
 
@@ -266,12 +266,12 @@ entry.pnl-field {
   min-height: 24px;
   border-radius: 6px;
   background-color: $glass-card;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 700;
 }
 
 .pnl-app-name {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 600;
 }
 
@@ -306,7 +306,7 @@ scale.pnl-app-vol {
 .batt {
   @include glass-panel($spacing-4);
   min-width: 300px - 2 * $spacing-4 - 2px;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a popup's shadow room would blur into a halo
   box-shadow: none;
@@ -348,7 +348,7 @@ progressbar.batt-track {
 button.batt-seg {
   @include interactive($radius-md);
   padding: $spacing-2 0;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 600;
 
   .icon {
@@ -361,7 +361,7 @@ button.batt-seg {
 }
 
 .batt-foot {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   color: $text-muted;
 }
 
@@ -369,7 +369,7 @@ button.batt-seg {
 .sys {
   @include glass-panel($spacing-4);
   min-width: 320px - 2 * $spacing-4 - 2px;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a popup's shadow room would blur into a halo
   box-shadow: none;
@@ -386,7 +386,7 @@ button.batt-seg {
 }
 
 .sys-cpu {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 600;
   color: $text-muted;
 }
@@ -410,7 +410,7 @@ button.batt-seg {
 }
 
 .sys-val {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   color: $text-muted;
   font-feature-settings: "tnum";
 }

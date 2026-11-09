@@ -28,13 +28,13 @@ window.Bridge {
 
 .bridge-gutter {
   min-width: $bridge-gutter;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   color: $text-faint;
 }
 
 .bridge-context {
   margin-bottom: $spacing-5;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   color: $text-muted;
 }
 
@@ -106,7 +106,7 @@ entry.bridge-line2 {
 
 .bridge-hint {
   margin: 0 0 $spacing-7 ($bridge-gutter + $bridge-gap);
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
 
   .hint-idle {
     color: $text-faint;
@@ -148,7 +148,7 @@ window.BridgeNote {
 
 .note-eyebrow {
   font-family: $font;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: rgba($on-note-paper, 0.7);

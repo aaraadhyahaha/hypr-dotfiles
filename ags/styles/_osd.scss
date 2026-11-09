@@ -12,7 +12,7 @@ window.Osd {
   padding: 10px $spacing-4;
   margin-bottom: 100px;
   min-width: 250px - 2 * $spacing-4 - 2px;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   // no shadow room around the glass: it would blur into a halo
   box-shadow: none;
 
@@ -30,7 +30,7 @@ window.Osd {
 }
 
 .osd-pct {
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
   font-weight: 700;
   font-feature-settings: "tnum";
   margin-left: $spacing-2;
@@ -39,7 +39,7 @@ window.Osd {
 // text mode: a message where the bar and value would be
 .osd-card.text .osd-pct {
   margin-left: 0;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: 600;
 }
 

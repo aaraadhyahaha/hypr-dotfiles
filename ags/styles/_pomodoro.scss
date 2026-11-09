@@ -7,7 +7,7 @@
 .pomo-card {
   @include glass-panel($spacing-4);
   min-width: 332px - 2 * $spacing-4 - 2px;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a popup's shadow room would blur into a halo
   box-shadow: none;
@@ -38,7 +38,7 @@
 
   .pomo-session {
     color: $text-faint;
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
   }
 
   .pomo-big {

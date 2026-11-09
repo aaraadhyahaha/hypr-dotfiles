@@ -7,7 +7,7 @@ window.Bar {
   transition: background-color $dur-enter $ease-out;
   color: $text;
   font-family: $font;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: 600;
   font-feature-settings: "tnum";
 }
@@ -166,7 +166,7 @@ button.ws-btn {
 // cpu / ram readout
 // (on the button: a popover is the menubutton's CSS child and would inherit it)
 menubutton.sysmini>button {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   color: $text-muted;
 }
 
@@ -178,7 +178,7 @@ menubutton.privacy>button {
   min-height: $bar-item-h;
   padding: 0 $spacing-2;
   border-radius: $radius-full;
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
 
   .rec-dot {
     min-width: 7px;
@@ -239,7 +239,7 @@ menubutton.privacy.muted>button .icon.mic {
   }
 
   .privacy-kinds {
-    font-size: $font-size-sm;
+    @include text-size($font-size-sm);
     color: $text-muted;
   }
 }
@@ -266,7 +266,7 @@ menubutton.battery.low>button {
   border-radius: $radius-full;
   background: $primary;
   color: $on-primary;
-  font-size: $font-size-xs;
+  @include text-size($font-size-xs);
   font-weight: 700;
 }
 
@@ -282,7 +282,7 @@ menubutton.pomo>button {
   transition: $transition;
 
   .pomo-time {
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     font-feature-settings: "tnum";
   }
 }

@@ -97,7 +97,7 @@ window.Desktop {
 
 .dw-ghost-size {
   color: $text-muted;
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 600;
 }
 
@@ -113,7 +113,7 @@ window.Desktop {
 .dw-size {
   @include interactive($radius-xs + 2px);
   padding: $spacing-1 0;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 700;
 
   &.on {
@@ -125,14 +125,14 @@ window.Desktop {
 
 .dw-eyebrow {
   color: $primary;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 700;
   letter-spacing: 0.06em;
 }
 
 .dw-sub {
   color: $text-muted;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
 }
 
 // ── clock ───────────────────────────────────────────────────────────────────
@@ -170,7 +170,7 @@ window.Desktop {
 
 .dw-ring-caption {
   color: $text-muted;
-  font-size: $font-size-xs;
+  @include text-size($font-size-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -187,7 +187,7 @@ window.Desktop {
 
 .dw-empty-sub {
   color: $text-muted;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
 }
 
 // severity: 5 matters most
@@ -215,12 +215,12 @@ window.Desktop {
 }
 
 .dw-task-title {
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
 }
 
 .dw-task-effort {
   color: $text-muted;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-feature-settings: "tnum";
 }
 
@@ -259,7 +259,7 @@ window.Desktop {
 }
 
 .dw-fx-now-text {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 600;
 }
 
@@ -288,16 +288,16 @@ window.Desktop {
 
 .dw-axis-label {
   color: $text-faint;
-  font-size: $font-size-xs;
+  @include text-size($font-size-xs);
   font-feature-settings: "tnum";
 }
 
 .dw-count {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
 }
 
 .dw-more {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
 }
 
 // ── calendar ────────────────────────────────────────────────────────────────
@@ -310,17 +310,17 @@ window.Desktop {
 }
 
 .dw-cal-month {
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
   font-weight: 700;
 }
 
 .dw-cal-year {
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
 }
 
 .dw-cal-weekday {
   color: $text-faint;
-  font-size: $font-size-xs;
+  @include text-size($font-size-xs);
   font-weight: 700;
 }
 
@@ -328,7 +328,7 @@ window.Desktop {
   min-width: 30px;
   min-height: 30px;
   border-radius: $radius-full;
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-feature-settings: "tnum";
 
   &.weekend {
@@ -350,14 +350,14 @@ window.Desktop {
 // ── system ──────────────────────────────────────────────────────────────────
 
 .dw-mini-val {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 600;
   font-feature-settings: "tnum";
 }
 
 .dw-mini-name {
   color: $text-muted;
-  font-size: 9px;
+  @include text-size(9px);
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -393,13 +393,13 @@ window.Desktop {
 }
 
 .dw-note-text {
-  font-size: $font-size-xl;
+  @include text-size($font-size-xl);
   caret-color: $tertiary;
 }
 
 .dw-note-hint {
   color: rgba($on-tertiary-container, 0.5);
-  font-size: $font-size-xl;
+  @include text-size($font-size-xl);
 }
 
 // ── vision ──────────────────────────────────────────────────────────────────
@@ -425,13 +425,13 @@ window.Desktop {
 }
 
 .dw-goal-title {
-  font-size: $font-size-4xl;
+  @include text-size($font-size-4xl);
   font-weight: 700;
 }
 
 .dw-goal-caption {
   color: $text-muted;
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
 }
 
 .dw-count-ring {
@@ -445,25 +445,26 @@ window.Desktop {
 
   &.glyph {
     color: $tertiary;
-    // .glyph's icon font (_base.scss) loses to text-size()'s family above: restate it
+    // .glyph's icon font (_base.scss) loses to text-size()'s family and tracking above: restate them
     font-family: $font-icon;
     font-size: 24px;
+    letter-spacing: 0;
   }
 }
 
 .dw-count-title {
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
   font-weight: 700;
 }
 
 .dw-count-title-s {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 600;
 }
 
 .dw-count-left {
   color: $tertiary;
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 600;
 }
 
@@ -475,13 +476,13 @@ window.Desktop {
 }
 
 .dw-editor-title {
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: 700;
 }
 
 .dw-field-name {
   color: $text-muted;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   font-weight: 600;
 }
 
@@ -565,14 +566,14 @@ window.Desktop {
 }
 
 .dw-gal-name {
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: 700;
   margin-left: $spacing-2;
 }
 
 .dw-gal-desc {
   color: $text-muted;
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   margin-left: $spacing-2;
 }
 

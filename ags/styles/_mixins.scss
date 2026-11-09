@@ -1,17 +1,28 @@
 @use "sass:color";
+@use "sass:map";
+@use "sass:math";
 @use "../colors" as *;
 @use "tokens" as *;
+@use "tracking" as *;
 
 $transition: color $dur-fast $ease, background-color $dur-fast $ease, border-color $dur-fast $ease,
   box-shadow $dur-fast $ease, opacity $dur-fast $ease;
 
-// Text at $size in the SF Pro cut macOS uses at that size: Display from $display-from up.
-// Text only: icon glyphs keep their own family ($font-icon, $font-symbols).
+// Text at $size as macOS sets it: the SF Pro cut for that size (Display from $display-from up)
+// and that cut's own tracking (_tracking.scss: CoreText applies the font's trak table, Pango doesn't).
+// Text only: icon glyphs keep their own family ($font-icon, $font-symbols) and no tracking.
 @mixin text-size($size) {
   font-size: $size;
+  $tracking: $tracking-text;
   @if $size >= $display-from {
     font-family: $font-display;
+    $tracking: $tracking-display;
   }
+  $track: map.get($tracking, math.round(math.div($size, 1px)));
+  @if $track == null {
+    @error "text-size(#{$size}): no tracking for this size; widen SIZES in trackingModel.ts";
+  }
+  letter-spacing: $track;
 }
 
 // strip the theme's default button chrome

@@ -14,7 +14,7 @@ window.Files {
   .card {
     @include glass-panel($spacing-2);
     min-width: 520px - 2 * $spacing-2 - 2px;
-    font-size: $font-size-lg;
+    @include text-size($font-size-lg);
     font-weight: normal;
     // same as .lnch: a layer's shadow room would blur into a halo
     box-shadow: none;
@@ -58,14 +58,14 @@ window.Files {
     }
 
     .desc {
-      font-size: $font-size-base;
+      @include text-size($font-size-base);
       opacity: 0.75;
     }
   }
 
   .empty {
     padding: $spacing-4;
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     color: $text-muted;
   }
 }
@@ -74,7 +74,7 @@ window.Files {
 .lnch {
   @include glass-panel($spacing-2);
   min-width: 520px - 2 * $spacing-2 - 2px;
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a layer's shadow room would blur into a halo
   box-shadow: none;
@@ -123,12 +123,12 @@ window.Files {
 
   .entry {
     min-height: 20px;
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     color: $text-muted;
   }
 
   .hint {
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     color: $text-faint;
   }
 
@@ -140,17 +140,17 @@ window.Files {
 
   .lnch-preview-details {
     .name {
-      font-size: $font-size-xl;
+      @include text-size($font-size-xl);
       font-weight: 700;
     }
 
     .meta {
-      font-size: $font-size-base;
+      @include text-size($font-size-base);
       color: $text-muted;
     }
 
     .where {
-      font-size: $font-size-sm;
+      @include text-size($font-size-sm);
       color: $text-faint;
     }
   }
@@ -179,12 +179,12 @@ window.Files {
     box-shadow: none;
     outline: none;
     background: none;
-    font-size: $font-size-2xl;
+    @include text-size($font-size-2xl);
   }
 }
 
 .lnch-hint {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   color: $text-faint;
 }
 
@@ -193,7 +193,7 @@ window.Files {
   margin-right: $spacing-2;
   background-color: rgba($primary, $state-selected);
   color: $primary;
-  font-size: $font-size-xs;
+  @include text-size($font-size-xs);
   font-weight: 600;
   padding: 2px $spacing-2;
   border-radius: $radius-full;
@@ -210,12 +210,12 @@ window.Files {
   transition: $transition;
 
   .name {
-    font-size: $font-size-xl;
+    @include text-size($font-size-xl);
     font-weight: 700;
   }
 
   .desc {
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     opacity: 0.75;
   }
 

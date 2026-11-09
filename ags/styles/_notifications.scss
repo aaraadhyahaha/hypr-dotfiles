@@ -57,7 +57,7 @@
   button {
     @include glass-tile($radius-sm);
     padding: $spacing-1 $spacing-3;
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     font-weight: 600;
   }
 }
@@ -65,7 +65,7 @@
 // date menu (DateMenu.tsx): 330px notifications | 1px separator | 270px calendar
 .datemenu-panel {
   @include glass-panel($spacing-4);
-  font-size: $font-size-lg;
+  @include text-size($font-size-lg);
   font-weight: normal;
   // same as .cc: a popup's shadow room would blur into a halo
   box-shadow: none;
@@ -115,7 +115,7 @@
 }
 
 .notif-title {
-  font-size: $font-size-2xl;
+  @include text-size($font-size-2xl);
   font-weight: 700;
 }
 
@@ -158,12 +158,12 @@ button.clear {
   padding: 0 $spacing-1;
 
   .group-app {
-    font-size: $font-size-base;
+    @include text-size($font-size-base);
     font-weight: 600;
   }
 
   .group-time {
-    font-size: $font-size-sm;
+    @include text-size($font-size-sm);
     color: $text-faint;
   }
 
@@ -189,7 +189,7 @@ button.clear {
 }
 
 .cal-weekday {
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 500;
   color: $text-muted;
 }
@@ -214,7 +214,7 @@ button.cal-nav {
 }
 
 .cal-dayname {
-  font-size: $font-size-sm;
+  @include text-size($font-size-sm);
   color: $text-muted;
   padding: $spacing-1 0;
 }
@@ -223,7 +223,7 @@ button.cal-nav {
   min-width: 30px;
   min-height: 30px;
   border-radius: $radius-full;
-  font-size: $font-size-base;
+  @include text-size($font-size-base);
   font-weight: 500;
 
   &.other {
