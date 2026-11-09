@@ -1,6 +1,6 @@
 # HANDOFF: crisp fonts at scale 1 (`ext.hypr` font framework)
 
-Branch `fonts/crisp` (not merged into `main`; Hyprland and AGS read the working tree, so it is all live).
+**Status: complete.** Merged `fonts/crisp` → `main` (fast-forward) on 2026-11-09. Nothing is pending; the notes below are the record.
 No plan file: this note is the plan. (`~/.claude/plans/composed-pondering-aurora.md` is the unrelated *hum* project.)
 
 ## Goal
@@ -73,7 +73,7 @@ Brainstorm, four layers:
    - **Firefox/Zen:** headless ignores the autohint rule (byte-identical). Stem darkening applies: about 1.2x ink on every font, scoring crisper (Noto 13 82.2% → 74.3%). Text visibly heavier. This has been live in Zen since config E.
    - **Caveats:** windowed Firefox may also take GTK hinting, which headless can't show. Qt is untested (no PyQt/PySide installed).
    - If Zen reads too heavy, exclude it: launch it with `FREETYPE_PROPERTIES` unset (desktop-file override).
-5. Merging `fonts/crisp` → `main` is the user's call.
+5. ~~Merge~~: done, fast-forward into `main`.
 
 ## How to verify
 - Bench, all configs: `~/.config/hypr/scripts/fontbench/fontbench.py`
