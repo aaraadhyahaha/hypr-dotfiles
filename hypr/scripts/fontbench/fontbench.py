@@ -51,6 +51,7 @@ STRIP = ("light", 12, 400, "sans", "Dark on light: The quick brown fox jumps ove
 FAMILIES = {"sans": "SF Pro Text", "mono": "JetBrainsMono Nerd Font"}
 # config "display_from": N switches sans lines of N px and up to the Display cut (macOS: 20 pt)
 DISPLAY = "SF Pro Display"
+# config "sizes": {"12": 11.3, …} moves sample lines from one px size to another (before size_scale)
 # config "tracking": "trak" applies the font's own size-dependent tracking (see trak_spacing)
 FC_WEIGHT = {400: "regular", 500: "medium", 600: "semibold", 700: "bold"}
 WIDTH_LINES = ("row", "body", "caption", "date")
@@ -133,7 +134,9 @@ def probe(spec):
         f".strip {{ background: {c['on-surface']}; color: {c['surface']}; }}",
     ]
     display_from = spec.get("display_from", float("inf"))
+    remap = {float(a): b for a, b in spec.get("sizes", {}).items()}
     for sid, px, weight, fam, _ in SAMPLES + [STRIP]:
+        px = remap.get(px, px)
         family = DISPLAY if fam == "sans" and px * k >= display_from else FAMILIES[fam]
         track = trak_spacing(family, weight, px * k) if spec.get("tracking") == "trak" and fam == "sans" else 0
         css.append(

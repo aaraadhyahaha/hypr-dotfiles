@@ -50,13 +50,23 @@ Brainstorm, four layers:
 - I is the crispest (64.0%). Unhinted metrics (J) are softer (65.6%).
 - Display without trak (what AGS ships now) is **tighter than macOS**: the date crowds at "Monday, 9". The cut assumes CoreText adds trak.
 
+### x-height snapping (L2), measured 2026-11-09
+- The autohinter quantizes height: rendered x-height steps at ~10.1 (6 px), 11.9 (7), 13.8 (8), 15.7 (9), 17.5 (10) px for SF Pro Text. Inside a step only width changes.
+  - So **12px renders exactly as tall as 13px** (x 7, caps 9): +10.8% vertical stretch. 14 is as tall as 15 (+8.6%, caps +11.5%). 22px Display is just past a step (+7.4%).
+  - Undistorted points: 11.3, 13.0, 15.4, 17.0, 18.6; Display 21.6.
+  - Method: pango-view offscreen sweep (scratch scripts, not kept), confirmed in GTK with the bench's new `"sizes"` remap.
+- **Snapping does not buy crispness.** Bench K (base 12→11.3) and L (12→13), both with 11→11.3, 15→15.4, 22→21.6: 65.6% vs I's 64.0%.
+  - One move at a time: every move of 12px costs 0.2–1.6 points (11.3, 12.8, 13, even integer 11). 15→15.4 −0.3, 22→21.6 +0.2, 11→11.3 +0.3.
+  - 12px is a crisp sweet spot (trak is exactly 0 there). Fixing its proportions means either shrinking base to caption height or merging it with 13px.
+- Not applied to AGS: the user chose to drop snapping.
+
 ## Open bugs
 - None known from this work. The AGS log after restart showed one `Json-CRITICAL: json_object_get_int_member: assertion 'node != NULL'` (Json-GLib, so not CSS). Not investigated; may predate this branch.
 - Display in the desktop widgets and popovers has **not been checked by eye**: no screenshot was taken, to avoid disturbing the user's workspace.
 
 ## Remaining (in order)
 1. **User's eye check** of Display + tracking: desktop clock/calendar (Super+G), pomodoro, battery %, notification date, and small text (bar 13px, captions 11px). Tracking is committed; revert that commit if it reads wrong.
-2. **L2:** `service/typeModel.ts` + test: physical PPI → per-role px sizes snapped so the x-height lands on whole device px, plus tracking and opsz. Optional: install the variable `SF-Pro.ttf` (has an `opsz` axis) and compare on the bench.
+2. ~~L2 x-height snapping~~: **dropped** by the user after the measurement above. Sizes stay as they are. Optional leftover: try the variable `SF-Pro.ttf` `opsz` axis on the bench.
 3. **L3:** a Hyprland event listener (`monitoraddedv2`/`monitorremoved`/`configreloaded`). It re-applies AGS CSS, sets `gsettings text-scaling-factor`, and writes `Xft.dpi` (xrdb) for XWayland. Qt/Electron only pick it up on restart.
 4. Check non-GTK apps under the global autohint: Zen/Firefox, Electron (VSCode, Obsidian), Qt. Add per-font or per-app fontconfig exceptions if anything looks worse.
 5. Merging `fonts/crisp` → `main` is the user's call.
