@@ -67,8 +67,12 @@ Brainstorm, four layers:
 ## Remaining (in order)
 1. **User's eye check** of Display + tracking: desktop clock/calendar (Super+G), pomodoro, battery %, notification date, and small text (bar 13px, captions 11px). Tracking is committed; revert that commit if it reads wrong.
 2. ~~L2 x-height snapping~~: **dropped** by the user after the measurement above. Sizes stay as they are. Optional leftover: try the variable `SF-Pro.ttf` `opsz` axis on the bench.
-3. **L3:** a Hyprland event listener (`monitoraddedv2`/`monitorremoved`/`configreloaded`). It re-applies AGS CSS, sets `gsettings text-scaling-factor`, and writes `Xft.dpi` (xrdb) for XWayland. Qt/Electron only pick it up on restart.
-4. Check non-GTK apps under the global autohint: Zen/Firefox, Electron (VSCode, Obsidian), Qt. Add per-font or per-app fontconfig exceptions if anything looks worse.
+3. ~~L3 live sync~~: **moot** after L2 was dropped: there is no PPI-based model to re-apply. A global `text-scaling-factor` on hotplug would also resize eDP-1 text (Wayland already scales each output). Only eDP-1 exists today. Revisit when an external monitor is in use.
+4. **Non-GTK apps, measured 2026-11-09** (headless Chrome and Firefox render a test page; scored with the bench's soft-edge metric, dark-on-light crops negated; scripts were in the session scratchpad, not kept):
+   - **Chrome/Electron (VSCode, Obsidian):** the autohint rule leaves Noto Sans (the `sans-serif`/`system-ui` fallback), Liberation and JetBrains Mono byte-identical. SF Pro gets crisper (84.1% → 81.1%, same ink). Skia ignores `FREETYPE_PROPERTIES`, so no darkening. No regression.
+   - **Firefox/Zen:** headless ignores the autohint rule (byte-identical). Stem darkening applies: about 1.2x ink on every font, scoring crisper (Noto 13 82.2% → 74.3%). Text visibly heavier. This has been live in Zen since config E.
+   - **Caveats:** windowed Firefox may also take GTK hinting, which headless can't show. Qt is untested (no PyQt/PySide installed).
+   - If Zen reads too heavy, exclude it: launch it with `FREETYPE_PROPERTIES` unset (desktop-file override).
 5. Merging `fonts/crisp` → `main` is the user's call.
 
 ## How to verify
