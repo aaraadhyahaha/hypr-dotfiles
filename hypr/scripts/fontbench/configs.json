@@ -1,0 +1,69 @@
+[
+  {
+    "id": "A",
+    "label": "A · system default (E since 2026-11-09)"
+  },
+  {
+    "id": "B",
+    "label": "B · A + stem darkening",
+    "env": {
+      "FREETYPE_PROPERTIES": "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0"
+    }
+  },
+  {
+    "id": "C",
+    "label": "C · manual slight + hinted metrics",
+    "gtk": {
+      "rendering": "manual",
+      "hintstyle": "hintslight",
+      "hint_metrics": true
+    }
+  },
+  {
+    "id": "D",
+    "label": "D · C + autohinter (grid-fit x-height)",
+    "gtk": {
+      "rendering": "manual",
+      "hintstyle": "hintslight",
+      "hint_metrics": true
+    },
+    "fc": {
+      "autohint": true
+    }
+  },
+  {
+    "id": "E",
+    "label": "E · D + stem darkening",
+    "gtk": {
+      "rendering": "manual",
+      "hintstyle": "hintslight",
+      "hint_metrics": true
+    },
+    "fc": {
+      "autohint": true
+    },
+    "env": {
+      "FREETYPE_PROPERTIES": "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0"
+    }
+  },
+  {
+    "id": "F",
+    "label": "F · A at ×1.25 (≈ scale 1.25, reference)",
+    "size_scale": 1.25
+  },
+  {
+    "id": "G",
+    "label": "G · E without the GTK change (automatic)",
+    "fc": {
+      "autohint": true
+    },
+    "env": {
+      "FREETYPE_PROPERTIES": "cff:no-stem-darkening=0 autofitter:no-stem-darkening=0"
+    }
+  },
+  {
+    "id": "H",
+    "label": "H · A + SF Pro Display from 20 px",
+    "display_from": 20
+  }
+]

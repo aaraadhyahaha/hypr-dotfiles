@@ -58,7 +58,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `ext.hypr.binds` | Window, workspace, scratchpad, media binds | `~/.config/hypr/conf/binds.lua`, `conf/float_place.lua`, `conf/float_memory.lua` |
 | `ext.hypr.look` | Gaps, decoration, blur, layouts, animations | `~/.config/hypr/conf/look.lua`, `animations.lua` |
 | `ext.hypr.session` | Monitors, env, autostart, input, window rules, idle/lock | `~/.config/hypr/conf/*.lua`, `hypridle.conf` |
-| `ext.hypr.scripts` | Wallpaper + theme scripts | `~/.config/hypr/scripts/*.sh` |
+| `ext.hypr.scripts` | Wallpaper + theme scripts, fontbench | `~/.config/hypr/scripts/*.sh`, `scripts/fontbench/` |
 
 ---
 
@@ -477,6 +477,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 - `scripts/theme-apply.sh [image]` — matugen (mode/index from `~/.cache/theme_mode`, `theme_idx`) + gsettings GTK/icon theme. Called by `cc.theme` and `wallpaper-set.sh`.
 - `scripts/wallpaper-set.sh IMAGE` — starts `awww-daemon` if needed, writes `~/.cache/last_wall`, grow transition, then `theme-apply.sh`. Called by `wallpapers`.
 - `scripts/wallpaper-init.sh` — autostart: restore `last_wall` with no transition.
+- `scripts/fontbench/fontbench.py [--hold [s]] [--only A,D]` — font-rendering A/B bench: one GTK4 layer-shell card per `configs.json` entry (own env / fontconfig / GtkSettings), grim + crispness score → `~/Pictures/fontbench/<ts>/` (`sheet.png` 1:1, `zoom.png` 6×, `report.txt`). Namespace `fontbench` is no-anim in `ext.hypr.shell`.
 - `~/.config/matugen/templates/ags-colors.scss` → generates `colors.scss`.
 
 ## 12. State & cache files written by the shell
