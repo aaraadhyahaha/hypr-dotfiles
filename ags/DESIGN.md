@@ -61,6 +61,8 @@ Every toggle that is **on** — QS tiles, Wi-Fi/BT halves, the Dark/Light segmen
 - Radii: `$radius-xs` 4, `-sm` 8 (bar items, menu items), `-md` 12 (bar body, rows), `-lg` 16 (panels, tiles), `-xl` 20, `-full` 999 (pills, dots, badges).
   Nested radius = outer radius − padding (a card with `-lg` and 8px padding gets `-sm` children).
 - Type: `$font-size-base` 12 for secondary, `-lg` 13 for bar/UI, `-2xl` 15 for titles and entries.
+- Large text: set text sizes with `@include text-size($size)`, not `font-size`. From 20px up (`$display-from`) it switches to SF Pro **Display** (`$font-display`), as macOS does; Text's spacing reads loose at clock and heading sizes. Never on icon glyphs. If a rule also carries `.glyph`, restate `font-family: $font-icon` (see `.dw-count-big.glyph`).
+- Rendering: system-wide autohinter + stem darkening + GTK manual hinting (fontconfig `conf.d/10-autohint.conf`, `environment.d/60-font-render.conf`), picked for crispness with `hypr/scripts/fontbench`. Compare any type change there first.
 - Icons: everything is 16px (`$icon-size`; `$glyph-size` aliases it). Glyphs use `$font-icon` (JetBrainsMono Nerd Font **Propo**): in the plain Nerd Font variant the glyph's ink is wider than its advance, which pushes icons off-centre in their highlight.
 
 ## Bar

@@ -5,6 +5,15 @@
 $transition: color $dur-fast $ease, background-color $dur-fast $ease, border-color $dur-fast $ease,
   box-shadow $dur-fast $ease, opacity $dur-fast $ease;
 
+// Text at $size in the SF Pro cut macOS uses at that size: Display from $display-from up.
+// Text only: icon glyphs keep their own family ($font-icon, $font-symbols).
+@mixin text-size($size) {
+  font-size: $size;
+  @if $size >= $display-from {
+    font-family: $font-display;
+  }
+}
+
 // strip the theme's default button chrome
 @mixin flat-button {
   border: none;

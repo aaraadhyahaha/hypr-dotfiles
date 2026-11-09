@@ -154,7 +154,7 @@ window.Desktop {
 }
 
 .dw-clock-time {
-  font-size: 56px;
+  @include text-size(56px);
   font-weight: 300;
   font-feature-settings: "tnum";
   letter-spacing: -0.02em;
@@ -238,18 +238,18 @@ window.Desktop {
 // ── fx ──────────────────────────────────────────────────────────────────────
 
 .dw-score {
-  font-size: $font-size-6xl;
+  @include text-size($font-size-6xl);
   font-weight: 600;
   font-feature-settings: "tnum";
 }
 
 .dw-score-big {
-  font-size: 28px;
+  @include text-size(28px);
   margin-top: 2px;
 }
 
 .dw-focus-big {
-  font-size: 22px;
+  @include text-size(22px);
   font-weight: 600;
   font-feature-settings: "tnum";
 }
@@ -303,7 +303,7 @@ window.Desktop {
 // ── calendar ────────────────────────────────────────────────────────────────
 
 .dw-cal-day {
-  font-size: 60px;
+  @include text-size(60px);
   font-weight: 300;
   font-feature-settings: "tnum";
   margin: -6px 0 -4px;
@@ -439,12 +439,14 @@ window.Desktop {
 }
 
 .dw-count-big {
-  font-size: 28px;
+  @include text-size(28px);
   font-weight: 600;
   font-feature-settings: "tnum";
 
   &.glyph {
     color: $tertiary;
+    // .glyph's icon font (_base.scss) loses to text-size()'s family above: restate it
+    font-family: $font-icon;
     font-size: 24px;
   }
 }
@@ -536,7 +538,7 @@ window.Desktop {
 }
 
 .dw-gal-title {
-  font-size: $font-size-5xl;
+  @include text-size($font-size-5xl);
   font-weight: 700;
 }
 

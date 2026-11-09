@@ -43,7 +43,7 @@
 
   .pomo-big {
     color: $text;
-    font-size: $font-size-pomo;
+    @include text-size($font-size-pomo);
     font-weight: 600;
     font-feature-settings: "tnum";
   }

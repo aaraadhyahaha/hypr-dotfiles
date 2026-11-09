@@ -5,6 +5,10 @@
 
 // fonts
 $font: "SF Pro Text", sans-serif;
+// SF Pro Display: SF Pro's large-size cut, tighter and finer than Text. macOS switches at 20 pt;
+// apply it with @include text-size() (_mixins.scss). Chosen with hypr/scripts/fontbench (config H).
+$font-display: "SF Pro Display", "SF Pro Text", sans-serif;
+$display-from: 20px;
 $font-mono: "JetBrainsMono Nerd Font", sans-serif;
 // Propo: glyph advance matches its ink, so icons centre inside their box
 $font-icon: "JetBrainsMono Nerd Font Propo", "Symbols Nerd Font", sans-serif;

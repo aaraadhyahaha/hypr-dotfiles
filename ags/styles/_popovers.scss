@@ -321,7 +321,7 @@ scale.pnl-app-vol {
 }
 
 .batt-pct {
-  font-size: $font-size-7xl;
+  @include text-size($font-size-7xl);
   font-weight: 700;
   font-feature-settings: "tnum";
 }

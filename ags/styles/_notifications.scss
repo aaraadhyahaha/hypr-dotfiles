@@ -195,7 +195,7 @@ button.clear {
 }
 
 .cal-date {
-  font-size: $font-size-date;
+  @include text-size($font-size-date);
   font-weight: 700;
 }
 
