@@ -148,3 +148,17 @@ hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = tr
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+-- TEMP keydebug: raw keys while Super is held (args: xkb keycode, time ms, state; Super = 133/134), and
+-- every workspace change, so a Super+N that "does nothing" shows whether the key arrived,
+-- the bind fired, and whether something switched back.
+local super_held = false
+hl.on("input.keyboard.key", function(a, b, c)
+    local is_super = a == 125 or a == 126 or a == 133 or a == 134
+    if is_super then super_held = (c ~= 0); keylog(string.format("key super %s", tostring(c))); return end
+    if super_held then keylog(string.format("key %s %s", tostring(a), tostring(c))) end
+end)
+hl.on("workspace.active", function(ws)
+    local w = hl.get_active_window()
+    keylog(string.format("-> active ws %s (window %s)", tostring(ws and ws.id), tostring(w and w.class)))
+end)
