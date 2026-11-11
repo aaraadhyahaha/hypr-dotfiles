@@ -5,7 +5,12 @@ local mod      = "SUPER"
 local terminal = "kitty"
 
 -- Apps & session
-hl.bind(mod .. " + Q", hl.dsp.exec_cmd(terminal))
+-- TEMP keydebug: log each bind fire to /tmp/hypr-keydebug.log
+local function keylog(tag)
+    local f = io.open("/tmp/hypr-keydebug.log", "a")
+    if f then f:write(os.date("%T"), " ", tag, "\n"); f:close() end
+end
+hl.bind(mod .. " + Q", function() keylog("Q"); hl.dispatch(hl.dsp.exec_cmd(terminal)) end)
 hl.bind(mod .. " + L", hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mod .. " + T", hl.dsp.exec_cmd("slate toggle")) -- slate todo overlay (daemon: systemd slate.service)
 hl.bind(mod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
@@ -122,7 +127,7 @@ hl.bind(mod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- Workspaces: mod+[0-9] switch, mod+SHIFT+[0-9] move window (key 0 = workspace 10)
 for i = 1, 10 do
     local key = i % 10
-    hl.bind(mod .. " + " .. key,         hl.dsp.focus({ workspace = i }))
+    hl.bind(mod .. " + " .. key, function() keylog("ws" .. i); hl.dispatch(hl.dsp.focus({ workspace = i })) end) -- TEMP keydebug
     hl.bind(mod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i }))
 end
 hl.bind(mod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
