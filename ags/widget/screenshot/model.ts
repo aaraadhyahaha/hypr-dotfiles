@@ -92,6 +92,48 @@ export function dragRect(start: Rect, hit: Hit, from: [number, number], dx: numb
 export const geometry = (r: Rect, origin: { x: number; y: number }) =>
   `${Math.round(r.x + origin.x)},${Math.round(r.y + origin.y)} ${Math.round(r.w)}x${Math.round(r.h)}`
 
+// the fields of `hyprctl monitors -j` that physicalCrop reads: x/y are logical, width/height
+// are the mode's physical pixels (before the transform)
+export type Output = {
+  name: string
+  x: number
+  y: number
+  width: number
+  height: number
+  scale: number
+  transform?: number
+}
+
+export type Crop = { output: string; scale: number; x: number; y: number; w: number; h: number }
+
+// A logical "x,y wxh" → the physical pixels to cut from one output's native-scale capture.
+// grim -g on a fractional scale resamples whenever an edge lands between physical pixels
+// (at 1.2, any x not a multiple of 5), which blurs the whole shot; cropping a 1:1 capture
+// keeps every pixel. null when it's unparseable, empty, or spans outputs (caller falls back).
+export function physicalCrop(geom: string, outputs: Output[]): Crop | null {
+  const m = /^(-?\d+),(-?\d+) (\d+)x(\d+)$/.exec(geom.trim())
+  if (!m) return null
+  const [gx, gy, gw, gh] = m.slice(1).map(Number)
+  if (gw <= 0 || gh <= 0) return null
+  for (const o of outputs) {
+    const rotated = (o.transform ?? 0) % 2 === 1
+    const pw = rotated ? o.height : o.width
+    const ph = rotated ? o.width : o.height
+    const lw = pw / o.scale
+    const lh = ph / o.scale
+    if (gx < o.x || gy < o.y || gx + gw > o.x + lw + 0.5 || gy + gh > o.y + lh + 0.5) continue
+    // round each edge, not the size, so neighbouring shots tile exactly
+    const px = (v: number, max: number) => Math.min(max, Math.max(0, Math.round(v * o.scale)))
+    const l = px(gx - o.x, pw)
+    const t = px(gy - o.y, ph)
+    const r = px(gx + gw - o.x, pw)
+    const b = px(gy + gh - o.y, ph)
+    if (r <= l || b <= t) return null
+    return { output: o.name, scale: o.scale, x: l, y: t, w: r - l, h: b - t }
+  }
+  return null
+}
+
 // the fields of `hyprctl clients -j` that windowAt reads
 export type Client = {
   at: [number, number]

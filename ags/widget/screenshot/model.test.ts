@@ -3,6 +3,7 @@ import assert from "node:assert/strict"
 import {
   TIMERS, nextTimer, timerLabel, FPS, nextFps, fpsLabel, windowGeometry,
   type Client, type Rect, defaultRect, dragRect, geometry, hitTest, windowAt,
+  type Output, physicalCrop,
 } from "./model.ts"
 
 test("nextTimer cycles through the delays and wraps", () => {
@@ -111,4 +112,29 @@ test("windowAt skips hidden, unmapped and off-workspace windows; pinned always s
   const pinned = win({ workspace: { id: 7 }, pinned: true })
   assert.equal(windowAt([pinned], [1], 10, 10), pinned)
   assert.equal(windowAt([shown], [1], 600, 10), null) // outside every window
+})
+
+const edp: Output = { name: "eDP-1", x: 0, y: 0, width: 1920, height: 1080, scale: 1.2 }
+
+test("physicalCrop maps a logical rect to whole physical pixels", () => {
+  assert.deepEqual(physicalCrop("101,101 500x300", [edp]),
+    { output: "eDP-1", scale: 1.2, x: 121, y: 121, w: 600, h: 360 })
+  // the full logical screen is the full mode
+  assert.deepEqual(physicalCrop("0,0 1600x900", [edp]),
+    { output: "eDP-1", scale: 1.2, x: 0, y: 0, w: 1920, h: 1080 })
+})
+
+test("physicalCrop picks the output holding the rect, honouring its origin and transform", () => {
+  const side: Output = { name: "DP-1", x: 1600, y: 0, width: 2560, height: 1440, scale: 2, transform: 1 }
+  assert.deepEqual(physicalCrop("1610,20 100x50", [edp, side]),
+    { output: "DP-1", scale: 2, x: 20, y: 40, w: 200, h: 100 })
+  // rotated: 720 logical wide, 1280 tall
+  assert.ok(physicalCrop("1600,1000 720x280", [edp, side]))
+})
+
+test("physicalCrop gives up on spanning, empty or garbage geometry", () => {
+  const side: Output = { name: "DP-1", x: 1600, y: 0, width: 1920, height: 1080, scale: 1 }
+  assert.equal(physicalCrop("1500,0 200x100", [edp, side]), null)
+  assert.equal(physicalCrop("10,10 0x50", [edp]), null)
+  assert.equal(physicalCrop("nope", [edp]), null)
 })

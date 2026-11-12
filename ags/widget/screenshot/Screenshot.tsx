@@ -12,7 +12,7 @@ import { recording, stopRecording } from "../../service/recorder"
 import { capture as captureShot, mode, setMode } from "./Toolbar"
 import {
     type Client, type Hit, type Mode, type Rect,
-    CURSOR, defaultRect, dragRect, geometry, hitTest, windowAt,
+    CURSOR, defaultRect, dragRect, geometry, hitTest, physicalCrop, windowAt,
 } from "./model"
 
 const HOME = GLib.get_home_dir()
@@ -24,6 +24,21 @@ const EDITOR = GLib.find_program_in_path("satty")
     : GLib.find_program_in_path("swappy")
         ? ["swappy", "-f"]
         : null
+const MAGICK = GLib.find_program_in_path("magick")
+
+// grim -g resamples on a fractional scale (blurry), so a region is cut from a 1:1 capture of
+// its output instead. Falls back to grim -g when it spans outputs or magick is missing.
+async function grab(file: string, geometry?: string) {
+    if (!geometry) return execAsync(["grim", file])
+    const crop = MAGICK ? physicalCrop(geometry, JSON.parse(await execAsync(["hyprctl", "monitors", "-j"]))) : null
+    if (!crop) return execAsync(["grim", "-g", geometry, file])
+    const { output, scale, x, y, w, h } = crop
+    return execAsync([
+        "sh", "-c",
+        'set -o pipefail; grim -o "$1" -s "$2" -t ppm - | magick ppm:- -crop "$3" +repage "$4"',
+        "sh", output, String(scale), `${w}x${h}+${x}+${y}`, file,
+    ])
+}
 
 let previewFn: (file: string) => void = () => { }
 let shootFn: (geometry?: string) => void = () => { }
@@ -301,10 +316,7 @@ export default function Screenshot() {
             await new Promise<void>((r) => timeout(180, () => r()))
             await execAsync(["mkdir", "-p", DIR])
             const file = `${DIR}/shot_${stamp()}.png`
-            const args = ["grim"]
-            if (geometry) args.push("-g", geometry)
-            args.push(file)
-            await execAsync(args)
+            await grab(file, geometry)
             previewFn(file)
             execAsync([
                 "sh", "-c",

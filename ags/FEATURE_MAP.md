@@ -195,7 +195,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `bar.screenshot` — screenshot button + session toolbar
 - **Code:** `bar/modules/ScreenshotBtn.tsx` — plain button → `openShot()` (stops a running recording instead). `widget/screenshot/Toolbar.tsx`: mode (region/window/screen, exported `mode`/`setMode` state the overlay redraws on), photo/video, mic, fps (video only), timer, Capture. `capture()` L26–37: `shotTarget()` → `closeShot()` → delay → `screenshotGeometry` / `startRecording`.
-- **Model:** `widget/screenshot/model.ts` (`TIMERS`, `nextTimer`, `timerLabel`, `FPS`, `nextFps`, `fpsLabel`, `windowGeometry`, plus the session geometry: `hitTest`, `dragRect`, `CURSOR`, `defaultRect`, `geometry`, `windowAt`). **Test:** `model.test.ts`.
+- **Model:** `widget/screenshot/model.ts` (`TIMERS`, `nextTimer`, `timerLabel`, `FPS`, `nextFps`, `fpsLabel`, `windowGeometry`, plus the session geometry: `hitTest`, `dragRect`, `CURSOR`, `defaultRect`, `geometry`, `windowAt`, `physicalCrop`). **Test:** `model.test.ts`.
 - **Calls into:** `shot.capture` (photo), `svc.recorder` (video).
 - **Style:** `styles/_screenshot.scss` (`.tb*`, `.mode`, `.kind`).
 
@@ -343,7 +343,7 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 
 ### `shot.capture` — the screenshot session & capture
 - **Behaviour:** GNOME-style. The dimmed overlay and the toolbar open together; nothing is captured until Capture / Enter / Space (Esc closes). Region: an editable rect (8 handles resize with flip-through, inside moves, outside redraws; a drag under 6px restores the previous rect), kept for the ags session. Window: the window under the pointer (starts on the focused one), a click locks it. Screen: outline only.
-- **Code:** `Screenshot.tsx` `Screenshot()` L236–end — overlay `namespace="shot"` (no anim, no blur, keymode ON_DEMAND: EXCLUSIVE would take the pointer from the toolbar); window-mode `hyprctl clients/monitors -j` once per session (`loadWindows` L267); capture with `grim` → `~/Pictures/Screenshots`, copy with `wl-copy`, then preview (`capture` L296); `openFn`/`closeFn`/`targetFn` L321–345; keys + motion/drag gestures L346–end.
+- **Code:** `Screenshot.tsx` `Screenshot()` L236–end — overlay `namespace="shot"` (no anim, no blur, keymode ON_DEMAND: EXCLUSIVE would take the pointer from the toolbar); window-mode `hyprctl clients/monitors -j` once per session (`loadWindows` L267); capture with `grab()` (full: `grim`; region/window: 1:1 `grim -o` cut by `magick` at `physicalCrop` pixels, since `grim -g` resamples on fractional scale) → `~/Pictures/Screenshots`, copy with `wl-copy`, then preview (`capture` L296); `openFn`/`closeFn`/`targetFn` L321–345; keys + motion/drag gestures L346–end.
 - **Overlay drawing:** `Selection` L58–126 — dim + outline + handles + size label as GPU render nodes (`vfunc_snapshot`, `append_color`/`append_layout`); never a cairo `DrawingArea` (a full-screen CPU surface per drag frame stutters).
 - **Exports:** `openShot`, `closeShot`, `shotTarget`, `screenshotRegion` (opens in region mode), `screenshotFull`, `screenshotGeometry` L28–47.
 - **Style:** `styles/_screenshot.scss` (`window.Shot`).
