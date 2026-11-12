@@ -8,7 +8,7 @@ post_hook = "fish -c agsr"
 [templates.kitty]
 input_path = '~/.config/matugen/templates/kitty-colors.conf'
 output_path = '~/.config/kitty/colors.conf'
-post_hook = 'pkill -USR1 kitty'
+post_hook = 'python3 ~/.config/kitty/blend-cursor.py; pkill -USR1 kitty'
 
 [templates.fish]
 input_path = '~/.config/matugen/templates/fish-colors.fish'
