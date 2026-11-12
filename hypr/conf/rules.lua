@@ -35,6 +35,14 @@ hl.window_rule({
     float = true,
 })
 
+-- kitty draws its own translucent background (background_opacity), so skip the global
+-- active/inactive opacity: it would also fade the text and stack on kitty's own alpha.
+hl.window_rule({
+    name    = "kitty-glass",
+    match   = { class = "^(kitty)$" },
+    opacity = "1.0 override 0.92 override",
+})
+
 -- Per-app scroll: each app has its own scroll physics, so the same swipe moves a different
 -- distance. These multiply input.touchpad.scroll_factor to even out distance per swipe
 -- (not momentum). Starting values; tune by feel. Mouse wheels are left alone.

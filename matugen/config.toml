@@ -1,5 +1,14 @@
 [config]
 
+# ANSI hues for kitty; blend = false keeps red red instead of pulling it toward the wallpaper.
+[config.custom_colors]
+red     = { color = "#e5484d", blend = false }
+green   = { color = "#30a46c", blend = false }
+yellow  = { color = "#e2a336", blend = false }
+blue    = { color = "#0090ff", blend = false }
+magenta = { color = "#8e4ec6", blend = false }
+cyan    = { color = "#12a594", blend = false }
+
 [templates.ags]
 input_path = '~/.config/matugen/templates/ags-colors.scss'
 output_path = '~/.config/ags/colors.scss'
