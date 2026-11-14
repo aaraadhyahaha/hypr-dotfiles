@@ -101,6 +101,8 @@ One split, everywhere: **Hyprland owns opacity, AGS owns geometry.**
 | `$dur-enter` 260ms + `$ease-out` | `enter` | geometry settling in, workspace pip stretch |
 | `$dur-exit` 140ms + `$ease-in` | `exit` | geometry leaving |
 | — | `slide` 320ms | toasts arriving from the screen edge |
+| `$dur-flash` 1200ms | `flash` | critical-notification glow on the bar (Mood) |
+| `$dur-sweep` 900ms + `$ease` | `sweep` | the light sweep when focus ends (Mood) |
 | — | `settle(from)` (`enter`) | a desktop widget gliding into its slot after a drop, reflow or gallery drag |
 
 Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.16,1,.3,1)` (fast arrival, then a long quiet settle) and `$ease-in` is `(.4,0,1,1)`. `EASE.*` in TS and the `ease`, `easeOut` and `easeIn` curves in Hyprland are the same three, all generated from `CURVES`. No springs, no bounce, with one exception below.
@@ -123,6 +125,20 @@ Hyprland's window motion follows the same split: arrivals and moves take `easeOu
 `Pose` also has `sx`/`sy` (stretch one axis on top of `scale`), and `<Motion origin="top-left">` pivots on the corner. The desktop's resize morph uses both: the widget is rebuilt once at its new size, starts stretched back to its old box, and settles. It never resizes every frame.
 
 Window titles cross-fade with no travel, so text never shimmers. Never hard-code a duration: use a token in SCSS and `MOTION.*`/`ENTER.*` in TS.
+
+## Mood
+
+The shell's glass can follow the time of day (**Ambient**), what you're doing (**Reactive**), or both. Switch from the CC segment or `ags request shell-mode <ambient|both|reactive|cycle>`. `service/mood.ts` puts classes on every window; `styles/_mood.scss` styles them. It never reads fx. Restrained: about 12% tint, 1px edges, existing tokens and motion only, no new blur.
+
+- **Ambient** (`amb-dawn` 5–9, `amb-day` 9–17, `amb-dusk` 17–20, `amb-night` 20–5) applies to the bar and every glass panel (popovers, CC, launcher, toasts, OSD): a 12% role tint mixed into the existing fill without changing its alpha, a faint top-left → bottom-right wash, and a 1px inner top highlight. Roles: dawn `$tertiary`, day `$primary` (highlight `$on-surface`), dusk `$error-container` (highlight `$error`), night `$secondary-container` (highlight `$secondary`, weakest).
+- **Reactive** is bar only, highest priority first:
+  1. Critical notification: `$error` bottom edge plus a short inner glow for `$dur-flash` (1200ms).
+  2. Pomodoro: focus `$tertiary`, break `$tertiary-container`. When focus ends, one light sweep crosses the bar (`$dur-sweep`, 900ms). A Watch app focused during focus adds a `$error-container` bottom edge (the nudge).
+  3. Focused app, when no pomodoro runs: Build `$primary`, Write `$secondary`, Browse soft `$tertiary` (6%), Watch `$error-container`; System and unknown apps stay neutral. Music titles are never Watch.
+  4. Caffeine: a faint `$tertiary` top edge, stacking with all of the above.
+- **Both:** ambient owns the wash and the highlight, reactive owns the bar's tint and edges (its rules come later in the partial).
+- Colour changes ease with `$dur-enter $ease-out`. Edges are border colours, so they never fight the highlight's `box-shadow`.
+- Preview a period with `AGS_MOOD_HOUR=19 ags run` (read once at start).
 
 ## Fields
 

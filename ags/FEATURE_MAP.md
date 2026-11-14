@@ -27,6 +27,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `svc.hypr` | Lua-first `hyprctl dispatch` helper | `service/hypr.ts` |
 | `svc.privacy` | Which apps capture mic/camera/screen (AstalWp) | `service/privacy.ts` |
 | `svc.bridge` | Hemingway bridges: next-step notes on fx stop, morning question | `service/bridge.ts`, `bridgeModel.ts` |
+| `shell.mood` | Shell mood: ambient (time of day) / reactive (pomodoro, app, caffeine, critical) glass | `service/mood.ts`, `moodModel.ts`, `styles/_mood.scss` |
 | `bar.shell` | Bar window & item order | `widget/bar/Bar.tsx` |
 | `bar.workspaces` | Workspace pips, scratchpad, urgency | `bar/modules/Workspaces.tsx` |
 | `bar.wintitle` | Focused window title | `bar/modules/WindowTitle.tsx` |
@@ -146,6 +147,12 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **Model:** `service/bridgeModel.ts` — `Bridge` type L6 (`text`, `pickup`: old JSON defaults it to `""`), `STEM` L19 (`Next, I ` / `Tomorrow, first I `), `written(line, stem)` L22 (what's typed past the stem), `stoppedTask` L29 (skips done and Shutdown tasks), `isShutdown` L38, `dayOver` L50, `dayOf` L59, `put` L64 (one note per task + one day note), `noteFor` L69, `morningNote` L73, `shown(list, status, today)` L82 (the note to draw, or null), `retire(list, prev, next)` L89, `markSeenIn` L97, `prune` L99 (3 days), `parseBridges`/`serialize` L122–136. **Test:** `bridgeModel.test.ts`.
 - **Used by:** `bridge.sheet`, `bridge.note`, `core.app` IPC.
 
+### `shell.mood` — ambient / reactive glass (independent of fx)
+- **Code:** `service/mood.ts` — mode in `~/.local/state/ags/shell-mode` (`loadMode` L27, default `both`); `shellMode` state L37 / `setShellMode` L40; `paint(w)` L66 toggles only mood classes on a window, `watch` L72 re-paints when a bound `class` (the bar's edit mode) replaces the list; `apply` L80 recomputes and paints every `app.get_windows()` window only when the class list changed; `pulse` L96 drives the one-shot `flash` (`MOTION.flash`) and `sweep` (`MOTION.sweep`); `followFocus` L115 tracks the focused client's class/title; `startMood` L135 (called in `app.ts`) wires pomodoro, caffeine `awake`, notifd critical, a 60s period tick and `window-added`. `AGS_MOOD_HOUR=19` overrides the hour (read once).
+- **Model:** `service/moodModel.ts` — `categorize(cls, title)` (Build/Write/Browse/Watch/System; music titles aren't Watch), `period(hour)`, `pomoKind`, `focusEnded(prev, next)`, `nextMode`/`parseMode`, `moodClasses(input)` (priority: critical > pomodoro > app; caffeine stacks), `ALL_CLASSES`. **Test:** `moodModel.test.ts`.
+- **UI:** `widget/bar/quicksettings/ShellMode.tsx` (CC segment under `cc.theme`); IPC `ags request shell-mode <ambient|both|reactive|cycle>` (no arg prints the mode).
+- **Style:** `styles/_mood.scss` — `amb-*` (tint, corner gradient, inner top highlight on bar + every glass panel), `mood-*` bar tints, `edge-caffeine`/`edge-nudge`/`edge-critical` 1px bar edges, `sweep` keyframes. Rules: DESIGN.md › Mood.
+
 ---
 
 ## 3. Bar (`widget/bar/`)
@@ -253,6 +260,8 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `cc.theme` — Dark / Light segment
 - **Code:** `ThemeMode.tsx` — the segment. `theme.ts` holds state/paths (`MODE_FILE`, `IDX_FILE`, `WALL_FILE`, `readFileOr`, `themeMode`) and `setTheme(mode)` L22 (writes `~/.cache/theme_mode`, runs `~/.config/hypr/scripts/theme-apply.sh`), shared with the launcher `dark`/`light` actions. **Style:** `_quicksettings.scss` L264–279.
+
+### `cc.shellmode` → see `shell.mood` (Ambient / Both / Reactive segment, `ShellMode.tsx`).
 
 ### `cc.footer`
 - **Code:** `Footer.tsx` — battery % · time left · current power profile. **Style:** `_quicksettings.scss` L280–end.
@@ -488,6 +497,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 | `~/.local/state/ags/desktop.json` (+ `.bak`) | `desktop.store` |
 | `~/.local/share/pomodoro/data.json` | `svc.pomodoro` |
 | `~/.local/share/ags/timers.json` | `svc.timer` |
+| `~/.local/state/ags/shell-mode` | `shell.mood` |
 | `~/.local/share/recently-used.xbel` (via `Gtk.RecentManager`; opening a file adds it) | `launcher` files mode |
 | `~/.cache/theme_mode`, `theme_idx`, `last_wall` | `cc.theme` (read by `desktop.gallery` for the Goal sample) |
 | `~/.cache/ags-files.txt` | `files` |

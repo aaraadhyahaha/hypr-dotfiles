@@ -5,6 +5,7 @@ import Icon from "../../common/Icon"
 
 // awake = hypridle stopped, so the screen never idles off. Shared with the launcher's toggle.
 const [awake, setAwake] = createState(false)
+export { awake } // read by service/mood.ts (caffeine edge)
 
 // pgrep exits non-zero when hypridle isn't running
 export const caffeineOn = () =>

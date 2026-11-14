@@ -13,6 +13,7 @@ import Sliders from "./Sliders"
 import MediaMini from "./MediaMini"
 import Stats from "./Stats"
 import ThemeMode from "./ThemeMode"
+import ShellMode from "./ShellMode"
 import Footer from "./Footer"
 import WifiPanel from "./WifiPanel"
 import BluetoothPanel from "./BluetoothPanel"
@@ -73,6 +74,7 @@ export default function QuickSettings() {
               <MediaMini />
               <Stats />
               <ThemeMode />
+              <ShellMode />
               <Footer />
             </box>
             <box $type="named" name="wifi">

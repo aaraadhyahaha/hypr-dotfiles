@@ -1,0 +1,126 @@
+// Shell mood (DESIGN.md › Mood). service/mood.ts puts these classes on every app window;
+// bar popovers inherit them as descendants of window.Bar.
+//   ambient  (amb-*):   tint + corner gradient + 1px inner top highlight on all glass
+//   reactive (mood-*, edge-*, sweep): bar tint, 1px bar edges, the focus-end sweep
+//   both:    ambient's gradient + highlight, reactive's bar tint + edges (later rules win)
+@use "sass:color";
+@use "sass:list";
+@use "../colors" as *;
+@use "tokens" as *;
+
+$tint: 12%;
+$tint-soft: 6%;
+
+// the shell's glass, besides the bar's .body; all share glass-panel's fill and shadow
+$panels: ".cc, .pnl, .batt, .sys, box.menu, .datemenu-panel, .pomo-card, .media-card, .lnch, .toast, .osd-card";
+
+// mix a role into a translucent fill without changing its alpha
+@function tinted($bg, $role, $w: $tint) {
+  @return color.mix(rgba($role, color.channel($bg, "alpha")), $bg, $w);
+}
+
+@function top-hi($role, $a) {
+  @return inset 0 1px rgba($role, $a);
+}
+
+// period → tint role, highlight role, highlight strength
+$periods: (
+  dawn: ($tertiary, $tertiary, 0.3),
+  day: ($primary, $on-surface, 0.22),
+  dusk: ($error-container, $error, 0.22),
+  night: ($secondary-container, $secondary, 0.1),
+);
+
+// colour changes ease in, never snap
+window.shell-ambient,
+window.shell-both,
+window.shell-reactive {
+  .body,
+  #{$panels} {
+    transition:
+      background-color $dur-enter $ease-out,
+      border-color $dur-enter $ease-out,
+      box-shadow $dur-enter $ease-out;
+  }
+}
+
+// ── ambient ────────────────────────────────────────────────────────────────
+@each $p, $v in $periods {
+  $role: list.nth($v, 1);
+  $hi: top-hi(list.nth($v, 2), list.nth($v, 3));
+  $wash: linear-gradient(to bottom right, rgba($role, 0.1), rgba($role, 0) 60%);
+
+  window.amb-#{$p} {
+    &.Bar > .body {
+      background-color: tinted($bar-bg, $role);
+      background-image: $wash;
+      box-shadow: $hi;
+    }
+
+    #{$panels} {
+      background-color: tinted($glass-panel, $role);
+      background-image: $wash;
+      box-shadow: $panel-shadow, $hi;
+    }
+  }
+}
+
+// ── reactive: bar tint (after ambient, so it wins the bar in "both") ──────────
+$moods: (
+  focus: ($tertiary, $tint),
+  break: ($tertiary-container, $tint),
+  build: ($primary, $tint),
+  write: ($secondary, $tint),
+  browse: ($tertiary, $tint-soft),
+  watch: ($error-container, $tint),
+);
+
+@each $m, $v in $moods {
+  window.Bar.mood-#{$m} > .body {
+    background-color: tinted($bar-bg, list.nth($v, 1), list.nth($v, 2));
+  }
+}
+
+// ── reactive: 1px edges ────────────────────────────────────────────────────
+window.Bar.edge-caffeine > .body {
+  border-top-color: rgba($tertiary, 0.6);
+}
+
+window.Bar.edge-nudge > .body {
+  border-bottom-color: $error-container;
+}
+
+// critical: a red bottom edge plus a short glow under it, kept with the period highlight
+window.Bar.edge-critical > .body {
+  border-bottom-color: $error;
+  box-shadow: inset 0 -3px 6px -3px rgba($error, 0.6);
+}
+
+@each $p, $v in $periods {
+  window.Bar.amb-#{$p}.edge-critical > .body {
+    box-shadow: top-hi(list.nth($v, 2), list.nth($v, 3)), inset 0 -3px 6px -3px rgba($error, 0.6);
+  }
+}
+
+// ── reactive: one light sweep across the bar when focus ends ────────────────
+$sweep-light: $on-surface;
+@if not $is-dark {
+  $sweep-light: $surface-container-lowest;
+}
+
+@keyframes mood-sweep {
+  from {
+    background-position: -100% 0;
+  }
+
+  to {
+    background-position: 200% 0;
+  }
+}
+
+window.Bar.sweep > .body {
+  background-image: linear-gradient(to right, rgba($sweep-light, 0), rgba($sweep-light, 0.16), rgba($sweep-light, 0));
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: mood-sweep $dur-sweep $ease 1;
+}
