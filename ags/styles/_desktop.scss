@@ -347,6 +347,73 @@ window.Desktop {
   }
 }
 
+// ── asana ───────────────────────────────────────────────────────────────────
+// Rows reuse fx's .dw-task-row; only the week strip is Asana's own.
+
+.dw-asana-strip {
+  margin: 0 -4px;
+}
+
+// buttons, flattened: no theme weight or padding
+.dw-asana-chev,
+.dw-asana-cell {
+  @include interactive($radius-full);
+  min-height: 22px;
+  padding: 0;
+  font-weight: 400;
+}
+
+.dw-asana-chev {
+  min-width: 18px;
+  color: $text-faint;
+
+  .glyph {
+    font-size: 9px;
+  }
+}
+
+.dw-asana-letter {
+  color: $text-faint;
+  @include text-size($font-size-xs);
+}
+
+.dw-asana-num {
+  color: $text;
+  @include text-size($font-size-sm);
+  font-feature-settings: "tnum";
+}
+
+.dw-asana-cell {
+  // days with nothing open fade back
+  &.empty .dw-asana-num {
+    color: $text-muted;
+  }
+
+  &.today .dw-asana-num {
+    color: $primary;
+    font-weight: 700;
+  }
+
+  // after .today, so a selected today stays readable on the accent
+  &.selected {
+    @include on-state;
+
+    .dw-asana-letter,
+    .dw-asana-num {
+      color: $on-fg;
+    }
+  }
+}
+
+.dw-asana .dw-task-row {
+  border-radius: $radius-sm;
+  transition: background-color $dur-fast $ease;
+
+  &:hover {
+    background-color: rgba($on-surface, $state-hover);
+  }
+}
+
 // ── system ──────────────────────────────────────────────────────────────────
 
 .dw-mini-val {

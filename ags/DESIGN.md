@@ -163,7 +163,7 @@ Text entries use `@include field`: a translucent `rgba($surface, .5)` fill, so t
 - **Dragging never relayouts:** the card follows the pointer as a `<Motion>` paint offset, and is moved in the `Gtk.Fixed` once, on drop, settling from its offset. The resize handle snaps to the kind's sizes, with a ghost that names the size.
 - **Card:** `$panel-bg` glass, `$radius-xl`, 12px padding. Each frame has 10px of transparent bleed so the edit-mode badge straddles the card's corner. Rings, meters and bars are `$primary` (`$tertiary` for vision widgets, `$error` past a threshold) and ease in with `tween`.
 - **Idle cost:** ticking (the clock's sweep) and polling (System) run only while `live` is true, meaning in edit mode or when no tiled or fullscreen window covers the workspace. fx refreshes on changes to `fx.db`, plus once a minute.
-- **Data:** fx widgets read `fx status --json` (`service/fx.ts`); they never write to fx's database.
+- **Data:** fx widgets read `fx status --json` (`service/fx.ts`); they never write to fx's database. Asana Day only sends GET requests to Asana (token in the keyring, never a file) and refreshes every 5 minutes, only while `live`.
 - **Gotchas:**
   - No infinite CSS `animation` on the desktop layer; it ignores `live`. Hyprland then re-blurs every translucent window above the desktop on every frame. The `.dw-live-dot` pulse kept the iGPU about 70% busy while idle (about 15% without it).
   - Put `visible` last on a layer window. Set before `layer`, the surface maps on Astal's default layer (TOP) first.

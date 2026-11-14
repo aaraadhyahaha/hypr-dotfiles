@@ -44,6 +44,14 @@ export const CATALOG: Entry[] = [
     defaultSize: "l",
   },
   {
+    kind: "asana",
+    name: "Asana Day",
+    description: "Your Asana tasks for the day you pick on a week strip.",
+    category: "focus",
+    sizes: ["m", "l"],
+    defaultSize: "l",
+  },
+  {
     kind: "clock",
     name: "Clock",
     description: "An analog face, or the time and date.",

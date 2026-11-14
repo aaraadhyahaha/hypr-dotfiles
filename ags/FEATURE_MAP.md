@@ -23,6 +23,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `svc.recorder` | wf-recorder screen recording | `service/recorder.ts` |
 | `svc.pomodoro` | Pomodoro timer engine + history | `service/pomodoro.ts` |
 | `svc.fx` | fx focus-tracker data + CLI verbs | `service/fx.ts` |
+| `svc.asana` | Asana My Tasks, read-only (PAT in keyring) | `service/asana.ts`, `asanaModel.ts` |
 | `svc.timer` | Countdown timers (launcher `timer 10m`) | `service/timer.ts` |
 | `svc.hypr` | Lua-first `hyprctl dispatch` helper | `service/hypr.ts` |
 | `svc.privacy` | Which apps capture mic/camera/screen (AstalWp) | `service/privacy.ts` |
@@ -125,6 +126,11 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 - **fx CLI verbs** (`~/Projects/fx/src/fx/cli.py` `main()` L103): `status`, `add TITLE [-s 1-5] [-e MIN]`, `focus [ID]` (TUI space toggle; no id stops/starts untasked), `stop`, `done ID` (toggles; ends the session if that task is in focus, then Notion push). All take `--json`. Never write fx.db from ags.
 - **Model:** `service/fxModel.ts` — `parseStatus`, `hm`, `padTimes`, `sinceMinutes`. **Test:** `fxModel.test.ts`.
 - **Used by:** `desktop.w.fxtoday`, `desktop.w.fxtasks`, `svc.bridge`, `launcher` fx mode.
+
+### `svc.asana` — Asana My Tasks (read-only, GET only)
+- **Code:** `service/asana.ts` — `asanaTasks`, `asanaProblem` (`no-token`/`auth`/`offline`/`error`), `asanaWeek` state. Token from libsecret (`secret-tool store --label="Asana PAT" service asana`, generic schema, `DONT_MATCH_NAME`). `refreshAsana()` (Soup 3): `/users/me` → first workspace → `user_task_list` → `/user_task_lists/{gid}/tasks?completed_since=<week's Monday>` with paging. `setAsanaWeek(monday)` refetches; `useAsana(live)` starts a 5-min refresh that skips while the desktop is hidden and catches up when it shows; `openTask(url)` → `xdg-open`.
+- **Model:** `service/asanaModel.ts` — `parseTasks`, `localDay` (a `due_at` counts on its local date), `tasksForDay` (today also gathers open overdue), `isOverdue`, `countsByDay`, `weekOf`/`mondayOf`/`shiftWeek`/`addDays`, `dayLabel`. **Test:** `asanaModel.test.ts`.
+- **Used by:** `desktop.w.asana`.
 
 ### `svc.timer` — countdown timers
 - **Code:** `service/timer.ts` — `timers` state L14; wall-clock ends persisted to `~/.local/share/ags/timers.json` (`save`/`load` L18–36), so they survive restarts and suspend; `ring` (notify-send + paplay `complete.oga`, "late" if it ended while ags was down) L46; `addTimer(secs, label)` L70; `cancelTimer(id)` L78; `restoreTimers()` L83 (called in `app.ts`).
@@ -446,6 +452,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 | `desktop.w.countdown` | `Countdown.tsx` | Days until a date, ring; editor | L404–466 |
 | `desktop.w.fxtoday` | `FxToday.tsx` | fx score ring, focus vs target, streak, hourly, up next; `openFx` (kitty) | L238–301 |
 | `desktop.w.fxtasks` | `FxTasks.tsx` | fx task list by severity | L238–301 |
+| `desktop.w.asana` | `Asana.tsx` | Asana Day: fx Tasks look (dot red = overdue), slim week strip (‹ ›, scroll flips weeks, faded = no open tasks); overdue roll onto today; row opens the task (`svc.asana`) | L350–416 |
 | `desktop.editor` | `editor.ts` | "Edit Widget…" popover | L467–502 |
 
 - **Dates model:** `widget/desktop/dates.ts` (`isoDay`, `daysUntil`, `countdownLabel`, `progressBetween`, `monthGrid`). **Test:** `dates.test.ts`. Also used by `bar.datemenu`.
