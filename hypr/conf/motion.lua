@@ -10,6 +10,8 @@ return {
     slide = 320,
     lift = 70,
     swoop = 200,
+    flash = 1200,
+    sweep = 900,
     window = 250,
     workspace = 300,
   },

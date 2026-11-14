@@ -12,6 +12,8 @@ export const DURATIONS = {
   slide: 320, // toasts arriving from the screen edge
   lift: 70, // the corner note picked up
   swoop: 200, // the corner note thrown off
+  flash: 1200, // critical-notification glow holds on the bar's edge (mood)
+  sweep: 900, // one-shot light sweep across the bar when focus ends (mood)
 }
 
 // durations in ms that only Hyprland uses (its windows, not the shell)
