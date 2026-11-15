@@ -28,22 +28,6 @@ export const CATEGORIES: { id: Category; name: string; glyph: string }[] = [
 
 export const CATALOG: Entry[] = [
   {
-    kind: "fx-today",
-    name: "fx Today",
-    description: "Your day score, focus time against the target, and streak.",
-    category: "focus",
-    sizes: ["s", "m", "l"],
-    defaultSize: "m",
-  },
-  {
-    kind: "fx-tasks",
-    name: "fx Tasks",
-    description: "Open tasks by severity, with effort and time spent.",
-    category: "focus",
-    sizes: ["m", "l"],
-    defaultSize: "l",
-  },
-  {
     kind: "asana",
     name: "Asana Day",
     description: "Your Asana tasks for the day you pick on a week strip.",
@@ -122,11 +106,10 @@ export function search(query: string) {
 
 export const SIZE_NAMES: Record<Size, string> = { s: "Small", m: "Medium", l: "Large", xl: "Extra Large" }
 
-// first run: time across the top-left, today's focus under it, tasks beside
+// first run: time across the top-left, system under it, tasks beside
 export const DEFAULT_LAYOUT: Item[] = [
   { id: "clock-1", kind: "clock", size: "s", col: 0, row: 0, config: {} },
   { id: "calendar-2", kind: "calendar", size: "s", col: 2, row: 0, config: {} },
-  { id: "fx-today-3", kind: "fx-today", size: "m", col: 0, row: 2, config: {} },
-  { id: "system-4", kind: "system", size: "m", col: 0, row: 4, config: {} },
-  { id: "fx-tasks-5", kind: "fx-tasks", size: "l", col: 4, row: 0, config: {} },
+  { id: "system-3", kind: "system", size: "m", col: 0, row: 2, config: {} },
+  { id: "asana-4", kind: "asana", size: "l", col: 4, row: 0, config: {} },
 ]

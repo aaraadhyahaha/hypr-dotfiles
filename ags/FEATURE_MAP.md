@@ -22,13 +22,10 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `svc.system` | CPU/RAM/disk/temp polls | `service/system.ts` |
 | `svc.recorder` | wf-recorder screen recording | `service/recorder.ts` |
 | `svc.pomodoro` | Pomodoro timer engine + history | `service/pomodoro.ts` |
-| `svc.fx` | fx focus-tracker data + CLI verbs | `service/fx.ts` |
 | `svc.asana` | Asana My Tasks, read-only (PAT in keyring) | `service/asana.ts`, `asanaModel.ts` |
 | `svc.timer` | Countdown timers (launcher `timer 10m`) | `service/timer.ts` |
 | `svc.hypr` | Lua-first `hyprctl dispatch` helper | `service/hypr.ts` |
 | `svc.privacy` | Which apps capture mic/camera/screen (AstalWp) | `service/privacy.ts` |
-| `svc.bridge` | Hemingway bridges: next-step notes on fx stop, morning question | `service/bridge.ts`, `bridgeModel.ts` |
-| `shell.mood` | Shell mood: ambient (time of day) / reactive (pomodoro, app, caffeine, critical) glass | `service/mood.ts`, `moodModel.ts`, `styles/_mood.scss` |
 | `bar.shell` | Bar window & item order | `widget/bar/Bar.tsx` |
 | `bar.workspaces` | Workspace pips, scratchpad, urgency | `bar/modules/Workspaces.tsx` |
 | `bar.wintitle` | Focused window title | `bar/modules/WindowTitle.tsx` |
@@ -47,12 +44,10 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 | `notif.row` | One notification row (shared) | `widget/notifications/NotifRow.tsx` |
 | `toasts` | Notification popups | `widget/toasts/Toasts.tsx` |
 | `osd` | Volume/brightness/mic/caps/kbd OSD | `widget/osd/Osd.tsx` |
-| `launcher` | App launcher, quick actions, calc/emoji/shell/web/fx/files modes | `widget/launcher/Launcher.tsx`, `model.ts` |
+| `launcher` | App launcher, quick actions, calc/emoji/shell/web/files modes | `widget/launcher/Launcher.tsx`, `model.ts` |
 | `files` | Fuzzy file search | `widget/files/Files.tsx` |
 | `clipboard` | Clipboard history | `widget/clipboard/Clipboard.tsx` |
 | `wallpapers` | Wallpaper picker | `widget/wallpapers/Wallpapers.tsx` |
-| `bridge.sheet` | Full-screen pause sheet: "Next, I …" plus a half-finished line / tomorrow's question | `widget/bridge/BridgeSheet.tsx`, `sheetModel.ts` |
-| `bridge.note` | Yellow note tilted over the bottom-right corner: newest unseen bridge; slaps in, swoops out | `widget/bridge/BridgeNote.tsx` |
 | `shot.*` | Screenshot session (overlay + toolbar), capture, preview toast | `widget/screenshot/Screenshot.tsx`, `ShotMenu.tsx` |
 | `overview.*` | Workspace overview with window previews | `widget/overview/Overview.tsx` |
 | `desktop.*` | Desktop widgets, grid, edit mode, gallery | `widget/desktop/*` |
@@ -67,8 +62,8 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 ## 1. Core
 
 ### `core.app` — startup & IPC
-- **Code:** `app.ts` (70 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` calls `restoreTimers()` (`svc.timer`) and creates every window once (Desktop, BridgeNote (right after Desktop, so it stacks above it), one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview, BridgeSheet) and `startBridge()` (`svc.bridge`).
-- **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-shotmenu`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`, `bridge` (day-mode bridge prompt).
+- **Code:** `app.ts` (70 lines). `requestHandler` maps `ags request <cmd>` → toggle functions; `main()` calls `restoreTimers()` (`svc.timer`) and creates every window once (Desktop, one Bar per monitor, Toasts, Launcher, OSD, Wallpapers, Files, Screenshot, ShotPreview, Clipboard, Overview).
+- **IPC commands:** `toggle-launcher`, `osd-brightness`, `toggle-wallpapers`, `toggle-files`, `screenshot`, `screenshot-full`, `toggle-shotmenu`, `toggle-clipboard`, `toggle-overview`, `toggle-datemenu`, `toggle-cc`, `toggle-widgets`.
 - **Pattern for a new IPC command:** export `toggleX` from the widget (module-level `let toggleFn`), add one `if` in `app.ts`, bind it in `ext.hypr.shell`.
 - **Also:** `style.scss` (only `@use` lines — add new partials here), `env.d.ts` (module typings), `tsconfig.json`, `package.json` (`npm test`).
 - **Driving the live shell (what works for testing, Hyprland 0.56 Lua):**
@@ -79,9 +74,9 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `core.motion` — animation system
 - **Code:** `widget/common/motion.ts`
-  - `MOTION` durations L14 (incl. `lift` 70, `swoop` 200) · `LAYER_GONE` (wait out a layer window's fade before capturing) L18 · `bezier` (unclamped y, so overshoot works)/`EASE` L22–61 (incl. `back`, `lift`, `swoop`) · `Pose` (incl. `rot`, degrees)/`Anim` types L64–80
+  - `MOTION` durations L14 · `LAYER_GONE` (wait out a layer window's fade before capturing) L18 · `bezier` (unclamped y, so overshoot works)/`EASE` L22–58 · `Pose` (incl. `rot`, degrees)/`Anim` types L64–80
   - `Motion` GObject class (paint-time transform) L104–194
-  - `ENTER` presets L197–218 (incl. `slap`) · `settle`/`LIFT` L221–223 · `LEAVE` L225–234 (incl. `lift`, `swoop`) · `onShow()` L236
+  - `ENTER` presets L197–218 · `settle`/`LIFT` L221–223 · `LEAVE` L225–234 · `onShow()` L236
 - **Tokens:** `widget/common/motionTokens.ts` is the single source (`DURATIONS`, `COMPOSITOR`, `CURVES`). `npm run motion` (`scripts/motion.ts` → `motionTokensModel.ts`, tested by `motionTokensModel.test.ts`) generates SCSS `$dur*`/`$ease*` in `styles/_motion.scss` (forwarded by `_tokens.scss`) and `~/.config/hypr/conf/motion.lua`. Rules: `DESIGN.md › Motion`.
 - **Touches:** every popover and layer window.
 
@@ -119,13 +114,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
   - controls `toggle`/`start`/`pause`/`reset`/`skip`/`setTask` L148–188 · `startFocus(mins?, task?)` (one-off focus length, used by the launcher) L189 · `setSettings` L200
   - `persist`/`restore` (survives restarts via wall-clock end) L209–246
   - `tick` L263–277 · `advance` (phase change, day stats, notify-send + paplay) L279–310
-- **Used by:** `bar.pomodoro`, `launcher` (`pomo`/`focus` actions, fx Alt+Enter).
-
-### `svc.fx` — fx focus tracker (fx owns every DB write)
-- **Code:** `service/fx.ts` — `fxStatus`, `fxProblem` state; `refreshFx()` L29 runs `~/.local/bin/fx status --json` (or `fx` on PATH); `useFx()` L61 starts a 60s refresh + `Gio.FileMonitor` on `~/.local/share/fx/fx.db*`; `fxRun(...args)` L91 runs an fx verb (failure → notification, resolves null); `openFx()` L111 focuses fx's kitty window via `svc.hypr` (class `fx`, or a kitty titled `fx …`: fx typed in fish, `FX_TITLE` L108), else starts `kitty --class fx fx`.
-- **fx CLI verbs** (`~/Projects/fx/src/fx/cli.py` `main()` L103): `status`, `add TITLE [-s 1-5] [-e MIN]`, `focus [ID]` (TUI space toggle; no id stops/starts untasked), `stop`, `done ID` (toggles; ends the session if that task is in focus, then Notion push). All take `--json`. Never write fx.db from ags.
-- **Model:** `service/fxModel.ts` — `parseStatus`, `hm`, `padTimes`, `sinceMinutes`. **Test:** `fxModel.test.ts`.
-- **Used by:** `desktop.w.fxtoday`, `desktop.w.fxtasks`, `svc.bridge`, `launcher` fx mode.
+- **Used by:** `bar.pomodoro`, `launcher` (`pomo`/`focus` actions).
 
 ### `svc.asana` — Asana My Tasks (read-only, GET only)
 - **Code:** `service/asana.ts` — `asanaTasks`, `asanaProblem` (`no-token`/`auth`/`offline`/`error`), `asanaWeek` state. Token from libsecret (`secret-tool store --label="Asana PAT" service asana`, generic schema, `DONT_MATCH_NAME`). `refreshAsana()` (Soup 3): `/users/me` → first workspace → `user_task_list` → `/user_task_lists/{gid}/tasks?completed_since=<week's Monday>` with paging. `setAsanaWeek(monday)` refetches; `useAsana(live)` starts a 5-min refresh that skips while the desktop is hidden and catches up when it shows; `openTask(url)` → `xdg-open`.
@@ -139,25 +128,13 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `svc.hypr` — dispatch helper
 - **Code:** `service/hypr.ts` — `hyprDispatch(lua, legacy)`: Lua `hl.dsp.*` first, legacy `hyprctl dispatch` fallback (AstalHyprland's own dispatch is broken on Hyprland ≥ 0.55).
-- **Used by:** `overview.hypr`, `svc.fx` `openFx`.
+- **Used by:** `overview.hypr`.
 
 ### `svc.privacy` — apps capturing mic / camera / screen
 - **Code:** `service/privacy.ts` — `privacy` state L14; `update(gone?)` L51 rebuilds it from `audio.recorders` + `video.recorders` (minus a node being removed) and only sets it when the value changed. Signal-driven, no polling: recorder/source/mic added/removed, per-node `notify::` via `watch`/`unwatch` L67–75 (recorders `RECORDER` L77, mics `mute`/`is-default`), `default-microphone`. `targetOf` L20 resolves a stream's target from `targetSerial` or the `target.object` prop (serial or node.name). `audioStream` L36: a speaker target or `stream.capture.sink` marks desktop-audio `monitor`; otherwise the target mic (else the `isDefault` entry of `microphones`) gives `muted`. `videoStream` L45: target in `video.sources`, else `guessSource`. The shell's own streams drop out by `ownPid` L12. `toggleMicMute()` L98.
 - **AstalWp gotchas (0.1):** `Node.state` never leaves CREATING, so running/paused can't be told; `targetSerial` reads 0 when unset and ignores `target.object`; `defaultMicrophone` is a separate object from its `microphones` entry and can lag on `mute`.
 - **Model:** `service/privacyModel.ts` — `Source`/`Stream`/`Privacy` types, `IGNORE` L34 (cava, pavucontrol, easyeffects, wf-recorder), `isCamera` L41 (v4l2/libcamera/role Camera), `guessSource` L47 (the camera, only if every video source is one), `classify` L54 (skips own pid and monitor capture; non-camera video → screen), `summarize` L60 (per-app dedupe, `level` screen > camera > mic, `micMuted` = every mic stream muted), `samePrivacy` L87. **Test:** `privacyModel.test.ts`.
 - **Used by:** `bar.privacy`.
-
-### `svc.bridge` — Hemingway bridges (fx-driven, read-only except `fx focus`)
-- **Code:** `service/bridge.ts` — notes in `~/.local/state/ags/bridges.json` (`load` L34, debounced `commit` L49, 300ms); `Prompt` type L32 (`kind`, `taskId`, `title`, `stoppedMin`, `day` label like `Thu 29 Oct`); `bridges`/`prompt` state L44–45; `leaveBridge(kind, taskId, title, stoppedMin)` L67 opens the sheet; `closePrompt` L76; `saveBridge(p, line, pickup)` L79 (stores `written(line, stem)` + trimmed pickup; both empty = skip); `markSeen` L86; `nudge` L92 (one `notify-send --wait` per day, action opens day mode); `react(prev, next)` L104; `startBridge` L124 (one `fxStatus` subscription, no timers of its own).
-- **Reactions:** focused task stopped (not done) → task prompt with minutes since `active.since`; a note's task turns active or done → `retire` marks it seen (the note swoops out); `Shutdown` task focused → day prompt; `dayOver` first true today → nudge. Starting a different task leaves the note alone. No unlock or resume toast.
-- **Model:** `service/bridgeModel.ts` — `Bridge` type L6 (`text`, `pickup`: old JSON defaults it to `""`), `STEM` L19 (`Next, I ` / `Tomorrow, first I `), `written(line, stem)` L22 (what's typed past the stem), `stoppedTask` L29 (skips done and Shutdown tasks), `isShutdown` L38, `dayOver` L50, `dayOf` L59, `put` L64 (one note per task + one day note), `noteFor` L69, `morningNote` L73, `shown(list, status, today)` L82 (the note to draw, or null), `retire(list, prev, next)` L89, `markSeenIn` L97, `prune` L99 (3 days), `parseBridges`/`serialize` L122–136. **Test:** `bridgeModel.test.ts`.
-- **Used by:** `bridge.sheet`, `bridge.note`, `core.app` IPC.
-
-### `shell.mood` — ambient / reactive glass (independent of fx)
-- **Code:** `service/mood.ts` — mode in `~/.local/state/ags/shell-mode` (`loadMode` L27, default `both`); `shellMode` state L37 / `setShellMode` L40; `paint(w)` L66 toggles only mood classes on a window, `watch` L72 re-paints when a bound `class` (the bar's edit mode) replaces the list; `apply` L80 recomputes and paints every `app.get_windows()` window only when the class list changed; `pulse` L96 drives the one-shot `flash` (`MOTION.flash`) and `sweep` (`MOTION.sweep`); `followFocus` L115 tracks the focused client's class/title; `startMood` L135 (called in `app.ts`) wires pomodoro, caffeine `awake`, notifd critical, a 60s period tick and `window-added`. `AGS_MOOD_HOUR=19` overrides the hour (read once).
-- **Model:** `service/moodModel.ts` — `categorize(cls, title)` (Build/Write/Browse/Watch/System; music titles aren't Watch), `period(hour)`, `pomoKind`, `focusEnded(prev, next)`, `nextMode`/`parseMode`, `moodClasses(input)` (priority: critical > pomodoro > app; caffeine stacks), `ALL_CLASSES`. **Test:** `moodModel.test.ts`.
-- **UI:** `widget/bar/quicksettings/ShellMode.tsx` (CC segment under `cc.theme`); IPC `ags request shell-mode <ambient|both|reactive|cycle>` (no arg prints the mode).
-- **Style:** `styles/_mood.scss` — `amb-*` (tint, corner gradient, inner top highlight on bar + every glass panel), `mood-*` bar tints, `edge-caffeine`/`edge-nudge`/`edge-critical` 1px bar edges, `sweep` keyframes. Rules: DESIGN.md › Mood.
 
 ---
 
@@ -267,7 +244,6 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 ### `cc.theme` — Dark / Light segment
 - **Code:** `ThemeMode.tsx` — the segment. `theme.ts` holds state/paths (`MODE_FILE`, `IDX_FILE`, `WALL_FILE`, `readFileOr`, `themeMode`) and `setTheme(mode)` L22 (writes `~/.cache/theme_mode`, runs `~/.config/hypr/scripts/theme-apply.sh`), shared with the launcher `dark`/`light` actions. **Style:** `_quicksettings.scss` L264–279.
 
-### `cc.shellmode` → see `shell.mood` (Ambient / Both / Reactive segment, `ShellMode.tsx`).
 
 ### `cc.footer`
 - **Code:** `Footer.tsx` — battery % · time left · current power profile. **Style:** `_quicksettings.scss` L280–end.
@@ -313,8 +289,8 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 All three share the card/field/row look in `styles/_launcher.scss` and use `surfaceTop()`.
 
 ### `launcher`
-- **Code:** `widget/launcher/Launcher.tsx` — frecency load/save L23–34; copy/web/calc/emoji/shell item builders L36–82; extra entries (Wallpapers, Search Files) L84–97; `fileItem` + files empty/loading rows L98–111; `MAX`, `LIST_H` (list max height = pane height), `RECENT_MAX`, `idOf` L113–119; `toggleLauncher(prefill?)` L120–121; preview pane `swapPane` (crossfade `ENTER.swap`) / `showPreview` (`Gio.Cancellable` per selection) / `setPane` (`.wide`) L148–188; `setSel` L191; `launch(item, "launch"|"alt"|"extra")` (frecency bump, `stay` rows keep it open) L204; `render(keep?)` L217 (keeps the selected row by `idOf`, re-measures the layer window so the card hugs the list); mode tab: `MODE_LABEL`/`PLACEHOLDER` L300, `setMode` (revealer + `ENTER.side`/`LEAVE.content`) L312, `setQuery` (a leading prefix becomes the tab) L329, `onText` L339; `calc` (debounce + `seq` guard, `qalc`) L346; `search` dispatch on `mode` L360–435 (apps branch: quick actions first unless `riskyPrefix`, then extras, apps, web fallback); `recentItem` L438; `filesSearch` (recent first, fd index merges in after 100ms, `seq` guard) L448–478; `fxChanged` (re-render on fx data) L482; `open(prefill)` (resets per-open caches; `refreshActions()` waits out the open motion via `settle`, cancelled by `close`); `watchApps` (Gio monitors on XDG `applications` dirs → `apps.reload()`, no rescan per open) L488; keys L509–532 (Backspace on an empty field drops the mode tab, Shift+Enter `alt`, Alt+Enter `extra`, Ctrl+C copies a file row's path); window (`namespace="launcher"`) L504–end.
-- **Modes:** `=` calc · `:` emoji · `>` shell (Shift+Enter runs in kitty) · `?` web · `!` or `fx ` fx · `/` files · otherwise apps. A prefix typed at the start becomes a mode tab left of the field (the field keeps only the query; `fx` needs a space); Backspace on an empty field returns to apps (quick-action rows, auto calc row via `looksLikeMath`, "Recent Files" row, Google fallback row). `Super+.` opens with `:` prefilled (`ags request toggle-launcher :`).
+- **Code:** `widget/launcher/Launcher.tsx` — frecency load/save L23–34; copy/web/calc/emoji/shell item builders L36–82; extra entries (Wallpapers, Search Files) L84–97; `fileItem` + files empty/loading rows L98–111; `MAX`, `LIST_H` (list max height = pane height), `RECENT_MAX`, `idOf` L113–119; `toggleLauncher(prefill?)` L120–121; preview pane `swapPane` (crossfade `ENTER.swap`) / `showPreview` (`Gio.Cancellable` per selection) / `setPane` (`.wide`) L148–188; `setSel` L191; `launch(item, "launch"|"alt"|"extra")` (frecency bump, `stay` rows keep it open) L204; `render(keep?)` L217 (keeps the selected row by `idOf`, re-measures the layer window so the card hugs the list); mode tab: `MODE_LABEL`/`PLACEHOLDER` L300, `setMode` (revealer + `ENTER.side`/`LEAVE.content`) L312, `setQuery` (a leading prefix becomes the tab) L329, `onText` L339; `calc` (debounce + `seq` guard, `qalc`) L346; `search` dispatch on `mode` L360–435 (apps branch: quick actions first unless `riskyPrefix`, then extras, apps, web fallback); `recentItem` L438; `filesSearch` (recent first, fd index merges in after 100ms, `seq` guard) L448–478; `open(prefill)` (resets per-open caches; `refreshActions()` waits out the open motion via `settle`, cancelled by `close`); `watchApps` (Gio monitors on XDG `applications` dirs → `apps.reload()`, no rescan per open) L488; keys L509–532 (Backspace on an empty field drops the mode tab, Shift+Enter `alt`, Alt+Enter `extra`, Ctrl+C copies a file row's path); window (`namespace="launcher"`) L504–end.
+- **Modes:** `=` calc · `:` emoji · `>` shell (Shift+Enter runs in kitty) · `?` web · `/` files · otherwise apps. A prefix typed at the start becomes a mode tab left of the field (the field keeps only the query); Backspace on an empty field returns to apps (quick-action rows, auto calc row via `looksLikeMath`, "Recent Files" row, Google fallback row). `Super+.` opens with `:` prefilled (`ags request toggle-launcher :`).
 - **Quick actions (apps mode):** grammar in `actionsModel.ts` `parseAction` L92 (commands resolve by 3+ char prefix, `bt`/`dnd` exact only; table `COMMANDS` L55):
   - `timer 10m [label]` / `timer 1h30 tea` / `timer 5 min tea` (`parseDuration` L12: `10m` `1h30` `90s` `1.5h` `1:30` bare = min) · `timer` alone lists running timers → `svc.timer`
   - `vol 30` / `vol +10` · `brightness 50` / `-10` · `mute` / `unmute` / `mic [mute|unmute]`
@@ -322,7 +298,6 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
   - `lock` `suspend`/`sleep` `logout` `reboot` `shutdown`/`poweroff` (prefix-matched session-enders rank below apps: `riskyPrefix` L176)
   - `play` `pause` `next` `prev` · `screenshot` · `record` · `pomo` (toggle) / `pomo pause|stop` / `focus` / `focus 25 [task]`
   - Rows: `actions.ts` `actionItems(intent)` L254 → per-kind builders (`toggleItems` L63, `volumeItems` L100, `brightnessItems` L118, `muteItems` L139, `themeItems` L155, `powerItems` L175, `mediaItems` L187, `timerItems` L201, `pomoItems` L218). Each shows the outcome before Enter (`level` meter, "ends 14:32"); missing tool/device → no row. `refreshActions()` L38 caches brightness + caffeine state on open. Calls the shared helpers in `cc.theme`, `bar.caffeine`, `bar.power`, `cc.sliders`, `cc.shell`, `svc.recorder`, `svc.pomodoro`, `svc.timer`.
-- **fx mode (`!`, `fx `):** `actionsModel.ts` `parseFxQuery` L190 (`add TITLE /SEV 45m`, `stop`, `open`, else a list filter), `fxAddArgs` L216, `matchTasks` L225. Rows in `fxItems.ts` `fxItems(q)` L102: header (score · focus/target · streak · active) L27, tasks L42 (↵ focus/stop, ⇧↵ done, Alt+↵ focus + pomodoro L37), stop L62, add L73 (⇧↵ add + focus; a filter with no match offers it), loading/missing/error row L94. Writes go through `svc.fx` `fxRun`.
 - **Files mode (`/`):** `preview.ts` — `listRecent` (Gtk.RecentManager, existing local files, newest first) L42, `addRecent` L57, `fileIcon` L63, `loadPreview(path, scale, cancel)` L229 (image `FitPicture` decoded at display size L108–135, text first 40 lines L188, folder listing L208, else icon + details), `emptyPreview` L178, `PREVIEW_W` = 288 L26. Search/open helpers come from `files` (`searchIndex`, `indexFiles`, `isIndexing`, `openPath`, `showInFolder`). Keys: ↵ open, ⇧↵ show in folder, Ctrl+C copy path.
 - **Logic:** `widget/launcher/model.ts` (pure: `Item` type L5–31 with `level`/`hint`/`alt`/`extra`/`preview`/`stay`, `Mode` + `takeMode` L33–46, `looksLikeMath`, `qalcExpr`, `cleanCalc`, emoji parse/search, frecency `bump`/`rank`, `webUrl`) · `actionsModel.ts` (above) · `filesModel.ts` (`matchTier`, `matchRecent`, `mergePaths`, `previewKind`, `looksBinary`, `firstLines`, `formatSize`, `relTime`, `itemCount`, `tildePath`, `fitSize`). **Tests:** `model.test.ts`, `actionsModel.test.ts`, `filesModel.test.ts`.
 - **Data:** `widget/launcher/emojiData.ts` is generated by `gen-emoji.ts` (one-off Node script; commit the output). Frecency cache: `~/.cache/ags-launcher.json`.
@@ -339,18 +314,6 @@ All three share the card/field/row look in `styles/_launcher.scss` and use `surf
 ### `wallpapers` — wallpaper picker
 - **Code:** `widget/wallpapers/Wallpapers.tsx` — source `~/Pictures/Wallpapers`, thumbs cached in `~/.cache/ags-wp` (240×135) L10–17; `listImages`/`texture` L30–64; grid `render()` + idle thumbnail fill L65–112; open/close L113–121; `apply()` → `~/.config/hypr/scripts/wallpaper-set.sh` L122–126; window L150–183.
 - **Style:** `styles/_wallpapers.scss`.
-
-### `bridge.sheet` — the full-screen pause sheet
-- **Code:** `widget/bridge/BridgeSheet.tsx` — follows `svc.bridge` `prompt`; OVERLAY window anchored on all four edges (`namespace="bridge"`, blurred, scrim `$scrim` 0.86), keymode EXCLUSIVE while open, on the focused monitor; no motion of its own (Hyprland's layer fade) and no idle timeout. Built lazily by `build()` L184 on first `open()` L293; `close()` L323. Copy per kind (stem, gutter labels, context line) in `COPY` L23, hint text per state in `HINTS` L29. Keys: `onKey` L155 → `press` L131 → `sheetModel.step` → `run(effect)` L110; Esc arms for `ARM_MS` (2s); a refused Enter plays `playFlash` L97 (`.flash` class on the line-1 row for `MOTION.fast`, CSS transition). `sheetMonitor()` L335 tells the note where to land; `BridgeSheet()` L340 (called from `app.ts`).
-- **Model:** `widget/bridge/sheetModel.ts` — `step(sheet, key, lines)` L26: Tab swaps lines; Enter saves, or nudges when line 1 is empty or stem-only; Esc arms, Esc Esc closes saving text past the stem (`skip-save`); typing or the 2s timeout disarms. **Test:** `sheetModel.test.ts`.
-- **Keyboard:** opens EXCLUSIVE, `settleKeymode` L58 drops to ON_DEMAND after 80ms; `release` L69 lets go (NONE → ON_DEMAND) when a Hyprland client opens or another AGS window with a keymode shows (screenshot, launcher…). Never leave it EXCLUSIVE: it trapped every other surface.
-- **Style:** `styles/_bridge.scss` (sheet L6–124).
-
-### `bridge.note` — the corner note
-- **Code:** `widget/bridge/BridgeNote.tsx` — own layer window (`namespace="bridgenote"`, `Layer.BOTTOM`, BOTTOM|RIGHT, margins 0, keymode NONE, exclusivity IGNORE, `no_anim` in Hyprland), created in `app.ts` right after `Desktop()` so it maps above the desktop layer. 500px note tilted `DEG` (-4°) L22, overhanging both edges by `OVER` (72px) L23 with no negative margins: the surface is just the on-screen part.
-  - `quad` L32 (the rotated note's corners) · `region` L46 (input region = the yellow only, in `STRIP` 2px strips) · `NoteCorner` widget L73: `vfunc_measure` = visible bounding box, `vfunc_size_allocate` places the child with a `Gsk.Transform` (rotate about its centre) and calls `applyRegion` (`set_input_region` + `queue_draw`, since GDK only sends it on a commit). Also re-applied on map; the window size is reset (`set_default_size(-1, -1)`) so it shrinks for a shorter note.
-  - `eyebrowFor` L140 (`<title> · paused HH:MM`, or `Tomorrow's first question · Thu 29 Oct`). `BridgeNote()` L150: `leave` L170 plays `LEAVE.lift` then `LEAVE.swoop` and hides; `click` L187 → `fx focus <id>` + `markSeen`, then `openFx()` after the swoop (a day note only opens fx); `show` L263 lands on `sheetMonitor()` and plays `ENTER.slap`; `render` L282 follows `shown(...)` over `bridges` and `fxStatus`, so resuming or finishing the task swoops it out and pausing another swaps the text and replays the slap. After a `prompt` closes it waits `LAYER_GONE` (L294) so the slap starts after the sheet's fade.
-- **Style:** `styles/_bridge.scss` L125–end — opaque `$note-paper` with `$on-note-paper` ink (tokens in `_tokens.scss`; not in `ags-blur`), radius on the top-left corner only, no shadow, border or rules; eyebrow at 0.70, lines in mono 15/24, `.note-pickup` at 0.75.
 
 ---
 
@@ -411,7 +374,7 @@ Architecture & rules: `DESIGN.md › Desktop widgets`. Style: `styles/_desktop.s
 - **Test:** `layout.test.ts`.
 
 ### `desktop.catalog` — widget kinds (pure)
-- **Code:** `catalog.ts` — `CATEGORIES` L21–28; `CATALOG` (fx-today, fx-tasks, clock, calendar, system, note, goal, countdown: name, category, sizes, default) L29–103; `entry`/`sizesOf`/`search` L106–112; `SIZE_NAMES`; `DEFAULT_LAYOUT` L118.
+- **Code:** `catalog.ts` — `CATEGORIES` L21–28; `CATALOG` (asana, clock, calendar, system, note, goal, countdown: name, category, sizes, default) L29–103; `entry`/`sizesOf`/`search` L106–112; `SIZE_NAMES`; `DEFAULT_LAYOUT` L118.
 - **Test:** `catalog.test.ts`.
 - **Adding a widget kind:** entry in `catalog.ts` + render (and optional editor) in `registry.ts` + file in `widgets/` + styles in `_desktop.scss`.
 
@@ -450,9 +413,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 | `desktop.w.note` | `Note.tsx` | Sticky note, debounced save into config | L379–403 |
 | `desktop.w.goal` | `Goal.tsx` | Vision image + title/caption; async cover decode; editor with file chooser | L404–466 |
 | `desktop.w.countdown` | `Countdown.tsx` | Days until a date, ring; editor | L404–466 |
-| `desktop.w.fxtoday` | `FxToday.tsx` | fx score ring, focus vs target, streak, hourly, up next; `openFx` (kitty) | L238–301 |
-| `desktop.w.fxtasks` | `FxTasks.tsx` | fx task list by severity | L238–301 |
-| `desktop.w.asana` | `Asana.tsx` | Asana Day: fx Tasks look (dot red = overdue), slim week strip (‹ ›, scroll flips weeks, faded = no open tasks); overdue roll onto today; row opens the task (`svc.asana`) | L350–416 |
+| `desktop.w.asana` | `Asana.tsx` | Asana Day: task rows by severity (dot red = overdue), slim week strip (‹ ›, scroll flips weeks, faded = no open tasks); overdue roll onto today; row opens the task (`svc.asana`) | L350–416 |
 | `desktop.editor` | `editor.ts` | "Edit Widget…" popover | L467–502 |
 
 - **Dates model:** `widget/desktop/dates.ts` (`isoDay`, `daysUntil`, `countdownLabel`, `progressBetween`, `monthGrid`). **Test:** `dates.test.ts`. Also used by `bar.datemenu`.
@@ -465,8 +426,8 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 
 ### `ext.hypr.shell` — AGS keybinds & layer rules
 - **Code:** `conf/shell.lua` (55 lines). `ags(cmd)` helper L5 → `ags request <cmd>`.
-- **Keybinds → IPC, L7–21:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Super+B `bridge` (tomorrow's first question, now) · Print → `toggle-shotmenu` (screenshot session) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
-- **Layer rules L23–55:** `ags-no-anim` (`shot`, so it vanishes before grim captures; `bridgenote`, whose slap and swoop AGS draws) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu|bridge` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
+- **Keybinds → IPC, L7–21:** Super+Space launcher · Super+. launcher in emoji mode (`toggle-launcher :`) · Super+Shift+F files · Super+Shift+V clipboard · Super+W wallpapers · Super+G widgets · Super+Tab overview · Print → `toggle-shotmenu` (screenshot session) / Shift+Print `screenshot-full` · Super+Shift+R restart AGS · brightness keys → `brightnessctl` + `osd-brightness`.
+- **Layer rules L23–55:** `ags-no-anim` (`shot`, so it vanishes before grim captures; `fontbench`) · `ags-blur` for `bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu` · `bar-blur-popups` for `bar|desktop`. **A new layer window needs its namespace added to `ags-blur`.**
 - **Pairs with:** `core.app` (one `if` per IPC command), `core.motion` (AGS moves content, Hyprland fades the layer).
 
 ### `ext.hypr.binds` — window, workspace & media binds
@@ -504,7 +465,6 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 | `~/.local/state/ags/desktop.json` (+ `.bak`) | `desktop.store` |
 | `~/.local/share/pomodoro/data.json` | `svc.pomodoro` |
 | `~/.local/share/ags/timers.json` | `svc.timer` |
-| `~/.local/state/ags/shell-mode` | `shell.mood` |
 | `~/.local/share/recently-used.xbel` (via `Gtk.RecentManager`; opening a file adds it) | `launcher` files mode |
 | `~/.cache/theme_mode`, `theme_idx`, `last_wall` | `cc.theme` (read by `desktop.gallery` for the Goal sample) |
 | `~/.cache/ags-files.txt` | `files` |

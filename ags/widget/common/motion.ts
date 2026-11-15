@@ -56,10 +56,6 @@ export const EASE = {
   standard: curve(CURVES.standard),
   out: curve(CURVES.out), // fast arrival, long quiet settle
   in: curve(CURVES.in),
-  // the corner note: overshoots past rest, then settles (the one exception to "no bounce")
-  back: curve(CURVES.back),
-  lift: curve(CURVES.lift), // a quick pick-up
-  swoop: curve(CURVES.swoop), // gathers speed until it's gone
 }
 
 // offset from rest: px translation, fx = fraction of own width, scale, opacity;
@@ -217,8 +213,6 @@ export const ENTER = {
   side: { from: { x: -6, opacity: 0 }, duration: MOTION.enter * 0.8, ease: EASE.out },
   // a desktop widget appearing on the grid (added from the gallery)
   add: { from: { scale: 0.9, opacity: 0 }, duration: MOTION.enter, ease: EASE.out },
-  // the corner note: slapped down from past the corner, a little more tilted, overshooting into place
-  slap: { from: { x: 96, y: 96, rot: -3 }, duration: MOTION.enter, ease: EASE.back },
 } satisfies Record<string, Anim>
 
 // a desktop widget dropped into its slot: glide the leftover offset (and lift) back to rest
@@ -231,9 +225,6 @@ export const LEAVE = {
   content: { to: { opacity: 0 }, duration: MOTION.exit * 0.7, ease: EASE.in },
   // a desktop widget removed: shrink and fade where it stands
   remove: { to: { scale: 0.9, opacity: 0 }, duration: MOTION.exit, ease: EASE.in },
-  // the corner note picked up (lift), then thrown off past the corner (swoop, from wherever lift left it)
-  lift: { to: { x: -6, y: -6, rot: -0.5 }, duration: MOTION.lift, ease: EASE.lift },
-  swoop: { to: { x: 240, y: 240 }, duration: MOTION.swoop, ease: EASE.swoop },
 } satisfies Record<string, Anim>
 
 // play `anim` on `m` every time `w` (a popover, a window) is about to show

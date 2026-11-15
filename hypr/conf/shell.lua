@@ -11,7 +11,6 @@ hl.bind(mod .. " + SHIFT + V",   ags("toggle-clipboard"))
 hl.bind(mod .. " + W",           ags("toggle-wallpapers"))
 hl.bind(mod .. " + G",           ags("toggle-widgets")) -- desktop edit mode + gallery
 hl.bind(mod .. " + TAB",         ags("toggle-overview"))
-hl.bind(mod .. " + B",           ags("bridge")) -- leave tomorrow's first question now
 hl.bind("Print",                 ags("toggle-shotmenu"))
 hl.bind("SHIFT + Print",         ags("screenshot-full"))
 hl.bind(mod .. " + SHIFT + R",   hl.dsp.exec_cmd("sh -c 'ags quit; sleep 0.3; setsid ~/.config/hypr/scripts/ags-run.sh'"))
@@ -25,11 +24,10 @@ hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -n1 set 5%- && a
 -- A new AGS layer window needs its namespace added to ags-blur.
 
 -- "shot" is the region selector: it must vanish instantly before grim captures, and stay unblurred.
--- "bridgenote" is the corner note: AGS draws its slap in and swoop out, a fade on top would blur them.
 -- "fontbench" is scripts/fontbench: grim captures its cards right after first paint, so no fade.
 hl.layer_rule({
     name    = "ags-no-anim",
-    match   = { namespace = "^(shot|bridgenote|fontbench)$" },
+    match   = { namespace = "^(shot|fontbench)$" },
     no_anim = true,
 })
 
@@ -44,7 +42,7 @@ hl.layer_rule({
 
 hl.layer_rule({
     name         = "ags-blur",
-    match        = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu|bridge)$" },
+    match        = { namespace = "^(bar|desktop|launcher|files|clipboard|wallpapers|overview|toasts|osd|shotpreview|shotmenu)$" },
     blur         = true,
     ignore_alpha = 0.1,
 })

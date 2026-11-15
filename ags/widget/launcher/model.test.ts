@@ -21,22 +21,14 @@ test("takeMode turns a leading prefix into a mode and keeps the rest", () => {
   assert.deepEqual(takeMode(":fire"), { mode: "emoji", rest: "fire" })
   assert.deepEqual(takeMode("> htop"), { mode: "shell", rest: "htop" })
   assert.deepEqual(takeMode("  ?  hyprland lua "), { mode: "web", rest: "hyprland lua " })
-  assert.deepEqual(takeMode("! add x /2"), { mode: "fx", rest: "add x /2" })
   assert.deepEqual(takeMode("/ notes md"), { mode: "files", rest: "notes md" })
   // a prefix later on is just text
   assert.equal(takeMode("a=b"), null)
 })
 
 test("takeMode with a prefix and nothing after it", () => {
-  for (const [p, mode] of [["=", "calc"], [":", "emoji"], [">", "shell"], ["?", "web"], ["!", "fx"], ["/", "files"]] as const)
+  for (const [p, mode] of [["=", "calc"], [":", "emoji"], [">", "shell"], ["?", "web"], ["/", "files"]] as const)
     assert.deepEqual(takeMode(p), { mode, rest: "" })
-})
-
-test("takeMode needs a space after fx", () => {
-  assert.deepEqual(takeMode("fx stop"), { mode: "fx", rest: "stop" })
-  assert.deepEqual(takeMode("FX "), { mode: "fx", rest: "" })
-  assert.equal(takeMode("fx"), null)
-  assert.equal(takeMode("fxsomething"), null)
 })
 
 test("looksLikeMath accepts maths and conversions", () => {

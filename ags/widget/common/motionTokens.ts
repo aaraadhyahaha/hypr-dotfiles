@@ -10,10 +10,6 @@ export const DURATIONS = {
   enter: 260, // geometry settling in; Hyprland fades shell layers in over the same time
   exit: 140, // geometry leaving; Hyprland fades shell layers out over the same time
   slide: 320, // toasts arriving from the screen edge
-  lift: 70, // the corner note picked up
-  swoop: 200, // the corner note thrown off
-  flash: 1200, // critical-notification glow holds on the bar's edge (mood)
-  sweep: 900, // one-shot light sweep across the bar when focus ends (mood)
 }
 
 // durations in ms that only Hyprland uses (its windows, not the shell)
@@ -27,7 +23,4 @@ export const CURVES = {
   standard: [0.25, 0.1, 0.25, 1], // state changes ($ease, Hyprland "ease")
   out: [0.16, 1, 0.3, 1], // arrivals: fast, then a long quiet settle
   in: [0.4, 0, 1, 1], // departures
-  back: [0.34, 1.56, 0.64, 1], // the corner note: overshoots past rest, then settles (the one bounce)
-  lift: [0.2, 0, 0, 1], // a quick pick-up
-  swoop: [0.55, 0, 1, 0.45], // gathers speed until it's gone
 } satisfies Record<string, readonly [number, number, number, number]>

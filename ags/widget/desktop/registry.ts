@@ -5,8 +5,6 @@ import Asana from "./widgets/Asana"
 import Calendar from "./widgets/Calendar"
 import Clock from "./widgets/Clock"
 import Countdown, { editCountdown } from "./widgets/Countdown"
-import FxTasks from "./widgets/FxTasks"
-import FxToday from "./widgets/FxToday"
 import Goal, { editGoal } from "./widgets/Goal"
 import Note from "./widgets/Note"
 import System from "./widgets/System"
@@ -17,8 +15,6 @@ type Render = (p: WidgetProps) => unknown
 type Editor = (anchor: Gtk.Widget, config: Config, set: (c: Config) => void) => Gtk.Popover
 
 const RENDER: Record<string, Render> = {
-  "fx-today": FxToday,
-  "fx-tasks": FxTasks,
   asana: Asana,
   clock: Clock,
   calendar: Calendar,

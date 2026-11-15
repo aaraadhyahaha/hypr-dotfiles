@@ -1,4 +1,4 @@
-// Typed quick-action grammar for the launcher (timer, volume, power, fx, ...).
+// Typed quick-action grammar for the launcher (timer, volume, power, ...).
 // Pure (no GTK) so it can be unit tested; side effects live in actions.ts.
 
 const UNIT = String.raw`(\d+(?:\.\d+)?)`
@@ -176,58 +176,4 @@ const DANGER_WORDS = new Set(["logout", "reboot", "shutdown", "poweroff"])
 export function riskyPrefix(q: string, intent: Intent): boolean {
   if (intent.kind !== "power" || intent.op === "lock" || intent.op === "suspend") return false
   return !DANGER_WORDS.has(q.trim().split(/\s+/)[0].toLowerCase())
-}
-
-export type FxQuery =
-  | { kind: "list"; filter: string }
-  | { kind: "add"; title: string; severity?: number; effort?: number }
-  | { kind: "stop" }
-  | { kind: "open" }
-
-// `q` is what follows the fx prefix. "add Read ch 4 /3 45m": `/N` is severity
-// (1-5), a unit-suffixed duration is effort in minutes; bare numbers stay in
-// the title.
-export function parseFxQuery(q: string): FxQuery {
-  const t = q.trim()
-  const lower = t.toLowerCase()
-  if (lower === "stop") return { kind: "stop" }
-  if (lower === "open") return { kind: "open" }
-  const add = t.match(/^add(?:\s+(.*))?$/is)
-  if (!add) return { kind: "list", filter: t }
-  let severity: number | undefined
-  let effort: number | undefined
-  const title: string[] = []
-  for (const w of (add[1] ?? "").split(/\s+/).filter(Boolean)) {
-    const sev = w.match(/^\/([1-5])$/)
-    if (sev && severity === undefined) severity = +sev[1]
-    else if (effort === undefined && /[a-z]/i.test(w) && /^\d/.test(w) && parseDuration(w)) effort = Math.max(1, Math.round(parseDuration(w)! / 60))
-    else title.push(w)
-  }
-  const out: FxQuery = { kind: "add", title: title.join(" ") }
-  if (severity !== undefined) out.severity = severity
-  if (effort !== undefined) out.effort = effort
-  return out
-}
-
-// fx's own defaults for `fx add`, shown before Enter
-export const FX_ADD_DEFAULTS = { severity: 3, effort: 30 }
-
-// argv after the fx binary; `--` keeps a title like "-ish notes" from reading as a flag
-export function fxAddArgs(q: { title: string; severity?: number; effort?: number }): string[] {
-  const args = ["add"]
-  if (q.severity !== undefined) args.push("--severity", String(q.severity))
-  if (q.effort !== undefined) args.push("--effort", String(q.effort))
-  return [...args, "--", q.title]
-}
-
-// Open tasks whose title holds every word of `filter` (any order, any case); the task in
-// focus comes first, the rest keep fx's order (severity, highest first)
-export function matchTasks<T extends { id: number; title: string; done: boolean }>(
-  tasks: T[],
-  filter: string,
-  activeId: number | null = null,
-): T[] {
-  const words = filter.toLowerCase().split(/\s+/).filter(Boolean)
-  const hits = tasks.filter((t) => !t.done && words.every((w) => t.title.toLowerCase().includes(w)))
-  return [...hits.filter((t) => t.id === activeId), ...hits.filter((t) => t.id !== activeId)]
 }

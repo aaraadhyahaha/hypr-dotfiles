@@ -14,11 +14,6 @@ import { toggleDateMenu } from "./widget/bar/modules/DateMenu"
 import { toggleCC } from "./widget/bar/quicksettings/cc"
 import Desktop, { toggleEditWidgets } from "./widget/desktop/Desktop"
 import { restoreTimers } from "./service/timer"
-import BridgeSheet from "./widget/bridge/BridgeSheet"
-import BridgeNote from "./widget/bridge/BridgeNote"
-import { startBridge, leaveBridge } from "./service/bridge"
-import { startMood, shellMode, setShellMode } from "./service/mood"
-import { nextMode, parseMode } from "./service/moodModel"
 
 app.start({
   css: style,
@@ -47,21 +42,11 @@ app.start({
     if (argv[0] === "toggle-datemenu") { toggleDateMenu(); return response("ok") }
     if (argv[0] === "toggle-cc") { toggleCC(); return response("ok") }
     if (argv[0] === "toggle-widgets") { toggleEditWidgets(); return response("ok") }
-    if (argv[0] === "bridge") { leaveBridge("day"); return response("ok") }
-    // shell-mode <ambient|both|reactive|cycle>; no argument prints the current mode
-    if (argv[0] === "shell-mode") {
-      if (!argv[1]) return response(shellMode.get())
-      const m = argv[1] === "cycle" ? nextMode(shellMode.get()) : parseMode(argv[1])
-      if (!m) return response("usage: shell-mode <ambient|both|reactive|cycle>")
-      setShellMode(m)
-      return response(m)
-    }
     response("unknown request")
   },
   main() {
     restoreTimers()
     Desktop()
-    BridgeNote()
     app.get_monitors().map(Bar)
     Toasts()
     Launcher()
@@ -73,8 +58,5 @@ app.start({
     ShotMenu()
     Clipboard()
     Overview()
-    BridgeSheet()
-    startBridge()
-    startMood()
   },
 })

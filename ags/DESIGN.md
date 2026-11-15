@@ -88,7 +88,7 @@ One split, everywhere: **Hyprland owns opacity, AGS owns geometry.**
 
 **One source:** every duration and curve below lives in `widget/common/motionTokens.ts`. `motion.ts` imports it, and `npm run motion` generates `styles/_motion.scss` (forwarded by `_tokens.scss`) and `~/.config/hypr/conf/motion.lua` (read by `animations.lua`). To change the shell's speed or feel, edit that one file, run `npm run motion`, then `hyprctl reload` and restart AGS. Never edit the generated files; `motionTokensModel.test.ts` fails if they drift.
 
-- Hyprland fades every AGS layer and popup (`fadeLayersIn/Out`, `fadePopupsIn/Out`), so the blur behind a panel fades with its tint. Fades in use `$dur-enter` + `$ease-out`, the same clock and curve as the move, and fades out use `$dur-exit` + `$ease-in`. An opacity fade drawn by AGS can't do that: with `ignore_alpha` the blur snaps on and off at the threshold, which is a flicker. Only `shot` (the region selector) and `bridgenote` (the corner note) keep `no_anim`.
+- Hyprland fades every AGS layer and popup (`fadeLayersIn/Out`, `fadePopupsIn/Out`), so the blur behind a panel fades with its tint. Fades in use `$dur-enter` + `$ease-out`, the same clock and curve as the move, and fades out use `$dur-exit` + `$ease-in`. An opacity fade drawn by AGS can't do that: with `ignore_alpha` the blur snaps on and off at the threshold, which is a flicker. Only `shot` (the region selector) and `fontbench` keep `no_anim`.
 - AGS moves content with `<Motion>` (`widget/common/motion.ts`), a wrapper that transforms its children at paint time on the frame clock. There's no relayout and no CSS-animation start race; the first frame paints the start pose, it can be interrupted, and it honours GTK's animations setting.
 - Surfaces leave by hiding at once (`win.visible = false`, popover popdown); the compositor fades the last frame out. There are no exit timers.
 - Never animate the size of a popover or other surface: a popup or layer that resizes every frame jitters. Content inside an open panel takes its space at once and settles in (`ENTER.content`).
@@ -101,15 +101,11 @@ One split, everywhere: **Hyprland owns opacity, AGS owns geometry.**
 | `$dur-enter` 260ms + `$ease-out` | `enter` | geometry settling in, workspace pip stretch |
 | `$dur-exit` 140ms + `$ease-in` | `exit` | geometry leaving |
 | — | `slide` 320ms | toasts arriving from the screen edge |
-| `$dur-flash` 1200ms | `flash` | critical-notification glow on the bar (Mood) |
-| `$dur-sweep` 900ms + `$ease` | `sweep` | the light sweep when focus ends (Mood) |
 | — | `settle(from)` (`enter`) | a desktop widget gliding into its slot after a drop, reflow or gallery drag |
 
-Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.16,1,.3,1)` (fast arrival, then a long quiet settle) and `$ease-in` is `(.4,0,1,1)`. `EASE.*` in TS and the `ease`, `easeOut` and `easeIn` curves in Hyprland are the same three, all generated from `CURVES`. No springs, no bounce, with one exception below.
+Curves: `$ease` is `cubic-bezier(.25,.1,.25,1)`, `$ease-out` is `(.16,1,.3,1)` (fast arrival, then a long quiet settle) and `$ease-in` is `(.4,0,1,1)`. `EASE.*` in TS and the `ease`, `easeOut` and `easeIn` curves in Hyprland are the same three, all generated from `CURVES`. No springs, no bounce.
 
 Hyprland's window motion follows the same split: arrivals and moves take `easeOut` (workspaces 300ms, windows 250ms; `COMPOSITOR` in `motionTokens.ts`), window closes take `easeIn` at 140ms, and state fades take `ease` at 160ms.
-
-**The corner note is the one exception** (`bridge.note`). It's opaque paper, not glass, so there's no blur to keep in step: Hyprland doesn't fade it (`no_anim`) and AGS drives both its entry and its exits. `ENTER.slap` (`MOTION.enter`, `EASE.back` = `(.34,1.56,.64,1)`) overshoots about 10px and 0.3° before settling, the only overshoot in the shell. It leaves with `LEAVE.lift` (`$dur-lift` 70ms, `EASE.lift`) then `LEAVE.swoop` (`$dur-swoop` 200ms, `EASE.swoop`), off past the corner, and hides only after the swoop. `Pose.rot` (degrees) exists for it; the `<Motion>` sits inside the -4° rotation, so x/y run along the note's own tilted axes.
 
 `ENTER` presets (call `motion.animate(preset)` *before* showing; `onShow(popover, motion, preset)` wires a popover):
 
@@ -125,20 +121,6 @@ Hyprland's window motion follows the same split: arrivals and moves take `easeOu
 `Pose` also has `sx`/`sy` (stretch one axis on top of `scale`), and `<Motion origin="top-left">` pivots on the corner. The desktop's resize morph uses both: the widget is rebuilt once at its new size, starts stretched back to its old box, and settles. It never resizes every frame.
 
 Window titles cross-fade with no travel, so text never shimmers. Never hard-code a duration: use a token in SCSS and `MOTION.*`/`ENTER.*` in TS.
-
-## Mood
-
-The shell's glass can follow the time of day (**Ambient**), what you're doing (**Reactive**), or both. Switch from the CC segment or `ags request shell-mode <ambient|both|reactive|cycle>`. `service/mood.ts` puts classes on every window; `styles/_mood.scss` styles them. It never reads fx. Restrained: about 12% tint, 1px edges, existing tokens and motion only, no new blur.
-
-- **Ambient** (`amb-dawn` 5–9, `amb-day` 9–17, `amb-dusk` 17–20, `amb-night` 20–5) applies to the bar and every glass panel (popovers, CC, launcher, toasts, OSD): a 12% role tint mixed into the existing fill without changing its alpha, a faint top-left → bottom-right wash, and a 1px inner top highlight. Roles: dawn `$tertiary`, day `$primary` (highlight `$on-surface`), dusk `$error-container` (highlight `$error`), night `$secondary-container` (highlight `$secondary`, weakest).
-- **Reactive** is bar only, highest priority first:
-  1. Critical notification: `$error` bottom edge plus a short inner glow for `$dur-flash` (1200ms).
-  2. Pomodoro: focus `$tertiary`, break `$tertiary-container`. When focus ends, one light sweep crosses the bar (`$dur-sweep`, 900ms). A Watch app focused during focus adds a `$error-container` bottom edge (the nudge).
-  3. Focused app, when no pomodoro runs: Build `$primary`, Write `$secondary`, Browse soft `$tertiary` (6%), Watch `$error-container`; System and unknown apps stay neutral. Music titles are never Watch.
-  4. Caffeine: a faint `$tertiary` top edge, stacking with all of the above.
-- **Both:** ambient owns the wash and the highlight, reactive owns the bar's tint and edges (its rules come later in the partial).
-- Colour changes ease with `$dur-enter $ease-out`. Edges are border colours, so they never fight the highlight's `box-shadow`.
-- Preview a period with `AGS_MOOD_HOUR=19 ags run` (read once at start).
 
 ## Fields
 
@@ -162,8 +144,8 @@ Text entries use `@include field`: a translucent `rgba($surface, .5)` fill, so t
 - **Grid:** 72px cells, 12px gaps and a 24px margin. Sizes are S 2×2, M 4×2, L 4×4 and XL 8×4. A drop onto another widget moves the dragged one to the nearest free spot; ties go to the upper, then the left spot. The other widgets never move. The layout is saved with the grid it was arranged on; on another monitor scale (a different grid) `adapt` moves touching widgets as one group and shows each group flush against the edges it touched, else at the same distance from its nearer edge (or the same relative place in the middle third), without overwriting the saved layout until the next edit.
 - **Dragging never relayouts:** the card follows the pointer as a `<Motion>` paint offset, and is moved in the `Gtk.Fixed` once, on drop, settling from its offset. The resize handle snaps to the kind's sizes, with a ghost that names the size.
 - **Card:** `$panel-bg` glass, `$radius-xl`, 12px padding. Each frame has 10px of transparent bleed so the edit-mode badge straddles the card's corner. Rings, meters and bars are `$primary` (`$tertiary` for vision widgets, `$error` past a threshold) and ease in with `tween`.
-- **Idle cost:** ticking (the clock's sweep) and polling (System) run only while `live` is true, meaning in edit mode or when no tiled or fullscreen window covers the workspace. fx refreshes on changes to `fx.db`, plus once a minute.
-- **Data:** fx widgets read `fx status --json` (`service/fx.ts`); they never write to fx's database. Asana Day only sends GET requests to Asana (token in the keyring, never a file) and refreshes every 5 minutes, only while `live`.
+- **Idle cost:** ticking (the clock's sweep) and polling (System) run only while `live` is true, meaning in edit mode or when no tiled or fullscreen window covers the workspace.
+- **Data:** Asana Day only sends GET requests to Asana (token in the keyring, never a file) and refreshes every 5 minutes, only while `live`.
 - **Gotchas:**
   - No infinite CSS `animation` on the desktop layer; it ignores `live`. Hyprland then re-blurs every translucent window above the desktop on every frame. The `.dw-live-dot` pulse kept the iGPU about 70% busy while idle (about 15% without it).
   - Put `visible` last on a layer window. Set before `layer`, the surface maps on Astal's default layer (TOP) first.

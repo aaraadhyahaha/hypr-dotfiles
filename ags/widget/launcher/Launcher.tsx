@@ -12,12 +12,10 @@ import GLib from "gi://GLib"
 import Gio from "gi://Gio"
 import { readFile, writeFile } from "ags/file"
 import { takeMode, looksLikeMath, cleanCalc, qalcExpr, webUrl, parseEmojiData, searchEmoji, bump, rank, type Emoji, type Frecency, type Item, type Mode } from "./model"
-import { parseAction, parseFxQuery, riskyPrefix } from "./actionsModel"
+import { parseAction, riskyPrefix } from "./actionsModel"
 import { actionItems, refreshActions } from "./actions"
-import { fxItems } from "./fxItems"
 import { type Recent, matchRecent, mergePaths, tildePath } from "./filesModel"
 import { listRecent, addRecent, fileIcon, loadPreview, emptyPreview, PREVIEW_W } from "./preview"
-import { fxStatus, fxProblem, useFx, refreshFx } from "../../service/fx"
 import emojiTsv from "./emojiData"
 
 const FRECENCY_FILE = `${GLib.get_home_dir()}/.cache/ags-launcher.json`
@@ -329,14 +327,13 @@ export default function Launcher() {
         win.queue_resize()
     }
 
-    const MODE_LABEL: Record<Mode, string> = { apps: "", calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web", fx: "fx", files: "Files" }
+    const MODE_LABEL: Record<Mode, string> = { apps: "", calc: "Calc", emoji: "Emoji", shell: "Run", web: "Web", files: "Files" }
     const PLACEHOLDER: Record<Mode, string> = {
         apps: "Search apps…",
         calc: "Expression or conversion…",
         emoji: "Search emoji…",
         shell: "Command…",
         web: "Search the web…",
-        fx: "Filter tasks, add, stop…",
         files: "Search files…",
     }
 
@@ -422,17 +419,6 @@ export default function Launcher() {
             filesSearch(q, keep)
             return
         }
-        if (mode === "fx") {
-            // fresh numbers once per open; rows re-render when they land (see fxChanged)
-            if (!fxFetched) {
-                fxFetched = true
-                useFx()
-                refreshFx()
-            }
-            results = fxItems(parseFxQuery(q))
-            render(keep)
-            return
-        }
 
         const t = q
         const lq = t.toLowerCase()
@@ -509,17 +495,8 @@ export default function Launcher() {
         })
     }
 
-    // fx data that lands while fx rows are shown re-renders them in place
-    let fxFetched = false
-    const fxChanged = () => {
-        if (win?.visible && mode === "fx") search(idOf(results[sel]) ?? "")
-    }
-    fxStatus.subscribe(fxChanged)
-    fxProblem.subscribe(fxChanged)
-
     const open = (prefill = "") => {
         armed = false; lastX = null; lastY = null
-        fxFetched = false
         recent = null
         indexed = false
         setQuery(prefill, false)

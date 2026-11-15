@@ -235,63 +235,6 @@ window.Desktop {
   }
 }
 
-// ── fx ──────────────────────────────────────────────────────────────────────
-
-.dw-score {
-  @include text-size($font-size-6xl);
-  font-weight: 600;
-  font-feature-settings: "tnum";
-}
-
-.dw-score-big {
-  @include text-size(28px);
-  margin-top: 2px;
-}
-
-.dw-focus-big {
-  @include text-size(22px);
-  font-weight: 600;
-  font-feature-settings: "tnum";
-}
-
-.dw-focus-of {
-  margin-bottom: 3px;
-}
-
-.dw-fx-now-text {
-  @include text-size($font-size-base);
-  font-weight: 600;
-}
-
-.dw-live-dot {
-  color: $primary;
-  font-size: 7px;
-  // no pulse: anything animating on the desktop layer makes Hyprland re-blur every translucent
-  // window above it each frame (measured ~60% iGPU busy while idle)
-}
-
-.dw-streak-glyph {
-  font-size: 12px;
-}
-
-.dw-streak.clean .dw-streak-glyph {
-  color: $primary;
-}
-
-.dw-streak.bent .dw-streak-glyph {
-  color: $tertiary;
-}
-
-.dw-streak.reset .dw-streak-glyph {
-  color: $error;
-}
-
-.dw-axis-label {
-  color: $text-faint;
-  @include text-size($font-size-xs);
-  font-feature-settings: "tnum";
-}
-
 .dw-count {
   @include text-size($font-size-sm);
 }
@@ -348,7 +291,6 @@ window.Desktop {
 }
 
 // ── asana ───────────────────────────────────────────────────────────────────
-// Rows reuse fx's .dw-task-row; only the week strip is Asana's own.
 
 .dw-asana-strip {
   margin: 0 -4px;
