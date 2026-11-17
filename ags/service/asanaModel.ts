@@ -50,19 +50,13 @@ export function localDay(t: AsanaTask): string | null {
   return t.dueOn
 }
 
-// tasks due on `iso`; today also gathers every open task that is overdue
-export function tasksForDay(tasks: AsanaTask[], iso: string, todayIso: string): AsanaTask[] {
-  const picked = tasks.filter((t) => {
-    const d = localDay(t)
-    if (!d) return false
-    if (d === iso) return true
-    return iso === todayIso && !t.completed && d < todayIso
-  })
+// tasks due on `iso`, and only those
+export function tasksForDay(tasks: AsanaTask[], iso: string): AsanaTask[] {
+  const picked = tasks.filter((t) => localDay(t) === iso)
   const time = (t: AsanaTask) => (t.dueAt ? Date.parse(t.dueAt) : Infinity)
   return picked.sort(
     (a, b) =>
       Number(a.completed) - Number(b.completed) ||
-      (localDay(a) ?? "").localeCompare(localDay(b) ?? "") || // overdue first
       time(a) - time(b) ||
       a.name.localeCompare(b.name),
   )

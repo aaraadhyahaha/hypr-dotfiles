@@ -124,7 +124,7 @@ Name a section ID (e.g. `cc.wifi`, `desktop.frame.resize`) and only those files 
 
 ### `svc.asana` — Asana My Tasks (read-only, GET only)
 - **Code:** `service/asana.ts` — `asanaTasks`, `asanaProblem` (`no-token`/`auth`/`offline`/`error`), `asanaWeek` state. Token from libsecret (`secret-tool store --label="Asana PAT" service asana`, generic schema, `DONT_MATCH_NAME`). `refreshAsana()` (Soup 3): `/users/me` → first workspace → `user_task_list` → `/user_task_lists/{gid}/tasks?completed_since=<week's Monday>` with paging. `setAsanaWeek(monday)` refetches; `useAsana(live)` starts a 5-min refresh that skips while the desktop is hidden and catches up when it shows; `openTask(url)` → `xdg-open`.
-- **Model:** `service/asanaModel.ts` — `parseTasks`, `localDay` (a `due_at` counts on its local date), `tasksForDay` (today also gathers open overdue), `isOverdue`, `countsByDay`, `weekOf`/`mondayOf`/`shiftWeek`/`addDays`, `dayLabel`. **Test:** `asanaModel.test.ts`.
+- **Model:** `service/asanaModel.ts` — `parseTasks`, `localDay` (a `due_at` counts on its local date), `tasksForDay` (only tasks due that day), `isOverdue`, `countsByDay`, `weekOf`/`mondayOf`/`shiftWeek`/`addDays`, `dayLabel`. **Test:** `asanaModel.test.ts`.
 - **Used by:** `desktop.w.asana`.
 
 ### `svc.timer` — countdown timers
@@ -419,7 +419,7 @@ Shared: `types.ts` (`WidgetProps`, `Config`), `common.ts` (`label`, `box`, `Ring
 | `desktop.w.note` | `Note.tsx` | Sticky note, debounced save into config | L379–403 |
 | `desktop.w.goal` | `Goal.tsx` | Vision image + title/caption; async cover decode; editor with file chooser | L404–466 |
 | `desktop.w.countdown` | `Countdown.tsx` | Days until a date, ring; editor | L404–466 |
-| `desktop.w.asana` | `Asana.tsx` | Asana Day: task rows by severity (dot red = overdue), slim week strip (‹ ›, scroll flips weeks, faded = no open tasks); overdue roll onto today; row opens the task (`svc.asana`) | L350–416 |
+| `desktop.w.asana` | `Asana.tsx` | Asana Day: task rows by severity (dot red = overdue), slim week strip (‹ ›, scroll flips weeks, faded = no open tasks); only the picked day's tasks; row opens the task (`svc.asana`) | L350–416 |
 | `desktop.editor` | `editor.ts` | "Edit Widget…" popover | L467–502 |
 
 - **Dates model:** `widget/desktop/dates.ts` (`isoDay`, `daysUntil`, `countdownLabel`, `progressBetween`, `monthGrid`). **Test:** `dates.test.ts`. Also used by `bar.datemenu`.

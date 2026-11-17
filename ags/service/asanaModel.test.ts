@@ -48,7 +48,7 @@ test("localDay puts a timed deadline on its local date", () => {
   assert.equal(localDay(t({ gid: "c" })), null)
 })
 
-test("tasksForDay rolls open overdue tasks onto today only", () => {
+test("tasksForDay lists only the tasks due that day", () => {
   const tasks = [
     t({ gid: "late", dueOn: "2026-11-10" }),
     t({ gid: "lateDone", dueOn: "2026-11-10", completed: true }),
@@ -56,9 +56,9 @@ test("tasksForDay rolls open overdue tasks onto today only", () => {
     t({ gid: "tomorrow", dueOn: "2026-11-15" }),
     t({ gid: "none" }),
   ]
-  assert.deepEqual(tasksForDay(tasks, "2026-11-14", "2026-11-14").map((x) => x.gid), ["late", "today"])
-  assert.deepEqual(tasksForDay(tasks, "2026-11-10", "2026-11-14").map((x) => x.gid), ["late", "lateDone"])
-  assert.deepEqual(tasksForDay(tasks, "2026-11-15", "2026-11-14").map((x) => x.gid), ["tomorrow"])
+  assert.deepEqual(tasksForDay(tasks, "2026-11-14").map((x) => x.gid), ["today"])
+  assert.deepEqual(tasksForDay(tasks, "2026-11-10").map((x) => x.gid), ["late", "lateDone"])
+  assert.deepEqual(tasksForDay(tasks, "2026-11-15").map((x) => x.gid), ["tomorrow"])
   assert.equal(isOverdue(tasks[0], "2026-11-14"), true)
   assert.equal(isOverdue(tasks[1], "2026-11-14"), false)
 })
@@ -72,7 +72,7 @@ test("tasksForDay orders open before done, then by time, then by name", () => {
     t({ gid: "early", name: "Y", dueAt: at(9) }),
     t({ gid: "untimed2", name: "A", dueOn: "2026-11-14" }),
   ]
-  assert.deepEqual(tasksForDay(tasks, "2026-11-14", "2026-11-01").map((x) => x.gid), ["early", "late", "untimed2", "untimed", "done"])
+  assert.deepEqual(tasksForDay(tasks, "2026-11-14").map((x) => x.gid), ["early", "late", "untimed2", "untimed", "done"])
 })
 
 test("countsByDay counts open tasks per day", () => {

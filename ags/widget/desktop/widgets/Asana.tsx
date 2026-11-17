@@ -2,23 +2,18 @@ import { Gdk, Gtk } from "ags/gtk4"
 import { createState, onCleanup } from "ags"
 import Pango from "gi://Pango"
 import { asanaProblem, asanaTasks, openTask, setAsanaWeek, useAsana } from "../../../service/asana"
-import { addDays, countsByDay, dayLabel, isOverdue, localDay, mondayOf, tasksForDay, weekOf, type AsanaTask } from "../../../service/asanaModel"
+import { addDays, countsByDay, dayLabel, isOverdue, mondayOf, tasksForDay, weekOf, type AsanaTask } from "../../../service/asanaModel"
 import { MOTION } from "../../common/motion"
 import { isoDay } from "../dates"
 import { editing } from "../state"
 import { EmptyState, SeverityDot, box, label, onNewDay } from "./common"
 import type { WidgetProps } from "./types"
 
-// Your Asana tasks for the day picked on the week strip: due that day, and on today every open
-// task that's overdue too. Finished ones sink to the bottom, struck. Read-only; a row opens the
+// Your Asana tasks due on the day picked on the week strip, nothing else. Finished ones sink to the bottom, struck. Read-only; a row opens the
 // task in the browser. The picked day isn't saved: the widget always opens on today.
 
 const ROWS = { m: 3, l: 9 } as const
-const SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-// "Yest", else "Mon": short enough for the time column
-const shortDay = (iso: string, todayIso: string) =>
-  dayLabel(iso, todayIso) === "Yesterday" ? "Yest" : SHORT[new Date(`${iso}T12:00:00`).getDay()]
 const LETTERS = ["M", "T", "W", "T", "F", "S", "S"]
 
 const flat = (cls: string, child: Gtk.Widget) => {
@@ -85,11 +80,10 @@ export default function Asana(p: WidgetProps) {
   stack.add_named(EmptyState("\uf071", "Asana didn't answer", "Will try again shortly."), "error")
   stack.add_named(EmptyState("\uf254", "Loading…"), "loading")
 
-  // dot: red when overdue, accent when open; the right column is the due time, or for an
-  // overdue task the short day it was due
+  // dot: red when overdue (an open task on a past day), accent when open; right column is the due time
   const Row = (t: AsanaTask) => {
     const late = isOverdue(t, today)
-    const meta = late ? shortDay(localDay(t)!, today) : timeOf(t)
+    const meta = timeOf(t)
     const row = box("dw-task-row", false, 8, [
       SeverityDot(late ? 5 : 3),
       label(t.name, "dw-task-title", { ellipsize: Pango.EllipsizeMode.END, hexpand: true }),
@@ -130,7 +124,7 @@ export default function Asana(p: WidgetProps) {
       stack.set_visible_child_name(problem ?? "loading")
       return
     }
-    const shown = tasksForDay(all, d, today)
+    const shown = tasksForDay(all, d)
     const open = shown.filter((t) => !t.completed).length
     count.label = open === 1 ? "1 open" : `${open} open`
     // a token problem outranks stale data; a network blip doesn't
