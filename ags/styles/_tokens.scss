@@ -72,7 +72,8 @@ $glass-panel: rgba($surface-container, 0.62);
 $glass-card: rgba(#fff, 0.55);
 $glass-track: rgba($on-surface, 0.1);
 $glass-field: rgba($surface, 0.45);
-$glass-hairline: rgba(#fff, 0.65);
+// light: a faint dark edge, not a white rim (a white rim glows against the wallpaper)
+$glass-hairline: rgba($on-surface, 0.07);
 $separator: rgba($on-surface-variant, 0.22);
 $panel-shadow: 0 16px 48px rgba($shadow, 0.28);
 @if $is-dark {
