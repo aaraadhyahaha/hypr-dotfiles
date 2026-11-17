@@ -93,3 +93,8 @@ export function fitSize(iw: number, ih: number, w: number, h: number): [number, 
   const s = Math.min(1, w / iw, h / ih)
   return [Math.max(1, Math.round(iw * s)), Math.max(1, Math.round(ih * s))]
 }
+
+// a text/uri-list payload: one URI per line, CRLF endings (RFC 2483)
+export function uriList(uris: string[]): string {
+  return uris.join("\r\n") + "\r\n"
+}

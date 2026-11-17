@@ -12,6 +12,7 @@ import {
   itemCount,
   tildePath,
   fitSize,
+  uriList,
 } from "./filesModel.ts"
 
 test("matchTier ranks prefix, substring, subsequence, then path", () => {
@@ -97,4 +98,9 @@ test("fitSize keeps aspect and never upscales", () => {
   assert.deepEqual(fitSize(4000, 2000, 300, 260), [300, 150])
   assert.deepEqual(fitSize(1000, 4000, 300, 260), [65, 260])
   assert.deepEqual(fitSize(100, 50, 300, 260), [100, 50])
+})
+
+test("uriList ends every URI with CRLF", () => {
+  assert.equal(uriList(["file:///h/a.txt"]), "file:///h/a.txt\r\n")
+  assert.equal(uriList(["file:///h/a.txt", "file:///h/b%20c.png"]), "file:///h/a.txt\r\nfile:///h/b%20c.png\r\n")
 })

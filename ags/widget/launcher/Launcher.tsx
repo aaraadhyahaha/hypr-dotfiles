@@ -2,6 +2,7 @@ import app from "ags/gtk4/app"
 import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { Motion, ENTER, LEAVE, MOTION } from "../common/motion"
 import { surfaceTop } from "../common/surface"
+import { attachFileDrag } from "../common/fileDrag"
 import Pango from "gi://Pango"
 import Apps from "gi://AstalApps"
 import { toggleWallpapers } from "../wallpapers/Wallpapers"
@@ -171,6 +172,10 @@ export default function Launcher() {
     let paneCancel: Gio.Cancellable | null = null
     let recent: Recent[] | null = null
     let indexed = false
+    // a file row is being dragged; the card is hidden, but keeps its state for a cancelled drag
+    let dragging = false
+    // a render that arrived mid-drag (a late index search): run on drag end, so the dragged row stays put
+    let renderLater: { keep?: string } | null = null
 
     const swapPane = (w: Gtk.Widget) => {
         let c
@@ -251,6 +256,7 @@ export default function Launcher() {
 
     // `keep`: the name of the row to stay on, for a data refresh under an unchanged query
     const render = (keep?: string) => {
+        if (dragging) { renderLater = { keep }; return }
         armed = false
         if (keep === undefined) scroller.get_vadjustment().set_value(0)
         let c
@@ -312,11 +318,37 @@ export default function Launcher() {
                 row.add_css_class("info")
             }
             const click = new Gtk.GestureClick()
-            click.connect("pressed", () => launch(a))
+            // released, not pressed: a drag claims the press and resets this gesture
+            click.connect("released", () => launch(a))
             row.add_controller(click)
-            const motion = new Gtk.EventControllerMotion()
-            motion.connect("enter", () => { if (armed) setSel(i) })
-            row.add_controller(motion)
+            const hover = new Gtk.EventControllerMotion()
+            hover.connect("enter", () => { if (armed && !dragging) setSel(i) })
+            row.add_controller(hover)
+            const path = a.preview
+            if (path) attachFileDrag(row, path, {
+                begin: () => {
+                    dragging = true
+                    close()
+                },
+                end: (dropped) => {
+                    dragging = false
+                    const later = renderLater
+                    renderLater = null
+                    if (dropped) {
+                        // a dropped file counts as used, like opening it
+                        addRecent(path)
+                        if (later) render(later.keep)
+                        return
+                    }
+                    // cancelled: bring the card back as it was (query, mode tab, selection, preview),
+                    // without open()'s reset; hover stays off until the pointer really moves
+                    if (later) render(path)
+                    armed = false; lastX = null; lastY = null
+                    motion.animate(ENTER.card)
+                    win.visible = true
+                    entry.grab_focus()
+                },
+            })
             list.append(row)
             rows.push(row)
         })

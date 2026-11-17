@@ -3,6 +3,7 @@ import { Astal, Gtk, Gdk } from "ags/gtk4"
 import { timeout } from "ags/time"
 import { Motion, ENTER } from "../common/motion"
 import { surfaceTop } from "../common/surface"
+import { attachFileDrag } from "../common/fileDrag"
 import { execAsync } from "ags/process"
 import GLib from "gi://GLib"
 import Gio from "gi://Gio"
@@ -59,6 +60,7 @@ export default function Files() {
     let sel = 0
     let seq = 0
     let debounce: { cancel: () => void } | null = null
+    let dragging = false
 
     const setSel = (i: number) => {
         if (!rows.length) return
@@ -106,11 +108,26 @@ export default function Files() {
             row.append(text)
 
             const click = new Gtk.GestureClick()
-            click.connect("pressed", () => openSel(path))
+            // released, not pressed: a drag claims the press and resets this gesture
+            click.connect("released", () => openSel(path))
             row.add_controller(click)
-            const motion = new Gtk.EventControllerMotion()
-            motion.connect("enter", () => setSel(i))
-            row.add_controller(motion)
+            const hover = new Gtk.EventControllerMotion()
+            hover.connect("enter", () => !dragging && setSel(i))
+            row.add_controller(hover)
+            attachFileDrag(row, path, {
+                begin: () => {
+                    dragging = true
+                    close()
+                },
+                end: (dropped) => {
+                    dragging = false
+                    if (dropped) return
+                    // cancelled: bring the card back as it was, without open()'s reset
+                    motion.animate(ENTER.card)
+                    win.visible = true
+                    entry.grab_focus()
+                },
+            })
 
             list.append(row)
             rows.push(row)
