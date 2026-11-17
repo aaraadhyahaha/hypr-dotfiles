@@ -444,7 +444,7 @@ window.Desktop {
 }
 
 .dw-count-ring {
-  color: $tertiary;
+  color: $primary;
 }
 
 .dw-count-big {
@@ -453,7 +453,7 @@ window.Desktop {
   font-feature-settings: "tnum";
 
   &.glyph {
-    color: $tertiary;
+    color: $primary;
     // .glyph's icon font (_base.scss) loses to text-size()'s family and tracking above: restate them
     font-family: $font-icon;
     font-size: 24px;
@@ -472,7 +472,7 @@ window.Desktop {
 }
 
 .dw-count-left {
-  color: $tertiary;
+  color: $primary;
   @include text-size($font-size-base);
   font-weight: 600;
 }
